@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI for Earth Observation &amp; Remote Sensing | SpaceAI Poster Session</title>
+  <style>
+    :root {
+      --isu-blue: rgba(0, 20, 84, 0.88);
+      --accent: rgba(0, 51, 128, 0.85);
+      --white: #ffffff;
+      --text: #e8ecff;
+      --background-image: url('https://images.pexels.com/photos/18507019/pexels-photo-18507019.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1080&w=1920');
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Calibri', 'Arial', sans-serif;
+      color: var(--text);
+      background-image: var(--background-image);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      padding: 2rem;
+    }
+
+    .poster-shell {
+      background: linear-gradient(145deg, var(--isu-blue), var(--accent));
+      width: min(900px, 100%);
+      padding: clamp(2rem, 4vw, 3rem);
+      border-radius: 28px;
+      box-shadow: 0 30px 60px rgba(0, 8, 32, 0.55);
+      text-align: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .poster-shell img {
+      width: clamp(140px, 28vw, 220px);
+      height: auto;
+      margin-bottom: 1.5rem;
+      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.4));
+    }
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      margin: 0 0 1.75rem;
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    section {
+      text-align: left;
+      background: rgba(255, 255, 255, 0.08);
+      padding: clamp(1.5rem, 3vw, 2rem);
+      border-radius: 20px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+      margin-bottom: 2rem;
+    }
+
+    section h2 {
+      margin-top: 0;
+      font-size: 1.35rem;
+      color: var(--white);
+      letter-spacing: 0.02em;
+    }
+
+    section p {
+      margin: 0 0 1.25rem;
+      font-size: 1.05rem;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.35rem 1.25rem;
+      list-style: square;
+    }
+
+    a.cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      text-decoration: none;
+      color: var(--isu-blue);
+      background: var(--white);
+      padding: 0.75rem 1.75rem;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    a.cta:hover,
+    a.cta:focus-visible {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 32px rgba(0, 20, 84, 0.32);
+    }
+
+    @media (max-width: 600px) {
+      ul {
+        grid-template-columns: 1fr;
+        padding-left: 1.1rem;
+      }
+
+      section {
+        padding: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="poster-shell">
+    <img src="../../ISU-Logo-patch-300px.png" alt="International Space University mission patch">
+    <h1>AI for Earth Observation &amp; Remote Sensing</h1>
+    <p class="subtitle">International Space University • SpaceAI Poster Session</p>
+
+    <section>
+      <h2>Project Overview</h2>
+      <p>Satellite imagery classification, anomaly detection, climate monitoring and disaster response. Explore how machine learning models (CNNs, transformers) process multispectral data, how AI supports climate models, or how edge AI enables on-board data processing.</p>
+      <h2>Team Members</h2>
+      <ul>
+        <li>Nitya Palekar</li>
+        <li>Eleanor Lang Buchanan</li>
+        <li>Ludivine Euranie</li>
+        <li>Akira Yoshida</li>
+        <li>Vinay Lakshman</li>
+        <li>Sarah Khayat</li>
+        <li>Barnabás Jenőfi</li>
+      </ul>
+    </section>
+
+    <a class="cta" href="../../index.html">Return to SpaceAI Home</a>
+  </main>
+</body>
+</html>
