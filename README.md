@@ -19,6 +19,6 @@ The `assignments.csv` file contains the student list and their assigned topic.  
 
 * **Effective poster design.**  Jane E. Miller’s paper “Preparing and Presenting Effective Research Posters” emphasises that a good poster should centre on two or three key findings and translate complex results into simplified charts and bullet points.  Don’t copy paragraphs from your report – your poster is a **visual summary**.
 * **Storytelling in science.**  The article *“Bridging the Gap: Strategies for Communicating Complex Science with Posters”* notes that understanding your audience, simplifying your message, and telling a compelling story are key to an effective poster.  It recommends using diagrams, infographics and a clear narrative arc (problem, solution, impact).
-* **Poster design guidelines.**  Brown University’s poster guide suggests large title fonts, smaller body text and high‑contrast colours【924871956520733†L85-L93】.  It also reminds you to use high‑resolution images (300 ppi) to avoid pixelation when printed【924871956520733†L101-L107】.
+* **Poster design guidelines.**  Brown University’s poster guide suggests large title fonts, smaller body text and high‑contrast colors.  It also reminds you to use high‑resolution images (300 ppi) to avoid pixelation when printed.
 
 If you have questions or run into problems, please contact the organising team via email.
