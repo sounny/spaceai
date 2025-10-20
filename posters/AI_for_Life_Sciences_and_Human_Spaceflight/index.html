@@ -10,7 +10,7 @@
       --accent: rgba(14, 82, 160, 0.85);
       --white: #ffffff;
       --text: #e8ecff;
-      --background-image: url('https://images.pexels.com/photos/18507019/pexels-photo-18507019.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1080&w=1920');
+      --background-image: url('../../pexels-shashank-brahmavar-737732917-18507019.jpg');
     }
 
     * {
@@ -61,6 +61,23 @@
       font-size: 1.05rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+    }
+
+    .status-banner {
+      margin: 1.75rem 0 2rem;
+      padding: clamp(1rem, 2.5vw, 1.35rem) clamp(1.35rem, 3vw, 1.85rem);
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      font-size: 1.05rem;
+      letter-spacing: 0.01em;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+    }
+
+    .status-banner span {
+      font-size: 1.6rem;
     }
 
     section {
@@ -131,6 +148,11 @@
     <img src="../../ISU-Logo-patch-300px.png" alt="International Space University mission patch">
     <h1>AI for Life Sciences &amp; Human Spaceflight</h1>
     <p class="subtitle">International Space University • SpaceAI Poster Session</p>
+
+    <div class="status-banner">
+      <span aria-hidden="true">🧪</span>
+      <p>Med bay reports the crew is still in pre-flight quarantine—the life sciences mission is prepping experiments before we light this poster’s engines.</p>
+    </div>
 
     <section>
       <h2>Project Overview</h2>
