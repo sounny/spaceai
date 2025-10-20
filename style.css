@@ -1,0 +1,174 @@
+/*
+ * ISU themed styles for the AI in Space poster session
+ * Primary colour palette: ISU blue (#001454) and white【691809823335624†L62-L76】
+ * Typography: Calibri (preferred), Arial, sans‑serif【691809823335624†L122-L128】
+ */
+
+:root {
+  --isu-blue: #001454;
+  --isu-secondary: #002366;
+  --isu-accent: #0a3c86;
+  --white: #ffffff;
+  --light-bg: #f8f9fa;
+  --text-color: #333333;
+  --heading-font: 'Calibri', 'Arial', sans-serif;
+  --body-font: 'Calibri', 'Arial', sans-serif;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--body-font);
+  color: var(--text-color);
+  background-color: var(--light-bg);
+  line-height: 1.6;
+}
+
+header.hero {
+  background: var(--isu-blue);
+  color: var(--white);
+  padding: 4rem 1rem 3rem;
+  text-align: center;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  letter-spacing: 0.02em;
+}
+
+.hero .tagline {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero .date {
+  margin-top: 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+nav.navbar {
+  background: var(--isu-secondary);
+  padding: 0.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+nav.navbar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+nav.navbar li a {
+  color: var(--white);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.5rem 0;
+}
+
+nav.navbar li a:hover {
+  border-bottom: 2px solid var(--white);
+}
+
+main {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+section {
+  margin-bottom: 3rem;
+}
+
+section h2 {
+  font-size: 1.8rem;
+  color: var(--isu-blue);
+  margin-bottom: 0.5rem;
+}
+
+section h3 {
+  font-size: 1.3rem;
+  color: var(--isu-secondary);
+  margin: 0.5rem 0;
+}
+
+section h4 {
+  margin: 0.5rem 0 0.25rem;
+  color: var(--isu-accent);
+  font-weight: 600;
+}
+
+table.schedule {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+table.schedule th, table.schedule td {
+  border: 1px solid #e0e0e0;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+table.schedule th {
+  background-color: var(--isu-secondary);
+  color: var(--white);
+  font-weight: 600;
+}
+
+table.schedule tr:nth-child(even) td {
+  background-color: #f2f5fa;
+}
+
+ol {
+  margin-left: 1.5rem;
+}
+
+.topics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.topic {
+  background: var(--white);
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.topic ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  list-style: disc;
+}
+
+footer {
+  background: var(--isu-secondary);
+  color: var(--white);
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+  nav.navbar ul {
+    flex-direction: column;
+    align-items: center;
+  }
+}
