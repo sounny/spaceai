@@ -30,7 +30,11 @@ html, body {
 }
 
 header.hero {
-  background: linear-gradient(135deg, rgba(0, 20, 84, 0.92), rgba(10, 60, 134, 0.9));
+  background-image: linear-gradient(135deg, rgba(0, 20, 84, 0.86), rgba(10, 60, 134, 0.78)),
+    url('pexels-shashank-brahmavar-737732917-18507019.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   color: var(--white);
   text-align: center;
   position: relative;
