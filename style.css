@@ -190,18 +190,21 @@ section h4 {
   background: var(--white);
   border-radius: 16px;
   box-shadow: var(--card-shadow);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
 .jury-card img {
-  width: 100%;
+  width: clamp(140px, 60%, 200px);
   height: auto;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  background: var(--isu-secondary);
+  border-radius: 50%;
+  align-self: center;
+  margin: 1.5rem auto 0;
+  background: transparent;
+  box-shadow: 0 10px 24px rgba(0, 20, 84, 0.18);
 }
 
 .jury-info {
