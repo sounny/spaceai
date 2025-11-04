@@ -236,6 +236,50 @@ section h4 {
   color: var(--isu-accent);
 }
 
+.organizer-card {
+  margin-top: 2rem;
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.organizer-card img {
+  width: clamp(140px, 28vw, 200px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 0 10px 24px rgba(0, 20, 84, 0.18);
+}
+
+.organizer-details {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.organizer-details h3 {
+  margin: 0;
+  color: var(--isu-blue);
+}
+
+.organizer-title {
+  margin: 0;
+  font-weight: 600;
+  color: var(--isu-accent);
+}
+
+.organizer-details p {
+  margin: 0;
+  font-size: 0.97rem;
+}
+
 table.schedule {
   width: 100%;
   border-collapse: collapse;
