@@ -175,6 +175,111 @@ section h4 {
   font-weight: 700;
 }
 
+.jury-panel p {
+  margin-top: 0;
+}
+
+.jury-grid {
+  display: grid;
+  gap: 1.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: 1.5rem;
+}
+
+.jury-card {
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.jury-card img {
+  width: clamp(140px, 60%, 200px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 50%;
+  align-self: center;
+  margin: 1.5rem auto 0;
+  background: transparent;
+  box-shadow: 0 10px 24px rgba(0, 20, 84, 0.18);
+}
+
+.jury-info {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.jury-info h3 {
+  margin: 0;
+  color: var(--isu-blue);
+}
+
+.jury-title {
+  font-weight: 600;
+  color: var(--isu-accent);
+  margin: 0;
+}
+
+.jury-info p {
+  margin: 0;
+  font-size: 0.97rem;
+}
+
+.jury-summary {
+  margin-top: 1.75rem;
+  font-weight: 600;
+  color: var(--isu-accent);
+}
+
+.organizer-card {
+  margin-top: 2rem;
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.organizer-card img {
+  width: clamp(140px, 28vw, 200px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 0 10px 24px rgba(0, 20, 84, 0.18);
+}
+
+.organizer-details {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.organizer-details h3 {
+  margin: 0;
+  color: var(--isu-blue);
+}
+
+.organizer-title {
+  margin: 0;
+  font-weight: 600;
+  color: var(--isu-accent);
+}
+
+.organizer-details p {
+  margin: 0;
+  font-size: 0.97rem;
+}
+
 table.schedule {
   width: 100%;
   border-collapse: collapse;

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#001454"/>
+      <stop offset="100%" stop-color="#0a3c86"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="480" fill="url(#bg)"/>
+  <g fill="#ffffff" font-family="'Calibri', 'Arial', sans-serif">
+    <text x="50%" y="38%" font-size="48" font-weight="600" text-anchor="middle">François Spiero</text>
+    <text x="50%" y="54%" font-size="26" text-anchor="middle">Strategic Foresight Manager</text>
+    <text x="50%" y="62%" font-size="24" text-anchor="middle">CNES &amp; ISU Global Faculty</text>
+  </g>
+</svg>
