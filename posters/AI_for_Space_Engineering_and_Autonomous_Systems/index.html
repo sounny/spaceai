@@ -6,11 +6,11 @@
   <title>AI for Space Engineering &amp; Autonomous Systems | SpaceAI Poster Session</title>
   <style>
     :root {
-      --isu-blue: rgba(0, 20, 84, 0.88);
+      --isu-blue: rgba(100, 0, 84, 0.88);
       --accent: rgba(10, 60, 134, 0.85);
       --white: #ffffff;
       --text: #e8ecff;
-      --background-image: url('../../pexels-shashank-brahmavar-737732917-18507019.jpg');
+      --background-image: url('../../dc test.jpeg');
     }
 
     * {
@@ -23,7 +23,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Calibri', 'Arial', sans-serif;
+      font-family: 'Times', 'Arial', sans-serif;
       color: var(--text);
       background-image: var(--background-image);
       background-size: cover;
@@ -161,7 +161,7 @@
       <ul>
         <li>Ruchira Hanumant Huchgol</li>
         <li>Bailey Thomas Mendel</li>
-        <li>David Roberto Guevara Razo</li>
+        <li>David Razo</li>
         <li>Venu Satish Jangam</li>
         <li>Aastha Nareshkumar Bhatt</li>
         <li>Nina Velimirović</li>
@@ -170,6 +170,26 @@
     </section>
 
     <a class="cta" href="../../index.html">Return to SpaceAI Home</a>
+
+<!-- Interactive: AI Applications Readiness (Chart.js) -->
+    <section aria-labelledby="chart-title">
+      <h2 id="chart-title">Interactive: AI Applications Readiness</h2>
+      <p>Explore the current maturity of AI across subsystems. Use the toggles to compare scenarios.</p>
+
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+        <button type="button" id="scenario-baseline" class="cta" aria-pressed="true">Baseline</button>
+        <button type="button" id="scenario-optimistic" class="cta" aria-pressed="false">Optimistic</button>
+        <button type="button" id="scenario-conservative" class="cta" aria-pressed="false">Conservative</button>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.08); padding: 1rem; border-radius: 16px;">
+        <canvas id="aiReadinessChart" height="220" aria-label="Radar chart of AI readiness by subsystem" role="img"></canvas>
+      </div>
+
+      <small>Scale: 0 (nascent) to 5 (flight-proven). Subsystems: GNC, RPO, Fault Detection, Power, Thermal, Surface Ops.</small>
+    </section>
+
+
   </main>
 </body>
 </html>
