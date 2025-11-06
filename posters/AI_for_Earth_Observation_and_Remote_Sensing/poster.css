@@ -17,7 +17,7 @@
 html,body{
   height: 100%;
   margin: 0;
-  font-family: Calibri, Arial, 'Helvetica Neue', sans-serif;
+  font-family: 'Inter', Calibri, Arial, 'Helvetica Neue', sans-serif;
   background: var(--bg-dark) url('../../pexels-shashank-brahmavar-737732917-18507019.jpg') center/cover no-repeat fixed;
   color: var(--text-light);
 }
@@ -40,10 +40,14 @@ html,body{
 }
 
 #poster-title{
+  font-family: 'Orbitron', 'Inter', Calibri, Arial, sans-serif;
   font-size: 56px;
   line-height: 1.02;
   margin: 6px 0 8px 0;
   color: var(--white);
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .subtitle{
