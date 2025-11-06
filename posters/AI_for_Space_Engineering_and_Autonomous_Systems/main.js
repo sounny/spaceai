@@ -321,10 +321,12 @@ function initCharts() {
     // Benefits Comparison Chart
     const benefitsCtx = document.getElementById('benefitsChart');
     if (benefitsCtx) {
+        // units per metric (used for tooltip formatting)
+        const benefitUnits = ['%', '%', '%', ' ms'];
         new Chart(benefitsCtx, {
             type: 'bar',
             data: {
-                labels: ['Water Usage', 'Carbon Emissions', 'Energy Cost', 'Latency'],
+                labels: ['Water Usage (%)', 'Carbon Emissions (%)', 'Energy Cost (%)', 'Latency (ms)'],
                 datasets: [{
                     label: 'Terrestrial Data Centers',
                     data: [100, 100, 100, 100],
@@ -344,6 +346,7 @@ function initCharts() {
                 scales: {
                     y: {
                         beginAtZero: true,
+                        title: { display: true, text: 'Normalized (index / %)', color: '#ffffff' },
                         grid: {
                             color: 'rgba(255, 255, 255, 0.1)'
                         },
@@ -371,7 +374,15 @@ function initCharts() {
                         titleColor: '#ffffff',
                         bodyColor: '#ffffff',
                         borderColor: '#00d4ff',
-                        borderWidth: 1
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                const idx = context.dataIndex;
+                                const unit = benefitUnits[idx] || '';
+                                const value = context.raw;
+                                return context.dataset.label + ': ' + value + unit;
+                            }
+                        }
                     }
                 }
             }
