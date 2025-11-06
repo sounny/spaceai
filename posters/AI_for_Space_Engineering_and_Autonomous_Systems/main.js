@@ -389,8 +389,13 @@ function initInteractiveElements() {
             showDetailedInfo(type);
         });
         
+        // On leave, schedule hide after a short delay; cancel if user moves into the popup
         card.addEventListener('mouseleave', function() {
-            hideDetailedInfo();
+            scheduleHide();
+        });
+        // If user re-enters the card, cancel pending hide
+        card.addEventListener('mouseenter', function() {
+            cancelHide();
         });
     });
 
@@ -483,6 +488,10 @@ function showDetailedInfo(type) {
         popup.addEventListener('click', (e) => {
             if (e.target === popup) hideDetailedInfo();
         });
+
+        // when pointer enters the popup, cancel scheduled hide; when leaves, schedule hide
+        popup.addEventListener('mouseenter', cancelHide);
+        popup.addEventListener('mouseleave', scheduleHide);
     } else {
         const inner = popup.querySelector('.info-popup-inner');
         if (inner) inner.innerHTML = info;
@@ -504,6 +513,21 @@ function hideDetailedInfo() {
         setTimeout(() => { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 300);
     } else {
         if (popup.parentNode) popup.parentNode.removeChild(popup);
+    }
+}
+
+// Schedule/cancel hide helpers so popup doesn't disappear when moving pointer from card -> popup
+function scheduleHide(delay = 220) {
+    cancelHide();
+    window._popupHideTimer = setTimeout(() => {
+        hideDetailedInfo();
+    }, delay);
+}
+
+function cancelHide() {
+    if (window._popupHideTimer) {
+        clearTimeout(window._popupHideTimer);
+        window._popupHideTimer = null;
     }
 }
 
