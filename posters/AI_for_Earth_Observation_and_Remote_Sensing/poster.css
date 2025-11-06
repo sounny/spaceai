@@ -3,23 +3,22 @@
    and ISU branding guidance. Designed for screen and print (high-res). */
 
 :root{
-  --isu-blue: #02124a; /* deep navy */
-  --isu-light: #e8eefc; /* pale blue */
-  --isu-accent: #0b90ff; /* brighter accent for dark theme */
+  --isu-blue: rgb(0,20,84); /* ISU corporate blue */
+  --white: #ffffff;
+  --isu-accent: #0b90ff; /* accent for highlights */
   --isu-green: #2ca02c; /* NDVI/positive */
-  --isu-warm: #f5a623; /* highlight */
-  --bg-dark: linear-gradient(145deg,#021124,#001f3f);
+  --bg-dark: linear-gradient(145deg,#001026,#001a36);
   --panel-bg: rgba(255,255,255,0.03);
-  --text-light: #e8eefc;
-  --muted: rgba(232,236,255,0.78);
+  --text-light: #f2f5fb; /* light text */
+  --muted: rgba(242,245,251,0.75);
 }
 
 /* Page shell and print sizing */
 html,body{
-  height:100%;
-  margin:0;
-  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  background: var(--bg-dark);
+  height: 100%;
+  margin: 0;
+  font-family: Calibri, Arial, 'Helvetica Neue', sans-serif;
+  background: var(--bg-dark) url('../../pexels-shashank-brahmavar-737732917-18507019.jpg') center/cover no-repeat fixed;
   color: var(--text-light);
 }
 
@@ -35,17 +34,16 @@ html,body{
 
 /* Header */
 .poster-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:20px;
+  position: relative;
+  display: block;
+  padding-bottom: 8px;
 }
 
 #poster-title{
-  font-size: 44px; /* >=40px for large title */
-  line-height:1.02;
-  margin:0;
-  color:var(--text-light);
+  font-size: 56px;
+  line-height: 1.02;
+  margin: 6px 0 8px 0;
+  color: var(--white);
 }
 
 .subtitle{

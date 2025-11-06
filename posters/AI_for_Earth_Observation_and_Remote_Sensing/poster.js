@@ -1,34 +1,38 @@
 // poster.js — interactive behaviors for the EO poster
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Toggle layers
-  const ndviBtn = document.getElementById('toggle-ndvi');
-  const classBtn = document.getElementById('toggle-class');
+  // Toggle layers and datasets
   const resetBtn = document.getElementById('reset-view');
-  const ndviLayer = document.getElementById('ndvi-layer');
-  const classLayer = document.getElementById('class-layer');
+  const aiABtn = document.getElementById('toggle-aiA');
+  const aiBBtn = document.getElementById('toggle-aiB');
+  const aiA = document.getElementById('ai-a');
+  const aiB = document.getElementById('ai-b');
 
-  ndviBtn.addEventListener('click', () => {
-    toggleVisibility(ndviLayer);
-  });
-
-  classBtn.addEventListener('click', () => {
-    toggleVisibility(classLayer);
-  });
-
-  resetBtn.addEventListener('click', () => resetTransform());
-
-  function toggleVisibility(el) {
-    if (!el) return;
-    const current = el.getAttribute('data-hidden');
-    if (current === 'true') {
-      el.style.display = '';
-      el.setAttribute('data-hidden', 'false');
-    } else {
-      el.style.display = 'none';
-      el.setAttribute('data-hidden', 'true');
-    }
+  function setPressed(btn, pressed) {
+    if (!btn) return;
+    btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
   }
+
+  function showLayer(el, show) {
+    if (!el) return;
+    el.style.display = show ? '' : 'none';
+    el.setAttribute('data-hidden', show ? 'false' : 'true');
+  }
+
+  if (aiABtn) aiABtn.addEventListener('click', () => {
+    // toggle AI A on/off
+    const hidden = aiA && aiA.getAttribute('data-hidden') === 'true';
+    showLayer(aiA, hidden);
+    setPressed(aiABtn, hidden);
+  });
+
+  if (aiBBtn) aiBBtn.addEventListener('click', () => {
+    const hidden = aiB && aiB.getAttribute('data-hidden') === 'true';
+    showLayer(aiB, hidden);
+    setPressed(aiBBtn, hidden);
+  });
+
+  if (resetBtn) resetBtn.addEventListener('click', () => resetTransform());
 
   // Simple carousel
   const frame = document.querySelector('.carousel-frame');

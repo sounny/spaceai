@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI for Earth Observation and Remote Sensing — Poster</title>
+  <link rel="stylesheet" href="./poster.css">
+  <script src="./poster.js" defer></script>
+</head>
+<body>
+  <main class="poster" role="main" aria-labelledby="poster-title">
+    <header class="poster-header">
+      <div class="brand-left">
+        <h1 id="poster-title">AI for Earth Observation and Remote Sensing</h1>
+        <p class="subtitle">Applications for Agricultural Development &amp; Food Security</p>
+        <p class="authors">Nitya Palekar · Ella Buchanan · Ludivine Euranie · Akira Yoshida · Vinay Lakshman · Sarah Khayat · Barnabás Jenőfi</p>
+        <p class="isu-address">International Space University — Parc d'Innovation, 1 rue Jean‑Dominique Cassini, 67400 Illkirch‑Graffenstaden, France</p>
+      </div>
+      <div class="brand-right" aria-hidden="true">
+        <div class="logos">
+          <img src="../../ISU-Logo-patch-300px.png" alt="ISU logo patch" class="isu-logo">
+        </div>
+      </div>
+    </header>
+
+    <!-- Key findings -->
+    <section class="panel" aria-labelledby="key-findings-title">
+      <h2 id="key-findings-title">Key Findings</h2>
+      <div class="stats" role="list">
+        <div class="stat" role="listitem"><div class="num">PLACEHOLDER</div><div class="label">Expanded coverage from free EO missions</div></div>
+        <div class="stat" role="listitem"><div class="num">PLACEHOLDER</div><div class="label">Earlier lead time for agricultural warnings</div></div>
+        <div class="stat" role="listitem"><div class="num">PLACEHOLDER</div><div class="label">Operational, decision‑ready products</div></div>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <aside class="col col-left">
+        <section class="panel">
+          <h2>Introduction</h2>
+          <p>Explain SDG Goals; What does food insecurity mean? Problem definition; Role of space technology in Agriculture: what is remote sensing?</p>
+          <figure class="infographic-placeholder" role="img" aria-label="Infographic placeholder: data availability">
+            <div class="image-placeholder">Infographic placeholder</div>
+            <figcaption class="caption">Caption: data coverage infographic (placeholder)</figcaption>
+          </figure>
+          <figure class="infographic-placeholder" role="img" aria-label="Infographic placeholder: satellite overview">
+            <div class="image-placeholder">Infographic placeholder</div>
+            <figcaption class="caption">Caption: satellite program infographic (placeholder)</figcaption>
+          </figure>
+        </section>
+
+        <section class="panel">
+          <h2>Objective of the poster</h2>
+          <p>PLACEHOLDER — short paragraph describing the poster objective. (You will add the final text.)</p>
+        </section>
+
+        <section class="panel">
+          <h2>Methods</h2>
+          <p>PLACEHOLDER — describe datasets (vegetation indices, Sentinel), cloud platforms (GEE), and AI approach (CNNs, temporal models).</p>
+          <figure class="infographic-placeholder" role="img" aria-label="Methods infographic placeholder">
+            <div class="image-placeholder">Methods infographic placeholder</div>
+            <figcaption class="caption">Caption: methods diagram (placeholder)</figcaption>
+          </figure>
+        </section>
+
+        <section class="panel">
+          <h2>Results</h2>
+          <p>Interactive EVI AI data viewer (toggle between two AI collections).</p>
+          <!-- Results interactive viewer inserted in right column; placeholder here references it -->
+        </section>
+
+        <section class="panel">
+          <h2>Way Forward</h2>
+          <p>PLACEHOLDER — next steps, pilot validation, scaling, capacity building and operational deployment.</p>
+          <figure class="infographic-placeholder" role="img" aria-label="Way forward infographic placeholder">
+            <div class="image-placeholder">Way-forward infographic placeholder</div>
+            <figcaption class="caption">Caption: roadmap infographic (placeholder)</figcaption>
+          </figure>
+        </section>
+
+        <section class="panel small">
+          <h3>References</h3>
+          <p>PLACEHOLDER — add references (UN OOSA report, team presentation, supporting literature).</p>
+        </section>
+      </aside>
+
+      <section class="col col-right">
+        <section class="panel">
+          <h2>Interactive EVI AI Viewer</h2>
+          <div class="viewer">
+            <div class="viewer-topbar">
+              <div class="viewer-title">EVI AI Data — Toggle datasets</div>
+              <div class="viewer-controls" role="toolbar" aria-label="Viewer controls">
+                <button id="toggle-aiA" class="control" aria-pressed="false">AI dataset A</button>
+                <button id="toggle-aiB" class="control" aria-pressed="false">AI dataset B</button>
+                <button id="reset-view" class="control">Reset View</button>
+              </div>
+            </div>
+
+            <div class="visual-area" id="visual-area" tabindex="0" aria-label="Interactive EVI visualization">
+              <svg id="visual-svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" role="img" aria-describedby="viewer-caption">
+                <defs>
+                  <linearGradient id="satGrad" x1="0" x2="1">
+                    <stop offset="0%" stop-color="#03102a" />
+                    <stop offset="100%" stop-color="#08325a" />
+                  </linearGradient>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#satGrad)" />
+
+                <!-- Example base features -->
+                <g id="water" fill="#1f6fb4" opacity="0.9"><ellipse cx="300" cy="600" rx="220" ry="80"/></g>
+
+                <!-- AI dataset A (toggleable) -->
+                <g id="ai-a" data-hidden="false">
+                  <rect x="150" y="120" width="380" height="260" fill="#2ca02c" opacity="0.6" />
+                </g>
+
+                <!-- AI dataset B (toggleable) -->
+                <g id="ai-b" data-hidden="true" style="display:none;">
+                  <rect x="640" y="150" width="420" height="300" fill="#f5a623" opacity="0.55" />
+                </g>
+
+                <!-- Legend -->
+                <g id="legend" transform="translate(20,20)" font-family="sans-serif">
+                  <rect x="-10" y="-10" width="220" height="120" rx="8" fill="rgba(255,255,255,0.04)" />
+                  <text x="0" y="10" font-size="16" font-weight="700" fill="#f2f5fb">Legend</text>
+                </g>
+              </svg>
+            </div>
+            <div id="viewer-caption" class="caption">Caption: Interactive EVI viewer — toggle to compare two AI outputs. Use keyboard arrows to pan carousel and TAB to focus controls.</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Image Carousel</h2>
+          <div class="carousel" aria-label="Image carousel">
+            <button id="prev" class="carousel-btn" aria-label="Previous slide">◀</button>
+            <div class="carousel-frame" aria-live="polite">
+              <div class="carousel-slide" data-index="0"><div class="image-placeholder" role="img" aria-label="Optical composite">Optical composite (placeholder)</div></div>
+              <div class="carousel-slide" data-index="1"><div class="image-placeholder" role="img" aria-label="SAR composite">SAR composite (placeholder)</div></div>
+              <div class="carousel-slide" data-index="2"><div class="image-placeholder" role="img" aria-label="Model output">Model output (placeholder)</div></div>
+            </div>
+            <button id="next" class="carousel-btn" aria-label="Next slide">▶</button>
+          </div>
+        </section>
+
+      </section>
+    </section>
+
+    <footer class="poster-footer">
+      <small>Design follows ISU colour palette and poster guidance; content adapted from team materials and UN OOSA recommendations.</small>
+    </footer>
+  </main>
+</body>
+</html>
