@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI for Earth Observation &amp; Remote Sensing | SpaceAI Poster Session</title>
+  <title>AI for Earth Observation & Remote Sensing — Interactive Poster</title>
   <style>
     :root {
       --isu-blue: rgba(0, 20, 84, 0.88);
@@ -144,32 +144,149 @@
   </style>
 </head>
 <body>
-  <main class="poster-shell">
-    <img src="../../ISU-Logo-patch-300px.png" alt="International Space University mission patch">
-    <h1>AI for Earth Observation &amp; Remote Sensing</h1>
-    <p class="subtitle">International Space University • SpaceAI Poster Session</p>
+  <div class="poster" role="main" aria-labelledby="poster-title">
+    <header class="poster-header">
+      <div class="brand-left">
+        <h1 id="poster-title">AI for Earth Observation & Remote Sensing</h1>
+        <p class="subtitle">How AI transforms extraction and interpretation of satellite data</p>
+        <p class="authors">Eleanor Buchanan — International Space University • Poster track: Earth Observation</p>
+      </div>
+      <div class="brand-right" aria-hidden="true">
+        <div class="logos">
+          <div class="logo logo-nasa">NASA</div>
+          <div class="logo logo-isu">ISU</div>
+        </div>
+      </div>
+    </header>
 
-    <div class="status-banner">
-      <span aria-hidden="true">🛰️</span>
-      <p>Our orbital sensors are still in the countdown queue—stand by while the Earth observation mission waits for its go-order to share full results.</p>
-    </div>
+    <section class="content-grid">
+      <aside class="col col-left">
+        <section class="panel">
+          <h2>Abstract</h2>
+          <p>
+            Remote sensing provides high-volume, high-frequency views of Earth. Modern AI models accelerate
+            the conversion of raw satellite observations into timely, actionable insights — from automated
+            land-cover mapping to near-real-time disaster response. This poster highlights methods, results,
+            and case studies demonstrating measurable improvements in speed, accuracy and scale.
+          </p>
+        </section>
 
-    <section>
-      <h2>Project Overview</h2>
-      <p>Satellite imagery classification, anomaly detection, climate monitoring and disaster response. Explore how machine learning models (CNNs, transformers) process multispectral data, how AI supports climate models, or how edge AI enables on-board data processing.</p>
-      <h2>Team Members</h2>
-      <ul>
-        <li>Nitya Palekar</li>
-        <li>Eleanor Buchanan</li>
-        <li>Ludivine Euranie</li>
-        <li>Akira Yoshida</li>
-        <li>Vinay Lakshman</li>
-        <li>Sarah Khayat</li>
-        <li>Barnabás Jenőfi</li>
-      </ul>
+        <section class="panel">
+          <h2>Key Methods</h2>
+          <ul>
+            <li>Data fusion across optical, radar, and thermal sensors</li>
+            <li>Convolutional and transformer-based models for segmentation and change detection</li>
+            <li>Self-supervised pretraining on global archives to reduce labeled-data needs</li>
+            <li>Uncertainty estimation and domain adaptation for transfer across sensors</li>
+          </ul>
+        </section>
+
+        <section class="panel">
+          <h2>Applications</h2>
+          <ul>
+            <li>Crop health and yield forecasting (NDVI & phenology)</li>
+            <li>Flood and wildfire rapid mapping for emergency response</li>
+            <li>Urban change detection and infrastructure monitoring</li>
+            <li>Coastal erosion and sea-level trend analysis</li>
+          </ul>
+        </section>
+
+        <section class="panel small">
+          <h3>References & Further Reading</h3>
+          <ol>
+            <li>Selected peer-reviewed works and ISU lectures (QR code available in final deliverable)</li>
+            <li>Open-source toolkits & community models for EO/RS</li>
+          </ol>
+        </section>
+      </aside>
+
+      <section class="col col-right">
+        <div class="interactive">
+          <div class="viewer">
+            <div class="viewer-topbar">
+              <div class="viewer-title">Interactive Visual: Multi-sensor Fusion</div>
+              <div class="viewer-controls">
+                <button id="toggle-ndvi" class="control">Toggle NDVI</button>
+                <button id="toggle-class" class="control">Toggle Classification</button>
+                <button id="reset-view" class="control">Reset View</button>
+              </div>
+            </div>
+
+            <div class="visual-area" id="visual-area" tabindex="0" aria-label="Interactive visualization">
+              <!-- Base satellite imagery (drawn as SVG to avoid external assets) -->
+              <svg id="visual-svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" role="img">
+                <defs>
+                  <linearGradient id="satGrad" x1="0" x2="1">
+                    <stop offset="0%" stop-color="#e6f7ff" />
+                    <stop offset="100%" stop-color="#cfe9ff" />
+                  </linearGradient>
+                </defs>
+
+                <rect width="100%" height="100%" fill="url(#satGrad)" />
+
+                <!-- Example water bodies -->
+                <g id="water" fill="#2b6fb4">
+                  <ellipse cx="300" cy="600" rx="220" ry="80" opacity="0.95" />
+                  <path d="M780 500 Q820 470 880 490 T980 520 Q940 560 860 540 Z" />
+                </g>
+
+                <!-- NDVI overlay group (toggleable) -->
+                <g id="ndvi-layer" opacity="0.85">
+                  <rect x="150" y="120" width="380" height="260" fill="#2ca02c" />
+                </g>
+
+                <!-- Classification overlay group (toggleable) -->
+                <g id="class-layer" opacity="0.9">
+                  <rect x="640" y="150" width="420" height="300" fill="#ffecb3" />
+                  <g transform="translate(660,170)">
+                    <circle cx="40" cy="40" r="28" fill="#8dd3c7" />
+                    <rect x="100" y="20" width="220" height="60" fill="#fdb462" rx="8" />
+                  </g>
+                </g>
+
+                <!-- Simple legend drawn in SVG -->
+                <g id="legend" transform="translate(20,20)" font-family="sans-serif">
+                  <rect x="-10" y="-10" width="220" height="120" rx="8" fill="#ffffffcc" stroke="#00000011" />
+                  <text x="0" y="10" font-size="16" font-weight="700" fill="#0b355f">Legend</text>
+                  <rect x="10" y="24" width="18" height="10" fill="#2b6fb4" />
+                  <text x="34" y="33" font-size="12" fill="#222">Water</text>
+                  <rect x="10" y="46" width="18" height="10" fill="#2ca02c" />
+                  <text x="34" y="55" font-size="12" fill="#222">High NDVI</text>
+                  <rect x="10" y="68" width="18" height="10" fill="#fdb462" />
+                  <text x="34" y="77" font-size="12" fill="#222">Built / Urban</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <div class="carousel" aria-label="Image carousel">
+            <button id="prev" class="carousel-btn">◀</button>
+            <div class="carousel-frame">
+              <div class="carousel-slide" data-index="0">
+                <div class="image-placeholder">Simulated Optical: 2020-06</div>
+              </div>
+              <div class="carousel-slide" data-index="1">
+                <div class="image-placeholder">Simulated Radar: 2020-06</div>
+              </div>
+              <div class="carousel-slide" data-index="2">
+                <div class="image-placeholder">Model Output: Land cover 2020</div>
+              </div>
+            </div>
+            <button id="next" class="carousel-btn">▶</button>
+          </div>
+        </div>
+
+        <div class="caption">Tip: Use the toggles to show AI-derived layers. Use mouse wheel to zoom and drag to pan the visual.</div>
+      </section>
     </section>
 
-    <a class="cta" href="../../index.html">Return to SpaceAI Home</a>
-  </main>
+    <footer class="poster-footer">
+      <small>Design: International Space University palette • Example poster styling inspired by mission science briefs</small>
+    </footer>
+  </div>
+
+  <script src="./poster.js" defer></script>
+</body>
+</html>
 </body>
 </html>
