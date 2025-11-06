@@ -18,25 +18,33 @@ html,body{
   height: 100%;
   margin: 0;
   font-family: 'Inter', Calibri, Arial, 'Helvetica Neue', sans-serif;
-  background: var(--bg-dark) url('../../pexels-shashank-brahmavar-737732917-18507019.jpg') center/cover no-repeat fixed;
+  /* body kept as a dark canvas; the poster container will display the Earth image */
+  background: var(--bg-dark);
   color: var(--text-light);
 }
 
 .poster{
   max-width: 1200px; /* poster frame for screen preview */
   margin: 24px auto;
-  background: linear-gradient(180deg, rgba(2,6,23,0.9), rgba(3,12,34,0.95));
+  /* Use the Earth image as the poster background with a dark overlay for legibility */
+  background-image: linear-gradient(180deg, rgba(2,6,23,0.7), rgba(3,12,34,0.75)), url('../../pexels-shashank-brahmavar-737732917-18507019.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
   border-radius: 8px;
   padding: 28px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   color: var(--text-light);
+  position: relative;
+  overflow: hidden;
 }
 
 /* Header */
 .poster-header{
   position: relative;
+  /* keep the title visually centered while placing the logo at the absolute top-right */
   display: block;
-  padding-bottom: 8px;
+  padding: 6px 40px 8px 40px;
 }
 
 #poster-title{
@@ -48,6 +56,7 @@ html,body{
   text-align: center;
   font-weight: 700;
   letter-spacing: 0.02em;
+  z-index: 2; /* keep title above overlays */
 }
 
 .subtitle{
@@ -65,7 +74,21 @@ html,body{
 
 .logos{ display:flex; gap:12px; align-items:center; }
 .logo{ padding:8px 12px; background:transparent; border-radius:6px; color:var(--text-light); font-weight:700; }
-.isu-logo{ width: clamp(80px, 12vw, 140px); height: auto; object-fit:contain; background:transparent; }
+.isu-logo{ width: clamp(72px, 10vw, 120px); height: auto; object-fit:contain; background:transparent; display:block; }
+
+/* top-right positioned logo aligned with the title */
+.brand-right{ position: absolute; right: 18px; top: 18px; display:flex; align-items:center; z-index:3; }
+.brand-left{ text-align:center; }
+
+/* subtle vignette to darken bright areas and improve legibility */
+.poster::after{
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(1000px 800px at 50% 30%, rgba(0,0,0,0.25), rgba(0,0,0,0.55));
+  mix-blend-mode: multiply;
+}
 
 /* Two-column grid following poster layout */
 .content-grid{
