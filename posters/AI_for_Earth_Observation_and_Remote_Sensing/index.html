@@ -16,7 +16,7 @@
       </div>
       <div class="brand-right" aria-hidden="true">
         <div class="logos">
-          <img src="../../LOGO_ISU_Darkblue.png" alt="ISU logo" class="isu-logo">
+          <img src="../../ISU-Logo-patch-300px.png" alt="ISU logo patch" class="isu-logo">
         </div>
       </div>
     </header>
@@ -43,43 +43,82 @@
     <section class="content-grid">
       <aside class="col col-left">
         <section class="panel">
-          <h2>Abstract</h2>
+          <h2>Introduction</h2>
           <p>
-            Drawing on the UN Office for Outer Space Affairs' analysis of space technologies for agriculture,
-            this poster summarizes how satellite data and AI together improve agricultural monitoring,
-            strengthen early-warning systems for food security, and support evidence-based policy. The
-            emphasis is on operational products, national capability building, and open-data strategies
-            that enable timely, equitable access for decision-makers and communities.
+            Many countries in Africa continue to face persistent food insecurity. Aligning with sustainable
+            continental development agendas, space technology — especially freely available Earth
+            observation archives and cloud platforms — enables scalable monitoring of vegetation and
+            agricultural systems. This work builds on a team presentation and UN guidance to deliver
+            an AI-driven approach that is practical for national services and local stakeholders.
           </p>
         </section>
 
         <section class="panel">
-          <h2>Key Methods</h2>
+          <h2>Problem Definition</h2>
+          <p>
+            Despite abundant satellite data, effective use is hindered by fragmented datasets, limited
+            national processing capacity, and slow operational workflows. Users need timely, validated,
+            and locally-relevant indicators to inform agricultural decisions and early-warning systems.
+          </p>
+        </section>
+
+        <section class="panel">
+          <h2>Objective</h2>
+          <p>
+            Develop and test an AI-driven vegetation monitoring framework that combines Sentinel (optical)
+            imagery, established vegetation indices (e.g. eVI), and machine learning to automatically
+            flag areas needing attention and produce decision-ready products for stakeholders.
+          </p>
+        </section>
+
+        <section class="panel">
+          <h2>Methodology</h2>
           <ul>
-            <li>Multisensor fusion (optical, SAR, thermal, microwave) to increase reliability and revisit</li>
-            <li>Time-series modelling for crop phenology, anomaly detection and yield estimation</li>
-            <li>Transfer learning and self-supervised methods to reduce labelled-data requirements</li>
-            <li>Uncertainty-aware AI and data assimilation for operational decision support</li>
+            <li>Compute vegetation indices over temporal windows using cloud platforms (e.g. GEE)</li>
+            <li>Train convolutional models (CNN) and temporal learners using available labeled data and transfer learning</li>
+            <li>Run experiments on accessible compute (Google Colab) and validate against threshold baselines</li>
+            <li>Produce operational maps and dashboards for pilot users</li>
           </ul>
         </section>
 
         <section class="panel">
-          <h2>Applications in Agriculture</h2>
-          <ul>
-            <li>Crop-type mapping and acreage estimation for national statistics</li>
-            <li>Yield forecasting and seasonal outlooks to support food-security planning</li>
-            <li>Drought and flood early-warning using vegetation indices and soil-moisture products</li>
-            <li>Targeted advisory services and investment planning through high-resolution mapping</li>
-          </ul>
+          <h2>Results — Case Study</h2>
+          <p>
+            A feasibility study conducted for a pilot region demonstrated the workflow is practical and
+            can generate actionable outputs that support local agricultural decision-making. Further
+            validation and scaling are planned to broaden geographic coverage and include additional
+            sensors (e.g. additional Sentinel missions) for moisture and phenology information.
+          </p>
         </section>
 
         <section class="panel small">
-          <h3>Policy & Capacity Highlights</h3>
+          <h3>Way Forward</h3>
           <ol>
-            <li>Promote open access to global EO datasets (e.g. Sentinel, Landsat) to reduce barriers</li>
-            <li>Invest in national data infrastructure, processing pipelines and in-country training</li>
-            <li>Co-design products with end-users and integrate in operational agricultural services</li>
-            <li>Forge partnerships between space agencies, UN bodies, universities and local extension services</li>
+            <li>Pilot validation with a web dashboard for stakeholder testing</li>
+            <li>Scale coverage geographically and integrate additional sensors for moisture data</li>
+            <li>Develop a Pan‑African AI‑EO observatory and strengthen local capacity</li>
+            <li>Build natural-language query tools and simple UX so non-experts can access EO products</li>
+          </ol>
+        </section>
+
+        <section class="panel small">
+          <h3>Team Members</h3>
+          <p>
+            Nitya Palekar<br>
+            Ella Buchanan<br>
+            Ludivine Euranie<br>
+            Akira Yoshida<br>
+            Vinay Lakshman<br>
+            Sarah Khayat<br>
+            Barnabás Jenőfi
+          </p>
+        </section>
+
+        <section class="panel small">
+          <h3>References & Sources</h3>
+          <ol>
+            <li>UN Office for Outer Space Affairs — Leveraging Space Technology for Agricultural Development and Food Security (paraphrased)</li>
+            <li>Team presentation: "Untitled presentation.pdf" (project materials)
           </ol>
         </section>
       </aside>
