@@ -1,0 +1,121 @@
+/* poster.css — ISU-inspired color palette, typographic scale, layout, and print rules
+   Inspired by: Miller (Effective Research Posters), "Bridging the Gap", Brown University poster guide,
+   and ISU branding guidance. Designed for screen and print (high-res). */
+
+:root{
+  --isu-blue: #02124a; /* deep navy */
+  --isu-light: #e8eefc; /* pale blue */
+  --isu-accent: #0b4fa6; /* accent blue */
+  --isu-green: #2ca02c; /* NDVI/positive */
+  --isu-warm: #f5a623; /* highlight */
+  --bg: linear-gradient(145deg,var(--isu-blue), #06357a);
+  --panel-bg: rgba(255,255,255,0.06);
+  --text-light: #e8ecff;
+  --muted: rgba(232,236,255,0.78);
+}
+
+/* Page shell and print sizing */
+html,body{
+  height:100%;
+  margin:0;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: #f4f6fb;
+  color: var(--isu-blue);
+}
+
+.poster{
+  max-width: 1200px; /* poster frame for screen preview */
+  margin: 24px auto;
+  background: white;
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: 0 10px 30px rgba(3,10,35,0.08);
+}
+
+/* Header */
+.poster-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:20px;
+}
+
+#poster-title{
+  font-size: 44px; /* >=40px for large title */
+  line-height:1.02;
+  margin:0;
+  color:var(--isu-blue);
+}
+
+.subtitle{
+  font-size:18px;
+  color:var(--muted);
+  margin:6px 0 12px 0;
+  text-transform:none;
+}
+
+.authors{
+  font-size:14px;
+  color:#38507a;
+  margin:0;
+}
+
+.logos{ display:flex; gap:12px; align-items:center; }
+.logo{ padding:8px 12px; background:var(--isu-light); border-radius:6px; color:var(--isu-blue); font-weight:700; }
+.isu-logo{ width: clamp(80px, 12vw, 140px); height: auto; object-fit:contain; background:transparent; }
+
+/* Two-column grid following poster layout */
+.content-grid{
+  display:grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap:18px;
+  margin-top:18px;
+}
+
+.col-left .panel, .col-right .panel{ background:var(--panel-bg); padding:16px; border-radius:8px; }
+
+.panel h2{ font-size:26px; margin:0 0 8px 0; color:var(--isu-blue); }
+.panel p, .panel li{ font-size:16px; color:#123352; }
+
+.panel.small h3{ font-size:20px; }
+
+/* Stat/Key-findings row */
+.stats{
+  display:flex; gap:12px; margin:8px 0 0 0;
+}
+.stat{ flex:1; background:linear-gradient(180deg,#ffffff,#f6fbff); padding:14px; border-radius:8px; text-align:center; box-shadow:0 6px 16px rgba(2,18,74,0.06); }
+.stat .num{ font-size:28px; font-weight:800; color:var(--isu-accent); }
+.stat .label{ font-size:13px; color:#2f4f75; }
+
+/* Interactive area */
+.interactive{ display:flex; flex-direction:column; gap:12px; }
+.viewer{ background:#fff; border-radius:8px; border:1px solid #edf3fb; overflow:hidden; }
+.viewer-topbar{ display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f7fbff; border-bottom:1px solid #edf3fb; }
+.viewer-title{ font-weight:700; color:var(--isu-blue); }
+.viewer-controls .control{ margin-left:8px; padding:6px 10px; border-radius:6px; border:1px solid #dbeaf9; background:white; cursor:pointer; }
+
+.visual-area{ height:420px; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg,#eaf6ff,#ffffff); }
+.visual-area svg{ width:100%; height:100%; display:block; }
+
+.carousel{ display:flex; align-items:center; gap:10px; }
+.carousel-frame{ width:100%; overflow:hidden; }
+.carousel-frame .carousel-slide{ width:100%; }
+.carousel-btn{ background:#ffffff; border:1px solid #e0eefb; padding:8px 12px; border-radius:6px; cursor:pointer; }
+.image-placeholder{ display:flex; align-items:center; justify-content:center; height:120px; background:#eef7ff; border-radius:6px; color:#284a77; font-weight:700; }
+
+.caption{ font-size:13px; color:#556b88; }
+
+/* Footer */
+.poster-footer{ margin-top:14px; font-size:12px; color:#5b6f8f; }
+
+/* Print rules for high-res posters (A0/A1 guidance) */
+@media print{
+  body{ background:white; }
+  .poster{ max-width: 1188px; padding:40px; box-shadow:none; }
+  #poster-title{ font-size:72px; }
+  .panel p, .panel li{ font-size:20px; }
+  .visual-area{ height:1200px; }
+}
+
+/* Responsive */
+@media (max-width:980px){ .content-grid{ grid-template-columns: 1fr; } .visual-area{ height:360px; } }
