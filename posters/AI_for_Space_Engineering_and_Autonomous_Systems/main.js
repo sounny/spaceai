@@ -8,10 +8,121 @@ document.addEventListener('DOMContentLoaded', function() {
     initScrollAnimations();
     initStarfield();
     init3DEarth();
+    initOrbitalViewer();
     initCharts();
     initInteractiveElements();
     initSmoothScrolling();
 });
+
+// Small interactive orbital viewer inside the Orbital Solution section
+let orbitalScene, orbitalCamera, orbitalRenderer, orbitalGroup, orbitalSatellites = [];
+function initOrbitalViewer() {
+    const container = document.querySelector('.orbital-visualization');
+    if (!container) return;
+    const canvas = document.getElementById('orbitalCanvas');
+    if (!canvas) return;
+
+    // Scene + camera + renderer scoped to the small viewer
+    orbitalScene = new THREE.Scene();
+    const aspect = container.clientWidth / Math.max(300, container.clientHeight);
+    orbitalCamera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
+    orbitalRenderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+    orbitalRenderer.setPixelRatio(window.devicePixelRatio || 1);
+    orbitalRenderer.setSize(container.clientWidth, container.clientHeight);
+    orbitalRenderer.setClearColor(0x000000, 0);
+
+    // Create a small group to rotate
+    orbitalGroup = new THREE.Group();
+    orbitalScene.add(orbitalGroup);
+
+    // Earth (smaller, stylized)
+    const earthGeo = new THREE.SphereGeometry(1.0, 32, 32);
+    const earthMat = new THREE.MeshStandardMaterial({ color: 0x2255ff, emissive: 0x001122, metalness: 0.1, roughness: 0.7 });
+    const orbitalEarth = new THREE.Mesh(earthGeo, earthMat);
+    orbitalGroup.add(orbitalEarth);
+
+    // Ambient + rim light
+    orbitalScene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    const rim = new THREE.DirectionalLight(0xffffff, 0.9);
+    rim.position.set(5, 3, 5);
+    orbitalScene.add(rim);
+
+    // Rings for LEO, MEO, GEO using TorusGeometry for a subtle 3D look
+    const ringMaterial = new THREE.MeshBasicMaterial({ color: 0x00d4ff, opacity: 0.14, transparent: true, side: THREE.DoubleSide });
+    const ringGeos = [2.0, 2.6, 3.4];
+    ringGeos.forEach((r, i) => {
+        const torus = new THREE.TorusGeometry(r, 0.02 + i * 0.004, 16, 120);
+        const mesh = new THREE.Mesh(torus, ringMaterial.clone());
+        mesh.rotation.x = Math.PI / 2.3 + (i * 0.08);
+        mesh.material.opacity = 0.12 + i * 0.03;
+        orbitalGroup.add(mesh);
+    });
+
+    // Create orbital satellites (spheres) that orbit at different radii
+    const satGeo = new THREE.SphereGeometry(0.06, 12, 12);
+    const satMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive: 0x00ffcc, emissiveIntensity: 0.4 });
+    for (let i = 0; i < 9; i++) {
+        const sat = new THREE.Mesh(satGeo, satMat.clone());
+        const radius = 2.0 + (i % 3) * 0.6;
+        const angle = (i / 9) * Math.PI * 2;
+        sat.userData = { radius: radius, angle: angle, speed: 0.008 + (i % 3) * 0.002 };
+        sat.position.set(Math.cos(angle) * radius, Math.sin(angle * 0.9) * 0.1, Math.sin(angle) * radius);
+        orbitalSatellites.push(sat);
+        orbitalGroup.add(sat);
+    }
+
+    // Camera position
+    orbitalCamera.position.set(0, 0.6, 6);
+    orbitalCamera.lookAt(orbitalScene.position);
+
+    // Simple drag-to-rotate controls
+    let isDragging = false;
+    let prevX = 0, prevY = 0;
+    container.addEventListener('mousedown', (e) => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = (e.clientX - prevX) / container.clientWidth;
+        const dy = (e.clientY - prevY) / container.clientHeight;
+        prevX = e.clientX; prevY = e.clientY;
+        orbitalGroup.rotation.y += dx * 2.5;
+        orbitalGroup.rotation.x += dy * 1.5;
+        orbitalGroup.rotation.x = Math.max(-0.8, Math.min(0.8, orbitalGroup.rotation.x));
+    });
+
+    // Wheel to zoom in/out
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = Math.sign(e.deltaY) * 0.5;
+        orbitalCamera.position.z = Math.max(3, Math.min(12, orbitalCamera.position.z + delta));
+    }, { passive: false });
+
+    // Resize handler for the orbital canvas
+    function resizeOrbital() {
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        orbitalCamera.aspect = w / Math.max(200, h);
+        orbitalCamera.updateProjectionMatrix();
+        orbitalRenderer.setSize(w, h);
+    }
+    window.addEventListener('resize', resizeOrbital);
+    resizeOrbital();
+
+    // Animate orbital viewer
+    function renderOrbital() {
+        requestAnimationFrame(renderOrbital);
+        // Rotate earth slowly
+        orbitalGroup.rotation.y += 0.0012;
+        orbitalSatellites.forEach((s) => {
+            s.userData.angle += s.userData.speed;
+            s.position.x = Math.cos(s.userData.angle) * s.userData.radius;
+            s.position.z = Math.sin(s.userData.angle) * s.userData.radius;
+            s.position.y = Math.sin(Date.now() * 0.001 + s.userData.angle) * 0.12;
+        });
+        orbitalRenderer.render(orbitalScene, orbitalCamera);
+    }
+    renderOrbital();
+}
 
 // Starfield background initialization
 function initStarfield() {
