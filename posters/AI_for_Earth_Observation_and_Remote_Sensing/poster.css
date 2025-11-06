@@ -43,6 +43,13 @@ html,body{
   overflow: hidden;
 }
 
+/* make the poster vertically scrollable in the viewport so the intro bar stays visible at top
+   while the rest of the poster can be scrolled into view */
+.poster{
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
 /* A faint nebula / Milky Way wash for realism using a pseudo-element */
 .poster::before{
   content: '';
@@ -142,12 +149,30 @@ html,body{
   grid-template-columns: 1fr 1.1fr;
   gap:18px;
   margin-top:18px;
+  padding-bottom: 18px; /* give space above bottom key-findings */
 }
 
 .col-left .panel, .col-right .panel{ background:var(--panel-bg); padding:16px; border-radius:8px; }
 
 .panel h2{ font-size:26px; margin:0 0 8px 0; color:var(--text-light); }
 .panel p, .panel li{ font-size:16px; color:var(--muted); }
+
+/* Intro banner: large, full-width bar at the top of the poster */
+.intro-banner{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:260px;
+  padding:22px 28px;
+  margin: 14px 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 8px;
+  position: relative;
+  z-index: 2;
+}
+.intro-banner .intro-inner{ max-width:1100px; text-align:center; }
+.intro-banner h2{ font-size:40px; margin:0 0 8px 0; }
+.intro-banner p{ font-size:18px; color:var(--muted); max-width:980px; margin:0 auto; }
 
 .panel.small h3{ font-size:20px; }
 
@@ -184,6 +209,7 @@ html,body{
 @media print{
   body{ background:white; color:#06112a; }
   .poster{ max-width: 1188px; padding:40px; box-shadow:none; background:white; }
+  .poster{ max-height: none; overflow: visible; }
   #poster-title{ font-size:72px; color:#021124; }
   .panel p, .panel li{ font-size:20px; color:#021124; }
   .visual-area{ height:1200px; }
