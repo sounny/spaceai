@@ -1,0 +1,188 @@
+import { motion } from 'motion/react';
+import { Rocket, Globe, Sparkles, Brain } from 'lucide-react';
+
+export function ConclusionSection() {
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-b from-black via-blue-950 to-purple-950 py-20">
+      {/* Animated background stars */}
+      {Array.from({ length: 50 }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute h-1 w-1 rounded-full bg-white"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            opacity: [0.2, 1, 0.2],
+            scale: [1, 1.5, 1],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            delay: Math.random() * 3,
+          }}
+        />
+      ))}
+
+      <div className="relative z-10 mx-auto max-w-6xl px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center"
+        >
+          <motion.h2
+            className="mb-8 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
+            animate={{
+              backgroundPosition: ['0%', '100%', '0%'],
+            }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+            }}
+          >
+            The Future is Orbital
+          </motion.h2>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="mb-12 rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-950/50 to-purple-950/50 p-8 backdrop-blur-sm"
+          >
+            <p className="mb-6 text-gray-300">
+              AI-powered orbital data centers represent a paradigm shift in how we approach data storage and processing.
+              By combining cutting-edge artificial intelligence with proven orbital mechanics, we can create a sustainable,
+              efficient, and globally accessible data infrastructure that addresses the critical challenges facing
+              terrestrial data centers.
+            </p>
+            <p className="mb-6 text-gray-300">
+              <strong className="text-purple-300">Artificial Intelligence is the cornerstone</strong> of this vision.
+              Without AI's autonomous decision-making, predictive capabilities, and adaptive learning, managing thousands
+              of satellites in orbit would be impossible. AI transforms orbital data centers from a theoretical concept
+              into a practical, self-sustaining reality.
+            </p>
+            <p className="text-gray-300">
+              The convergence of decreasing launch costs, advancing AI capabilities, and growing data demands makes
+              this vision not just possible, but inevitable. The journey to orbital data centers has begun, and the
+              future of data storage is among the stars.
+            </p>
+          </motion.div>
+
+          {/* Key Takeaways */}
+          <div className="mb-12 grid gap-6 md:grid-cols-4">
+            {[
+              {
+                icon: Brain,
+                title: 'AI-First Design',
+                description: 'Intelligent systems enable autonomous space operations',
+                color: 'from-purple-500 to-pink-500',
+              },
+              {
+                icon: Globe,
+                title: 'Global Impact',
+                description: '100% renewable energy, zero ground footprint',
+                color: 'from-green-500 to-emerald-500',
+              },
+              {
+                icon: Sparkles,
+                title: 'Self-Optimizing',
+                description: 'Continuous learning and performance improvement',
+                color: 'from-blue-500 to-cyan-500',
+              },
+              {
+                icon: Rocket,
+                title: 'Ready to Launch',
+                description: 'Technology proven, timeline established',
+                color: 'from-orange-500 to-red-500',
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.6 }}
+                className="rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-950/30 to-purple-950/30 p-6"
+              >
+                <motion.div
+                  className={`mb-4 inline-flex rounded-lg bg-gradient-to-r ${item.color} p-3`}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                >
+                  <item.icon className="h-8 w-8 text-white" />
+                </motion.div>
+                <h3 className="mb-2 text-blue-200">{item.title}</h3>
+                <p className="text-gray-400">{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Orbital animation */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, duration: 1 }}
+            className="relative mx-auto h-64 w-64"
+          >
+            {/* Central globe */}
+            <motion.div
+              className="absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-blue-600 to-green-600"
+              animate={{
+                boxShadow: [
+                  '0 0 40px rgba(59, 130, 246, 0.5)',
+                  '0 0 60px rgba(168, 85, 247, 0.5)',
+                  '0 0 40px rgba(59, 130, 246, 0.5)',
+                ],
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
+
+            {/* Orbiting satellites */}
+            {[0, 120, 240].map((rotation, i) => (
+              <motion.div
+                key={i}
+                className="absolute left-1/2 top-1/2"
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 10,
+                  repeat: Infinity,
+                  ease: 'linear',
+                  delay: rotation / 360 * 10,
+                }}
+                style={{ rotate: rotation }}
+              >
+                <div className="flex h-32 w-32 items-start justify-center">
+                  <motion.div
+                    className="rounded-full bg-gradient-to-r from-blue-500 to-purple-500 p-2"
+                    animate={{
+                      scale: [1, 1.2, 1],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                    }}
+                  >
+                    <Sparkles className="h-4 w-4 text-white" />
+                  </motion.div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.8 }}
+            className="mt-12"
+          >
+            <p className="mb-4 text-blue-300">Research & Development</p>
+            <p className="text-gray-400">
+              Space Engineering and Autonomous Systems Laboratory
+            </p>
+            <p className="text-gray-500">November 2025</p>
+          </motion.div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
