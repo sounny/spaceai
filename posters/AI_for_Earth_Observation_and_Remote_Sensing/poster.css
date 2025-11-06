@@ -56,6 +56,42 @@ html,body{
   z-index: 0;
 }
 
+/* animated twinkle layer */
+.poster::after{
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* denser set of tiny star dots for twinkling (separate from main starfield) */
+  background-image:
+    radial-gradient(rgba(255,255,255,0.95) 0.6px, rgba(255,255,255,0) 1px),
+    radial-gradient(rgba(255,255,255,0.9) 0.5px, rgba(255,255,255,0) 1px),
+    radial-gradient(rgba(255,240,220,0.85) 1.2px, rgba(255,255,255,0) 1.6px);
+  background-size: 160px 160px, 320px 320px, 640px 640px;
+  background-position: 10px 20px, 90px 140px, 200px 90px;
+  mix-blend-mode: screen;
+  opacity: 0.95;
+  z-index: 1;
+  /* Animations: subtle opacity twinkle and very slow background drift */
+  animation: twinkle 6s ease-in-out infinite alternate, drift 40s linear infinite;
+}
+
+@keyframes twinkle{
+  0% { opacity: 0.85; filter: brightness(0.9); }
+  10% { opacity: 1; filter: brightness(1.25); }
+  30% { opacity: 0.8; filter: brightness(0.85); }
+  50% { opacity: 1; filter: brightness(1.15); }
+  70% { opacity: 0.82; filter: brightness(0.9); }
+  90% { opacity: 1; filter: brightness(1.3); }
+  100% { opacity: 0.9; filter: brightness(1); }
+}
+
+@keyframes drift{
+  0% { background-position: 10px 20px, 90px 140px, 200px 90px; }
+  50% { background-position: 30px 10px, 70px 160px, 180px 110px; }
+  100% { background-position: 10px 20px, 90px 140px, 200px 90px; }
+}
+
 /* Header */
 .poster-header{
   position: relative;
