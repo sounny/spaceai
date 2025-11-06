@@ -90,12 +90,66 @@ function initOrbitalViewer() {
         orbitalGroup.rotation.x = Math.max(-0.8, Math.min(0.8, orbitalGroup.rotation.x));
     });
 
-    // Wheel to zoom in/out
+    // Orbit descriptions data (mapped to labels)
+    const orbitData = {
+        leo: {
+            name: 'Low Earth Orbit (LEO)',
+            text: 'LEO: 160–2,000 km. Low latency (≈25–88 ms), ideal for real-time edge compute and short revisits. Good for high-throughput, low-latency services.'
+        },
+        meo: {
+            name: 'Medium Earth Orbit (MEO)',
+            text: 'MEO: 2,000–35,786 km. Balanced coverage and latency. Often used for navigation and midsize constellations; tradeoffs between coverage and latency.'
+        },
+        geo: {
+            name: 'Geostationary Orbit (GEO)',
+            text: 'GEO: ≈35,786 km. Fixed position relative to Earth with wide coverage but higher latency (≈250 ms). Useful for broadcast and persistent coverage.'
+        }
+    };
+
+    // Create description overlays and attach to container
+    const descLeo = document.createElement('div');
+    descLeo.className = 'orbit-desc leo';
+    descLeo.innerText = orbitData.leo.text;
+    const descMeo = document.createElement('div');
+    descMeo.className = 'orbit-desc meo';
+    descMeo.innerText = orbitData.meo.text;
+    const descGeo = document.createElement('div');
+    descGeo.className = 'orbit-desc geo';
+    descGeo.innerText = orbitData.geo.text;
+    container.appendChild(descLeo);
+    container.appendChild(descMeo);
+    container.appendChild(descGeo);
+
+    // Wheel to zoom in/out and show orbit descriptions based on camera distance
     container.addEventListener('wheel', (e) => {
         e.preventDefault();
         const delta = Math.sign(e.deltaY) * 0.5;
         orbitalCamera.position.z = Math.max(3, Math.min(12, orbitalCamera.position.z + delta));
+        // show description depending on zoom level (closer => LEO, mid => MEO, far => GEO)
+        updateOrbitDescriptions();
     }, { passive: false });
+
+    // Also update descriptions on programmatic zoom changes
+    function updateOrbitDescriptions() {
+        const z = orbitalCamera.position.z;
+        // thresholds chosen to map user zoom to orbits
+        // z <= 5 -> focus LEO; 5 < z <= 8 -> MEO; z > 8 -> GEO
+        if (z <= 5) {
+            descLeo.classList.add('show'); descMeo.classList.remove('show'); descGeo.classList.remove('show');
+        } else if (z <= 8) {
+            descLeo.classList.remove('show'); descMeo.classList.add('show'); descGeo.classList.remove('show');
+        } else {
+            descLeo.classList.remove('show'); descMeo.classList.remove('show'); descGeo.classList.add('show');
+        }
+        // auto-hide after a short delay when user stops zooming
+        clearTimeout(window._orbitDescTimer);
+        window._orbitDescTimer = setTimeout(() => {
+            descLeo.classList.remove('show'); descMeo.classList.remove('show'); descGeo.classList.remove('show');
+        }, 2200);
+    }
+
+    // Initialize description state (hidden)
+    updateOrbitDescriptions();
 
     // Resize handler for the orbital canvas
     function resizeOrbital() {
