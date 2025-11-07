@@ -48,27 +48,30 @@
         /* ISU Logo - Fixed Position */
         .isu-logo {
             position: fixed;
-            top: 18px;
-            right: 18px;
-            width: 84px; /* increased size */
-            height: 84px; /* increased size */
-            z-index: 1000;
+            top: 14px;
+            right: 14px;
+            width: 140px; /* larger container */
+            height: 140px; /* larger container */
+            z-index: 1100;
             background: var(--isu-blue);
-            border-radius: 10px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 6px 30px rgba(0, 20, 84, 0.35);
-            transition: transform 120ms ease;
+            box-shadow: 0 10px 50px rgba(0, 20, 84, 0.45);
+            transition: transform 160ms cubic-bezier(.2,.9,.2,1), box-shadow 160ms ease;
+            border: 1px solid rgba(255,255,255,0.03);
         }
-        
+
         .isu-logo img {
-            width: 56px; /* larger image */
-            height: 56px; /* larger image */
+            width: 100px; /* larger image */
+            height: 100px; /* larger image */
             object-fit: contain;
             display: block;
+            filter: drop-shadow(0 6px 18px rgba(0,0,0,0.45));
         }
-        .isu-logo:hover { transform: translateY(-3px) scale(1.02); }
+
+        .isu-logo:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 18px 70px rgba(0, 20, 84, 0.55); }
         
         /* Navigation */
         .nav {
