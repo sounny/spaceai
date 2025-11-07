@@ -137,8 +137,16 @@ html,body{
 .isu-logo{ width: clamp(72px, 10vw, 120px); height: auto; object-fit:contain; background:transparent; display:block; }
 
 /* top-right positioned logo aligned with the title */
-.brand-right{ position: absolute; right: 18px; top: 18px; display:flex; align-items:center; z-index:3; }
+.brand-right{ display:none; }
 .brand-left{ text-align:center; }
+
+/* Top logo styles: center above the title */
+.top-logo{ display:flex; justify-content:center; align-items:center; width:100%; margin-bottom:8px; z-index:3; }
+.top-logo .top-logo-img{ width: clamp(84px, 10vw, 140px); height:auto; display:block; }
+
+/* add spacing so the title never overlaps the logo */
+.poster-header .brand-left{ padding-top:8px; }
+.poster-header #poster-title{ margin-top:6px; }
 
 /* subtle vignette to darken bright areas and improve legibility */
 /* vignette removed per user request */
