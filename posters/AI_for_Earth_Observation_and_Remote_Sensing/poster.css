@@ -18,8 +18,8 @@ html,body{
   height: 100%;
   margin: 0;
   font-family: 'Inter', Calibri, Arial, 'Helvetica Neue', sans-serif;
-  /* body kept as a dark canvas; the poster container will display the Earth image */
-  background: var(--bg-dark);
+  /* use pure black edge-to-edge so the video blends into the page */
+  background: #000000;
   color: var(--text-light);
 }
 
@@ -36,63 +36,29 @@ html,body{
 
 .poster{
   max-width: 1200px; /* poster frame for screen preview */
-  margin: 24px auto;
-  /* CSS-generated starry night background (no external image required) */
-  background-color: #000000;
-  /* layered small radial gradients create star dots at different densities/sizes */
-  background-image:
-    radial-gradient(rgba(255,255,255,0.9) 0.8px, rgba(255,255,255,0) 1px),
-    radial-gradient(rgba(255,255,255,0.7) 0.6px, rgba(255,255,255,0) 1px),
-    radial-gradient(rgba(255,255,255,0.5) 1.6px, rgba(255,255,255,0) 1.8px);
-  background-size: 180px 180px, 320px 320px, 640px 640px;
-  background-position: 0 0, 40px 60px, 120px 220px;
+  margin: 0 auto; /* let videos and page flow naturally, no forced vertical offset */
+  /* make poster background transparent so it seamlessly blends with page black */
+  background: transparent;
   border-radius: 8px;
   padding: 28px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  box-shadow: none;
   color: var(--text-light);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* make the poster vertically scrollable in the viewport so the intro bar stays visible at top
    while the rest of the poster can be scrolled into view */
 .poster{
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
 }
 
 /* A faint nebula / Milky Way wash for realism using a pseudo-element */
-.poster::before{
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(600px 200px at 70% 20%, rgba(120,100,200,0.06), transparent 30%),
-              radial-gradient(500px 180px at 30% 60%, rgba(60,120,200,0.04), transparent 30%);
-  mix-blend-mode: screen;
-  opacity: 0.9;
-  z-index: 0;
-}
+.poster::before{ display:none !important; }
 
 /* animated twinkle layer */
-.poster::after{
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  /* denser set of tiny star dots for twinkling (separate from main starfield) */
-  background-image:
-    radial-gradient(rgba(255,255,255,0.95) 0.6px, rgba(255,255,255,0) 1px),
-    radial-gradient(rgba(255,255,255,0.9) 0.5px, rgba(255,255,255,0) 1px),
-    radial-gradient(rgba(255,240,220,0.85) 1.2px, rgba(255,255,255,0) 1.6px);
-  background-size: 160px 160px, 320px 320px, 640px 640px;
-  background-position: 10px 20px, 90px 140px, 200px 90px;
-  mix-blend-mode: screen;
-  opacity: 0.95;
-  z-index: 1;
-  /* Animations: subtle opacity twinkle and very slow background drift */
-  animation: twinkle 6s ease-in-out infinite alternate, drift 40s linear infinite;
-}
+.poster::after{ display:none !important; }
 
 @keyframes twinkle{
   0% { opacity: 0.85; filter: brightness(0.9); }
