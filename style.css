@@ -175,6 +175,42 @@ section h4 {
   font-weight: 700;
 }
 
+.awards {
+  background: var(--white);
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+  padding: 2.5rem clamp(1.5rem, 4vw, 3rem);
+}
+
+.awards-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin: 2rem 0 1.5rem;
+}
+
+.award-card {
+  background: var(--light-bg);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(0, 20, 84, 0.08);
+  box-shadow: 0 10px 18px rgba(0, 20, 84, 0.08);
+}
+
+.award-card h3 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  color: var(--isu-secondary);
+}
+
+.awards-details {
+  border-top: 1px solid rgba(0, 20, 84, 0.15);
+  padding-top: 1.5rem;
+  font-size: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
 .jury-panel p {
   margin-top: 0;
 }
