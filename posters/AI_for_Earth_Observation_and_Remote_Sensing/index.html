@@ -9,6 +9,14 @@
   <script src="./poster.js" defer></script>
 </head>
 <body>
+  <!-- Top hero video: full-width, maintains aspect ratio -->
+  <div class="hero-video top">
+    <video id="top-video" muted playsinline autoplay preload="auto">
+      <source src="../../ISS Video.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+
   <main class="poster" role="main" aria-labelledby="poster-title">
     <header class="poster-header">
       <div class="top-logo" aria-hidden="true">
@@ -57,7 +65,49 @@
           <summary><h2>Results</h2></summary>
           <div class="panel-body">
             <p>Interactive EVI AI data viewer (toggle between two AI collections).</p>
-            <!-- Results interactive viewer inserted in right column; placeholder here references it -->
+            <!-- Embedded Results interactive viewer -->
+            <div class="viewer">
+              <div class="viewer-topbar">
+                <div class="viewer-title">EVI AI Data — Toggle datasets</div>
+                <div class="viewer-controls" role="toolbar" aria-label="Viewer controls">
+                  <button id="toggle-aiA" class="control" aria-pressed="false">AI dataset A</button>
+                  <button id="toggle-aiB" class="control" aria-pressed="false">AI dataset B</button>
+                  <button id="reset-view" class="control">Reset View</button>
+                </div>
+              </div>
+
+              <div class="visual-area" id="visual-area" tabindex="0" aria-label="Interactive EVI visualization">
+                <svg id="visual-svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" role="img" aria-describedby="viewer-caption">
+                  <defs>
+                    <linearGradient id="satGrad" x1="0" x2="1">
+                      <stop offset="0%" stop-color="#03102a" />
+                      <stop offset="100%" stop-color="#08325a" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#satGrad)" />
+
+                  <!-- Example base features -->
+                  <g id="water" fill="#1f6fb4" opacity="0.9"><ellipse cx="300" cy="600" rx="220" ry="80"/></g>
+
+                  <!-- AI dataset A (toggleable) -->
+                  <g id="ai-a" data-hidden="false">
+                    <rect x="150" y="120" width="380" height="260" fill="#2ca02c" opacity="0.6" />
+                  </g>
+
+                  <!-- AI dataset B (toggleable) -->
+                  <g id="ai-b" data-hidden="true" style="display:none;">
+                    <rect x="640" y="150" width="420" height="300" fill="#f5a623" opacity="0.55" />
+                  </g>
+
+                  <!-- Legend -->
+                  <g id="legend" transform="translate(20,20)" font-family="sans-serif">
+                    <rect x="-10" y="-10" width="220" height="120" rx="8" fill="rgba(255,255,255,0.04)" />
+                    <text x="0" y="10" font-size="16" font-weight="700" fill="#f2f5fb">Legend</text>
+                  </g>
+                </svg>
+              </div>
+              <div id="viewer-caption" class="caption">Caption: Interactive EVI viewer — toggle to compare two AI outputs. Use keyboard arrows to pan carousel and TAB to focus controls.</div>
+            </div>
           </div>
         </details>
 
@@ -82,52 +132,6 @@
 
       <section class="col col-right">
         <section class="panel">
-          <h2>Interactive EVI AI Viewer</h2>
-          <div class="viewer">
-            <div class="viewer-topbar">
-              <div class="viewer-title">EVI AI Data — Toggle datasets</div>
-              <div class="viewer-controls" role="toolbar" aria-label="Viewer controls">
-                <button id="toggle-aiA" class="control" aria-pressed="false">AI dataset A</button>
-                <button id="toggle-aiB" class="control" aria-pressed="false">AI dataset B</button>
-                <button id="reset-view" class="control">Reset View</button>
-              </div>
-            </div>
-
-            <div class="visual-area" id="visual-area" tabindex="0" aria-label="Interactive EVI visualization">
-              <svg id="visual-svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" role="img" aria-describedby="viewer-caption">
-                <defs>
-                  <linearGradient id="satGrad" x1="0" x2="1">
-                    <stop offset="0%" stop-color="#03102a" />
-                    <stop offset="100%" stop-color="#08325a" />
-                  </linearGradient>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#satGrad)" />
-
-                <!-- Example base features -->
-                <g id="water" fill="#1f6fb4" opacity="0.9"><ellipse cx="300" cy="600" rx="220" ry="80"/></g>
-
-                <!-- AI dataset A (toggleable) -->
-                <g id="ai-a" data-hidden="false">
-                  <rect x="150" y="120" width="380" height="260" fill="#2ca02c" opacity="0.6" />
-                </g>
-
-                <!-- AI dataset B (toggleable) -->
-                <g id="ai-b" data-hidden="true" style="display:none;">
-                  <rect x="640" y="150" width="420" height="300" fill="#f5a623" opacity="0.55" />
-                </g>
-
-                <!-- Legend -->
-                <g id="legend" transform="translate(20,20)" font-family="sans-serif">
-                  <rect x="-10" y="-10" width="220" height="120" rx="8" fill="rgba(255,255,255,0.04)" />
-                  <text x="0" y="10" font-size="16" font-weight="700" fill="#f2f5fb">Legend</text>
-                </g>
-              </svg>
-            </div>
-            <div id="viewer-caption" class="caption">Caption: Interactive EVI viewer — toggle to compare two AI outputs. Use keyboard arrows to pan carousel and TAB to focus controls.</div>
-          </div>
-        </section>
-
-        <section class="panel">
           <h2>Image Carousel</h2>
           <div class="carousel" aria-label="Image carousel">
             <button id="prev" class="carousel-btn" aria-label="Previous slide">◀</button>
@@ -149,5 +153,13 @@
       <small> International Space University 2024
     </footer>
   </main>
+
+  <!-- Bottom mirrored hero video -->
+  <div class="hero-video bottom">
+    <video id="bottom-video" muted playsinline autoplay preload="auto" class="mirrored">
+      <source src="../../ISS Video.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
 </body>
 </html>

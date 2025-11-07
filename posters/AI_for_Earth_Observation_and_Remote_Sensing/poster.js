@@ -128,4 +128,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ev.key === '0') resetTransform();
   });
 
+  // Hero video handling: fade to loop behavior
+  function setupHeroVideo(id){
+    const v = document.getElementById(id);
+    if (!v) return;
+    // don't rely on native loop; implement gentle fade between end and restart
+    v.removeAttribute('loop');
+    v.addEventListener('loadeddata', () => {
+      // ensure playback (muted allows autoplay in most browsers)
+      v.play().catch(()=>{});
+    });
+    v.addEventListener('ended', () => {
+      // fade out, then rewind and fade in
+      v.classList.add('fade-out');
+      setTimeout(() => {
+        try{ v.currentTime = 0; v.play(); } catch(e){}
+        // force reflow then remove fade-out to fade back in
+        requestAnimationFrame(()=> v.classList.remove('fade-out'));
+      }, 600);
+    });
+    // slight initial fade-in
+    v.classList.add('fade-out');
+    setTimeout(()=> v.classList.remove('fade-out'), 120);
+  }
+
+  setupHeroVideo('top-video');
+  setupHeroVideo('bottom-video');
 });

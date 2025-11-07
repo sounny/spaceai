@@ -23,6 +23,17 @@ html,body{
   color: var(--text-light);
 }
 
+/* Hero video styles (top and bottom) */
+.hero-video{ width:100%; display:block; overflow:hidden; }
+.hero-video video{ width:100%; height:auto; display:block; opacity:1; transition: opacity 700ms ease; }
+.hero-video video.mirrored{ transform: scaleY(-1); }
+.hero-video video.fade-out{ opacity:0; }
+.hero-video.top{ margin-bottom: 12px; }
+.hero-video.bottom{ margin-top: 12px; }
+
+/* Ensure poster content sits below the top video and is not overlapping */
+.poster{ margin-top: 0; }
+
 .poster{
   max-width: 1200px; /* poster frame for screen preview */
   margin: 24px auto;
