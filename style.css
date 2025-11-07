@@ -231,7 +231,7 @@ section h4 {
   align-items: center;
   gap: 1.25rem;
   padding: 1.75rem 1.5rem;
-  text-align: center;
+  text-align: left;
 }
 
 .jury-card img {
@@ -250,7 +250,9 @@ section h4 {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  align-items: center;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
 }
 
 .jury-info h3 {
