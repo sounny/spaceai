@@ -3,7 +3,7 @@
    and ISU branding guidance. Designed for screen and print (high-res). */
 
 :root{
-  --isu-blue: rgb(0,20,84); /* ISU corporate blue */
+  --isu-blue: rgb(0, 0, 0); /* ISU corporate blue */
   --white: #ffffff;
   --isu-accent: #0b90ff; /* accent for highlights */
   --isu-green: #2ca02c; /* NDVI/positive */
@@ -120,7 +120,7 @@ html,body{
 }
 
 .subtitle{
-  font-size:18px;
+  font: size 24px;
   color:var(--muted);
   margin:6px 0 12px 0;
   text-transform:none;
@@ -174,8 +174,8 @@ html,body{
   padding:22px 28px;
   margin: 14px 0;
   /* slightly more opaque than the black background for better legibility */
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
-  border: 1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(180deg, rgba(8, 0, 255, 0.4), rgba(255,255,255,0.03));
+  border: 4px solid rgba(255,255,255,0.06);
   border-radius: 8px;
   position: relative;
   z-index: 2;
@@ -192,7 +192,7 @@ html,body{
   height:200px;
   padding:18px 24px;
   margin: 12px 0 18px 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+  background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0.02));
   border: 1px solid rgba(255,255,255,0.04);
   border-radius: 8px;
   position: relative;
