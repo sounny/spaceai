@@ -208,8 +208,9 @@ function initStarfield() {
             size: Math.random() * 1.6 + 0.2,
             twinkle: Math.random() * Math.PI * 2,
             speed: 0.02 + Math.random() * 0.06,
-            vx: (Math.random() - 0.5) * 0.02,
-            vy: (Math.random() - 0.5) * 0.02
+            // velocities reduced so stars move ~10x slower
+            vx: (Math.random() - 0.5) * 0.002,
+            vy: (Math.random() - 0.5) * 0.002
         });
     }
 
@@ -256,8 +257,8 @@ function initStarfield() {
         // update and draw stars with lightweight interaction
         for (let i = 0; i < stars.length; i++) {
             const s = stars[i];
-            // twinkle base
-            s.twinkle += dt * (0.5 + s.z);
+            // twinkle base (slower)
+            s.twinkle += dt * (0.5 + s.z) * 0.1; // 10x slower twinkle
             let alpha = 0.45 + 0.5 * Math.sin(s.twinkle);
 
             // gentle drift
@@ -296,9 +297,12 @@ function initStarfield() {
 
             ctx.beginPath();
             const r = s.size * (0.6 + s.z * 1.2);
+            // amplify brightness (clamped) while keeping subtle mid glow
+            const bright = Math.min(1, 10 * alpha);
+            const mid = Math.min(1, 3.5 * alpha);
             const gradient = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, r * 3);
-            gradient.addColorStop(0, `rgba(255,255,255,${Math.min(1, 0.9 * alpha)})`);
-            gradient.addColorStop(0.2, `rgba(200,230,255,${0.35 * alpha})`);
+            gradient.addColorStop(0, `rgba(255,255,255,${bright})`);
+            gradient.addColorStop(0.2, `rgba(200,230,255,${mid})`);
             gradient.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = gradient;
             ctx.fillRect(s.x - r * 3, s.y - r * 3, r * 6, r * 6);
