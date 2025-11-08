@@ -207,19 +207,7 @@ function initOrbitalViewer() {
         }
     };
 
-    // Create description overlays and attach to container
-    const descLeo = document.createElement('div');
-    descLeo.className = 'orbit-desc leo';
-    descLeo.innerText = orbitData.leo.text;
-    const descMeo = document.createElement('div');
-    descMeo.className = 'orbit-desc meo';
-    descMeo.innerText = orbitData.meo.text;
-    const descGeo = document.createElement('div');
-    descGeo.className = 'orbit-desc geo';
-    descGeo.innerText = orbitData.geo.text;
-    container.appendChild(descLeo);
-    container.appendChild(descMeo);
-    container.appendChild(descGeo);
+    // Orbit description overlays removed — labels/boxes were removed per design
 
     // Wheel to zoom in/out and show orbit descriptions based on camera distance
     // Make zoom less sensitive to avoid rapid toggling and show descriptions reliably

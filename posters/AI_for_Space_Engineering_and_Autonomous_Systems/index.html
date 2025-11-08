@@ -589,6 +589,36 @@
         .orbit-desc.leo { top: 34%; }
         .orbit-desc.meo { top: 56%; }
         .orbit-desc.geo { top: 78%; }
+
+        /* Datacenter wrap animation: slow floating and subtle tilt */
+        .datacenter-wrap {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            pointer-events: none;
+            will-change: transform, opacity;
+            animation: floatSlow 8s ease-in-out infinite;
+        }
+        .datacenter-img {
+            width: 62%;
+            max-width: 760px;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            object-fit: cover;
+            display: block;
+            opacity: 1;
+            transition: opacity 420ms ease, transform 360ms cubic-bezier(.2,.9,.2,1);
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes floatSlow {
+            0% { transform: translate(-50%, -50%) rotate(-0.4deg) translateY(0); }
+            50% { transform: translate(-50%, -50%) rotate(0.6deg) translateY(-8px); }
+            100% { transform: translate(-50%, -50%) rotate(-0.4deg) translateY(0); }
+        }
         
         /* Technology Section */
         .technology-section {
@@ -959,12 +989,11 @@
                 <canvas id="orbitalCanvas" style="width:100%;height:100%;display:block;opacity:0;transition:opacity 420ms ease;"></canvas>
 
                 <!-- Datacenter image that will morph into a 3D sphere as user scrolls -->
-                <img id="datacenterImage" src="./resources/datacenter.svg" alt="Terrestrial data center racks with greenery overlay" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:62%;max-width:760px;height:auto;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.6);object-fit:cover;z-index:2;pointer-events:none;transition:opacity 420ms ease, transform 700ms cubic-bezier(.2,.9,.2,1);" />
+                <div id="datacenterWrap" class="datacenter-wrap" aria-hidden="true">
+                    <img id="datacenterImage" src="./resources/datacenter.svg" alt="Terrestrial data center racks with greenery overlay" class="datacenter-img" />
+                </div>
 
-                <!-- Orbit labels (LEO / MEO / GEO) -> positioned visually over the rings -->
-                <div class="orbit-label orbit-label-leo">LEO</div>
-                <div class="orbit-label orbit-label-meo">MEO</div>
-                <div class="orbit-label orbit-label-geo">GEO</div>
+                <!-- Orbit labels removed per request -->
 
                 <!-- Fallback (for non-3D) decorative data streams -->
                 <div class="data-stream" style="left: 10%; animation-delay: 0s;"></div>
