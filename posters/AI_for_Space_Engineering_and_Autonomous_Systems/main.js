@@ -273,6 +273,54 @@ function initStarfield() {
     requestAnimationFrame(render);
 }
 
+// Create a simple stylized Earth texture using canvas (blue ocean + green land blobs)
+function createEarthTexture(width = 2048, height = 1024) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    // Ocean base
+    ctx.fillStyle = '#0b3b8c'; // deep ocean
+    ctx.fillRect(0, 0, width, height);
+
+    // Helper to draw a continent-like blob
+    function land(cx, cy, rw, rh, rot, color) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rot);
+        ctx.scale(rw, rh);
+        ctx.beginPath();
+        // draw an organic shape using multiple arcs
+        ctx.moveTo(0, -1);
+        for (let t = 0; t <= Math.PI * 2 + 0.1; t += Math.PI / 6) {
+            const x = Math.cos(t) + 0.3 * Math.cos(3 * t);
+            const y = Math.sin(t) + 0.2 * Math.sin(2 * t);
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = color || '#2ecc71';
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // Paint several continents at different longitudes/latitudes
+    land(width * 0.18, height * 0.4, 220, 120, -0.2, '#2fae4f'); // Africa/SA-ish
+    land(width * 0.35, height * 0.28, 300, 160, -0.5, '#2fae4f'); // Eurasia-ish
+    land(width * 0.75, height * 0.45, 260, 140, 0.3, '#2fae4f'); // Americas-ish
+    land(width * 0.55, height * 0.72, 180, 100, 0.2, '#2fae4f'); // Australia-ish
+    land(width * 0.88, height * 0.25, 120, 70, -0.3, '#2fae4f'); // small island
+
+    // Add some shading/highlights
+    const grad = ctx.createLinearGradient(0, 0, width, 0);
+    grad.addColorStop(0, 'rgba(255,255,255,0.03)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.06)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    return new THREE.CanvasTexture(canvas);
+}
+
 // Typewriter effect for hero title
 function initTypewriter() {
     const typed = new Typed('#typed-title', {
@@ -330,17 +378,25 @@ function init3DEarth() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
 
-    // Create Earth
+    // Create Earth with a stylized canvas texture so it reads as 'Earth' (green land on blue ocean)
     const geometry = new THREE.SphereGeometry(2, 64, 64);
-    const textureLoader = new THREE.TextureLoader();
-    
-    // Create a simple earth material if texture fails
-    const material = new THREE.MeshPhongMaterial({
-        color: 0x2233ff,
-        emissive: 0x112244,
-        shininess: 30
-    });
-    
+    let earthTexture;
+    try {
+        earthTexture = createEarthTexture(2048, 1024);
+    } catch (e) {
+        // fallback to solid color
+        earthTexture = null;
+    }
+
+    const materialOptions = {
+        emissive: 0x080a12,
+        shininess: 12,
+        specular: 0x223344
+    };
+    if (earthTexture) materialOptions.map = earthTexture;
+    else materialOptions.color = 0x2233ff;
+
+    const material = new THREE.MeshPhongMaterial(materialOptions);
     earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
 
