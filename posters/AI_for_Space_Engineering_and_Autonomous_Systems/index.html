@@ -148,19 +148,24 @@
             z-index: 2;
             text-align: center;
             max-width: 1000px;
-            padding: 0 40px;
+            /* give a bit more horizontal padding so large titles don't touch the edges */
+            padding: 0 56px;
         }
-        
+
         .hero-title {
             font-size: clamp(48px, 8vw, 120px);
             font-weight: 800;
-            line-height: 0.9;
+            /* ensure adequate line-height so glyph descenders are not clipped */
+            line-height: 1;
             margin-bottom: 30px;
             background: linear-gradient(135deg, var(--white) 0%, var(--neon-blue) 50%, var(--neon-green) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+            display: inline-block; /* prevent clipping and allow padding */
+            padding: 6px 8px; /* small padding to avoid left/bottom cut-off */
+            box-decoration-break: clone;
         }
         
         .hero-subtitle {
@@ -227,12 +232,57 @@
         }
         
         .abstract-content {
-            font-size: 18px;
-            line-height: 1.8;
+            /* scaled up ~1.5x from previous 18px -> 27px for stronger legibility */
+            font-size: 27px;
+            line-height: 1.7;
             color: var(--gray-light);
             text-align: justify;
             max-width: 900px;
             margin: 0 auto;
+        }
+
+        /* Hover-highlighted terms in the abstract: create a subtle 3D glow effect
+           when hovering the whole abstract area while keeping the other text readable */
+        .abstract-content {
+            perspective: 900px; /* enables translateZ for children */
+            transition: color 220ms ease, transform 420ms cubic-bezier(.2,.9,.2,1);
+            transform-style: preserve-3d;
+        }
+
+        .abstract-content .glow-term {
+            display: inline-block;
+            color: inherit;
+            opacity: 0.98;
+            /* use CSS variables so JS can drive per-term parallax without clobbering the hover transform */
+            transform: translateZ(var(--tz, 0)) translateX(var(--tx, 0)) translateY(var(--ty, 0)) scale(var(--s, 1));
+            transition: text-shadow 360ms ease, color 360ms ease, filter 360ms ease, transform 360ms cubic-bezier(.2,.9,.2,1);
+            /* each glow-term can set --i to stagger appearance */
+            transition-delay: calc(var(--i, 0) * 60ms);
+            will-change: transform, text-shadow, filter;
+            text-decoration: none;
+        }
+
+        /* dim the surrounding text slightly on hover, keep abstract readable */
+        .abstract-content:hover { color: rgba(234,244,255,0.75); }
+        .abstract-content:hover .glow-term { color: #eafcff; opacity: 1; }
+
+        /* the glowing 3D effect when parent is hovered */
+        .abstract-content:hover .glow-term {
+            /* set target variables on hover so the CSS animation also works without JS */
+            --tz: 28px;
+            --ty: -6px;
+            --s: 1.06;
+            text-shadow: 0 6px 18px rgba(0,212,255,0.14), 0 12px 40px rgba(0,212,255,0.10), 0 0 28px rgba(0,255,136,0.06);
+            filter: drop-shadow(0 8px 28px rgba(0,212,255,0.12));
+        }
+
+        /* extra emphasis for strongest keywords */
+        .abstract-content:hover .glow-term.strong {
+            --tz: 36px;
+            --ty: -8px;
+            --s: 1.09;
+            text-shadow: 0 8px 26px rgba(0,212,255,0.22), 0 18px 56px rgba(0,212,255,0.14), 0 0 46px rgba(0,255,136,0.08);
+            filter: drop-shadow(0 12px 44px rgba(0,212,255,0.18));
         }
         
         .highlight {
@@ -265,19 +315,25 @@
         .datacenter-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 16px;
-            padding: 40px;
+            padding: 20px 24px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 212, 255, 0.2);
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            /* collapsed card height showing icon + title + small graph area */
+            max-height: 140px;
+            transition: max-height 420ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms ease, transform 220ms ease;
         }
-        
-        .datacenter-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+
+        /* expand on hover or focus-within to reveal description and graph */
+        .datacenter-card:hover,
+        .datacenter-card:focus-within {
+            transform: translateY(-6px);
+            box-shadow: 0 28px 60px rgba(0, 212, 255, 0.16);
             border-color: var(--neon-blue);
+            max-height: 520px; /* enough space to show description + graph */
         }
         
         .datacenter-card::before {
@@ -304,6 +360,45 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* Emoji animations */
+        .emoji {
+            display: inline-block;
+            transform-origin: 50% 50%;
+            will-change: transform, filter, opacity;
+        }
+
+        /* water drop - small bob + drop effect */
+        @keyframes drop-bob {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            40% { transform: translateY(8px) scale(0.98); }
+            60% { transform: translateY(10px) scale(0.96); filter: drop-shadow(0 8px 18px rgba(0,150,200,0.06)); }
+            100% { transform: translateY(0) scale(1); }
+        }
+
+        /* slightly faster and more pronounced bob for better visibility */
+        .emoji.drop { animation: drop-bob 1800ms ease-in-out infinite; }
+
+        /* lightning - quick pulsing flash */
+        @keyframes lightning-pulse {
+            0% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)); transform: rotate(0deg) translateY(0) scale(1); }
+            30% { filter: drop-shadow(0 0 28px rgba(255,230,120,0.16)); transform: rotate(-10deg) translateY(-3px) scale(1.02); }
+            50% { filter: drop-shadow(0 0 42px rgba(255,245,180,0.28)); transform: rotate(12deg) translateY(-4px) scale(1.05); }
+            80% { filter: drop-shadow(0 0 20px rgba(255,230,120,0.12)); transform: rotate(-4deg) translateY(-2px) scale(1.01); }
+            100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)); transform: rotate(0deg) translateY(0) scale(1); }
+        }
+        /* faster, punchier lightning pulse */
+        .emoji.lightning { animation: lightning-pulse 1400ms ease-in-out infinite; }
+
+        /* leaf - slow float + rotate */
+        @keyframes leaf-float {
+            0% { transform: translateY(0) rotate(0) translateX(0); }
+            30% { transform: translateY(-6px) rotate(-6deg) translateX(-3px); }
+            55% { transform: translateY(-14px) rotate(-12deg) translateX(4px); }
+            100% { transform: translateY(0) rotate(0) translateX(0); }
+        }
+        /* slightly quicker float but larger amplitude so motion is more noticeable */
+        .emoji.leaf { animation: leaf-float 2600ms ease-in-out infinite; }
         
         .card-title {
             font-size: 24px;
@@ -314,8 +409,34 @@
         
         .card-description {
             font-size: 16px;
-            color: var(--gray-medium);
+            /* make revealed description fully white for maximum contrast */
+            color: var(--white);
             line-height: 1.6;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 360ms ease, transform 360ms ease;
+            max-height: 0;
+            overflow: hidden;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* Graph placeholder inside card (hidden until expanded) */
+        /* Graph placeholders removed per request - hide element entirely */
+        .card-graph { display: none !important; }
+
+        /* Reveal description and graph when card is expanded */
+        .datacenter-card:hover .card-description,
+        .datacenter-card:focus-within .card-description {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 400px;
+        }
+
+        .datacenter-card:hover .card-graph,
+        .datacenter-card:focus-within .card-graph {
+            opacity: 1;
+            transform: translateY(0) scale(1);
         }
         
         /* Interactive Charts */
@@ -597,6 +718,12 @@
             .container {
                 padding: 0 20px;
             }
+
+            /* keep abstract readable on small screens by reducing the scale back */
+            .abstract-content {
+                font-size: 18px;
+                line-height: 1.6;
+            }
             
             .datacenter-grid,
             .tech-grid {
@@ -610,8 +737,28 @@
             transform: translateY(50px);
             transition: all 0.8s ease;
         }
-        
+
+        /* Fade/slide behavior for sections: visible => fade in; leaving => fade out */
+        .section {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 600ms cubic-bezier(.2,.9,.2,1), transform 600ms cubic-bezier(.2,.9,.2,1);
+        }
+
+        .section .section-title,
+        .section .abstract-content {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity 560ms ease, transform 560ms ease;
+        }
+
         .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section.visible .section-title,
+        .section.visible .abstract-content {
             opacity: 1;
             transform: translateY(0);
         }
@@ -726,7 +873,7 @@
                 <span id="typed-title"></span>
             </h1>
             <p class="hero-subtitle">
-                Revolutionizing computing infrastructure with AI-powered orbital data centers
+                Clouds Beyond the Atmosphere. AI-orchestrated orbital data centers—sun-powered, space-cooled.
             </p>
             <div class="hero-stats">
                 <div class="stat-item">
@@ -751,17 +898,8 @@
             <h2 class="section-title">The Challenge</h2>
             <div class="abstract-content">
                 <p>
-                    <span class="highlight">The modern digital economy is underpinned by massive data centers that operate around the clock. A single global tech giant’s facility can consume ≈ 450,000 gallons of water per day just to keep its servers cool — putting enormous stress on local water supplies in water-scarce regions.
-                        Meanwhile, cooling and infrastructure operations often account for over 40% of a data centre’s total electricity usage, driving up both carbon footprint and operating costs.
-                        Every day, European banking systems settle more than €1.8 trillion in payment flows, all of which must be routed, processed and stored via data-centric infrastructure. At the intersection of high-stakes finance and large-scale computing lies a unique opportunity: what if data centres themselves could evolve beyond terrestrial constraints — into orbital platforms that reduce terrestrial resource strain, enhance resilience, and redefine the future of digital infrastructure? <span class="highlight">163.7 billion gallons/year</span>, and Google has cited around 
-                    <span class="highlight">450,000 gallons/day per site</span> on average—intensifying stress in water-scarce regions.
-                    We propose AI orbital data centers as a sustainable, strategic infrastructure: powered by continuous solar in orbit and 
-                    cooled via radiative heat rejection (zero water), operated by AI autonomy for maintenance, workload orchestration, and thermal control. 
-                    In LEO, optical inter-satellite links and free-space propagation enable <span class="highlight">~25–88 ms latency</span> 
-                    (far below GEO) and faster-than-fiber signal speeds, enabling real-time edge computing for constellations and cislunar missions.
+                    <span class="glow-term strong" style="--i:0">The cloud is not weightless; it is materially intensive</span>. U.S. data centers collectively withdraw <span class="glow-term" style="--i:1">≈1.7 billion liters/day</span> (with single hyperscale sites averaging <span class="glow-term" style="--i:2">≈1.7 million L/day</span>), and thermal management typically accounts for <span class="glow-term" style="--i:3">~40% of electricity use</span>. Meanwhile, European payment systems route on the order of <span class="glow-term strong" style="--i:4">€3 trillion/day</span> through this infrastructure. We therefore examine an off-planet architecture—<span class="glow-term strong" style="--i:5">AI-orchestrated orbital data centers</span>, powered by <span class="glow-term" style="--i:6">continuous solar</span> and <span class="glow-term" style="--i:7">cooled via radiative heat rejection</span>—to decouple compute growth from terrestrial constraints.
                 </p>
-                <br>
-            
             </div>
         </div>
     </section>
@@ -772,30 +910,30 @@
             <h2 class="section-title">Current Data Center Challenges</h2>
             
             <div class="datacenter-grid">
-                <div class="datacenter-card" data-type="water">
-                    <div class="card-icon">💧</div>
+                <div class="datacenter-card" data-type="water" tabindex="0">
+                    <div class="card-icon"><span class="emoji drop" aria-hidden="true">💧</span></div>
                     <h3 class="card-title">Water Consumption</h3>
+                    <div class="card-graph"></div>
                     <p class="card-description">
-                        U.S. data centers consume 163.7 billion gallons annually. 
-                        Google uses 450,000 gallons/day per site for cooling systems.
+                        U.S. data centers collectively withdraw ≈1.7 billion liters/day; single hyperscale sites average ≈1.7 million L/day. Thermal management typically accounts for ~40% of electricity use.
                     </p>
                 </div>
                 
-                <div class="datacenter-card" data-type="energy">
-                    <div class="card-icon">⚡</div>
+                <div class="datacenter-card" data-type="energy" tabindex="0">
+                    <div class="card-icon"><span class="emoji lightning" aria-hidden="true">⚡</span></div>
                     <h3 class="card-title">Energy Usage</h3>
+                    <div class="card-graph"></div>
                     <p class="card-description">
-                        183 TWh consumed in 2024 (4% of total U.S. electricity). 
-                        Projected to grow 133% to 426 TWh by 2030.
+                        183 TWh consumed in 2024 (≈4% of total U.S. electricity). Cooling and infrastructure operations often represent ~40% of site energy draw.
                     </p>
                 </div>
                 
-                <div class="datacenter-card" data-type="carbon">
-                    <div class="card-icon">🌱</div>
+                <div class="datacenter-card" data-type="carbon" tabindex="0">
+                    <div class="card-icon"><span class="emoji leaf" aria-hidden="true">🌱</span></div>
                     <h3 class="card-title">Carbon Emissions</h3>
+                    <div class="card-graph"></div>
                     <p class="card-description">
-                        105 million metric tons of CO2 emissions in 2024—
-                        a 300% increase from 2018. 548 gCO2e/kWh carbon intensity.
+                        105 million metric tons CO2 in 2024 (≈300% growth since 2018). Carbon intensity averages ~548 gCO2e/kWh across measured sites.
                     </p>
                 </div>
             </div>
@@ -916,5 +1054,67 @@
     
     <!-- Core JavaScript -->
     <script src="main.js"></script>
+    <script>
+    // Parallax for the abstract: subtle parent rotation + per-term parallax
+    (function(){
+        const abstract = document.querySelector('.abstract-content');
+        if (!abstract) return;
+        const terms = Array.from(abstract.querySelectorAll('.glow-term'));
+        let raf = null;
+
+        function onMove(e){
+            const r = abstract.getBoundingClientRect();
+            const cx = r.left + r.width/2;
+            const cy = r.top + r.height/2;
+            const dx = (e.clientX - cx) / r.width; // -0.5 .. 0.5
+            const dy = (e.clientY - cy) / r.height;
+
+            // parent rotation (subtle)
+            const rx = (-dy * 6).toFixed(2);
+            const ry = (dx * 10).toFixed(2);
+            abstract.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+
+            // per-term parallax: push terms forward proportionally to closeness to cursor
+            terms.forEach((t) => {
+                const tr = t.getBoundingClientRect();
+                const tcx = tr.left + tr.width/2;
+                const tcy = tr.top + tr.height/2;
+                const ddx = e.clientX - tcx;
+                const ddy = e.clientY - tcy;
+                const dist = Math.sqrt(ddx*ddx + ddy*ddy);
+                const max = Math.max(220, Math.min(window.innerWidth, 420));
+                const factor = Math.max(0, 1 - dist / max);
+                const baseZ = t.classList.contains('strong') ? 26 : 18;
+                const tz = Math.round(baseZ * factor);
+                const tx = (-ddx * 0.02 * factor).toFixed(2);
+                const ty = (-ddy * 0.02 * factor).toFixed(2);
+                const s = (1 + 0.06 * factor).toFixed(3);
+                t.style.setProperty('--tz', tz + 'px');
+                t.style.setProperty('--tx', tx + 'px');
+                t.style.setProperty('--ty', ty + 'px');
+                t.style.setProperty('--s', s);
+            });
+
+            if (raf) cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(()=>{});
+        }
+
+        function onLeave(){
+            abstract.style.transform = '';
+            terms.forEach(t => {
+                t.style.setProperty('--tz','0px');
+                t.style.setProperty('--tx','0px');
+                t.style.setProperty('--ty','0px');
+                t.style.setProperty('--s','1');
+            });
+        }
+
+        abstract.addEventListener('mousemove', onMove);
+        abstract.addEventListener('mouseleave', onLeave);
+        // touch support: apply a subtle parallax on touchmove
+        abstract.addEventListener('touchmove', function(e){ if(e.touches && e.touches[0]) onMove(e.touches[0]); }, { passive: true });
+        abstract.addEventListener('touchend', onLeave);
+    })();
+    </script>
 </body>
 </html>

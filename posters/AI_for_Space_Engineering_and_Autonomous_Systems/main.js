@@ -1,5 +1,8 @@
 // Global variables
-let scene, camera, renderer, earth, satellites = [];
+let scene, camera, renderer, earth;
+let satellites = [];
+// reusable vector for projecting satellite positions to screen coords
+let _satProj = new THREE.Vector3();
 let mouseX = 0, mouseY = 0;
 
 // Initialize everything when DOM is loaded
@@ -461,13 +464,16 @@ function initScrollAnimations() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
-                
-                // Trigger specific animations based on section
+
+                // Trigger specific animations when entering
                 if (entry.target.classList.contains('current-datacenters')) {
                     animateDataCenterCards();
                 } else if (entry.target.classList.contains('orbital-solution')) {
                     animateOrbitalVisualization();
                 }
+            } else {
+                // remove the visible class when leaving so the section fades out
+                entry.target.classList.remove('visible');
             }
         });
     }, observerOptions);
@@ -511,6 +517,16 @@ function init3DEarth() {
     const material = new THREE.MeshPhongMaterial(materialOptions);
     earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
+
+    // subtle atmosphere halo to make Earth read better against the starfield
+    try {
+        const atmosphereGeo = new THREE.SphereGeometry(2.06, 48, 48);
+        const atmosphereMat = new THREE.MeshBasicMaterial({ color: 0x7ec8ff, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, side: THREE.BackSide });
+        const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
+        scene.add(atmosphere);
+    } catch (e) {
+        // non-fatal: if atmosphere creation fails, continue without it
+    }
 
     // Add satellites
     createSatellites();
@@ -615,10 +631,13 @@ function createSatellites() {
         satellite.position.z = Math.sin(angle) * radius;
         satellite.position.y = height;
 
+        // use baseSpeed/currentSpeed so the animate() proximity logic works
+        const baseSpeed = 0.0015 + (i % 3) * 0.0009; // intentionally slow baseline
         satellite.userData = {
             radius: radius,
             angle: angle,
-            speed: 0.01 + (i % 3) * 0.005,
+            baseSpeed: baseSpeed,
+            currentSpeed: baseSpeed,
             originalY: height
         };
 
