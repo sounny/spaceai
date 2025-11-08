@@ -298,11 +298,75 @@
             text-shadow: 0 0 10px rgb(105, 127, 218);
         }
         
-        /* Current Data Centers Section */
+        /* Current Data Centers Section — futuristic blue/dark space background */
         .current-datacenters {
             padding: 120px 0;
-            background: var(--space-dark);
             position: relative;
+            overflow: hidden;
+            z-index: 0;
+            /* base layered gradient (deep space -> blue rim -> faint cyan) */
+            background: linear-gradient(180deg, rgba(2,8,30,0.96) 0%, rgba(1,28,68,0.96) 55%, rgba(0,34,86,0.86) 100%);
+        }
+
+        /* Nebula / glow layer behind content */
+        .current-datacenters::before {
+            content: '';
+            position: absolute;
+            left: -10%;
+            top: -14%;
+            width: 120%;
+            height: 140%;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 18% 22%, rgba(0,212,255,0.06) 0%, transparent 12%),
+                radial-gradient(circle at 82% 78%, rgba(0,96,188,0.06) 0%, transparent 16%),
+                radial-gradient(circle at 50% 40%, rgba(45,70,160,0.04) 0%, transparent 28%);
+            filter: blur(28px) saturate(120%);
+            transform: translateZ(0) scale(1.02);
+            opacity: 1;
+            mix-blend-mode: screen;
+        }
+
+        /* Starfield overlay (subtle small stars + a few larger specks) */
+        .current-datacenters::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            /* two layered radial patterns to create depth and clusters */
+            background-image:
+                radial-gradient(white 0.6px, transparent 0.8px),
+                radial-gradient(white 0.9px, transparent 1.1px);
+            background-position: 10% 20%, 70% 80%;
+            background-size: 260px 260px, 420px 420px;
+            opacity: 0.12;
+            mix-blend-mode: screen;
+            transform: translateZ(0);
+        }
+
+        /* Ensure the inner container sits above the decorative layers */
+        .current-datacenters > .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* subtle animated shimmer across the section for life */
+        @keyframes cd-shimmer {
+            0% { transform: translateX(-8%); opacity: 0.05; }
+            50% { transform: translateX(8%); opacity: 0.12; }
+            100% { transform: translateX(-8%); opacity: 0.05; }
+        }
+
+        .current-datacenters::before {
+            animation: cd-shimmer 12s ease-in-out infinite;
+        }
+
+        /* reduce motion: disable shimmer and heavy blur */
+        @media (prefers-reduced-motion: reduce) {
+            .current-datacenters::before { animation: none; filter: blur(10px); }
+            .current-datacenters::after { opacity: 0.08; }
         }
         
         .datacenter-grid {
@@ -459,18 +523,31 @@
         
         /* Orbital Solution Section */
         .orbital-solution {
-            padding: 120px 0;
+            /* doubled vertical space to emphasize the Technical Benefits area */
+            padding: 240px 0;
             background: linear-gradient(180deg, var(--space-dark) 0%, var(--space-black) 100%);
             position: relative;
         }
         
         .orbital-visualization {
             position: relative;
-            height: 600px;
-            margin: 60px 0;
+            /* make the visualization area twice as tall so spheres have room */
+            height: 1200px;
+            margin: 120px 0;
             border-radius: 20px;
             overflow: hidden;
             background: radial-gradient(circle at center, rgba(0, 20, 84, 0.3) 0%, transparent 70%);
+            /* stretch slightly beyond the centered container to make the section visually wider */
+            width: calc(100% + 480px);
+            margin-left: -240px;
+            margin-right: -240px;
+            max-width: none;
+        }
+
+        /* Keep mobile/smaller viewports reasonable */
+        @media (max-width: 980px) {
+            .orbital-visualization { height: auto; margin: 40px 0; width: 100%; margin-left: 0; margin-right: 0; }
+            .orbital-solution { padding: 120px 0; }
         }
         
         .earth-container {
@@ -619,12 +696,199 @@
             50% { transform: translate(-50%, -50%) rotate(0.6deg) translateY(-8px); }
             100% { transform: translate(-50%, -50%) rotate(-0.4deg) translateY(0); }
         }
+
+        /* Benefit spheres styling inside Technical Benefits: spread across full section and larger circles */
+        .benefit-spheres {
+            position: absolute;
+            inset: 0;
+            z-index: 3; /* above orbital canvas and background */
+            pointer-events: none; /* let clicks pass to canvas, spheres themselves are focusable */
+        }
+
+        .benefit-sphere {
+            position: absolute;
+            width: 520px; /* increased size */
+            height: 520px; /* increased size */
+            min-width: 320px;
+            min-height: 320px;
+            border-radius: 50%;
+            padding: 28px;
+            box-sizing: border-box;
+            background: radial-gradient(circle at 30% 30%, rgba(0,212,255,0.14), rgba(0,96,188,0.12) 35%, rgba(2,8,30,0.6) 70%);
+            box-shadow: 0 30px 90px rgba(0, 40, 90, 0.55), inset 0 -10px 28px rgba(0,0,0,0.45);
+            color: #eaf4ff;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+            justify-content: center;
+            text-align: left;
+            transform-origin: center;
+            transition: transform 360ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms ease, filter 260ms ease;
+            cursor: default;
+            border: 1px solid rgba(0,212,255,0.06);
+            pointer-events: auto; /* enable hover/focus interactions on the spheres */
+            position: absolute;
+            overflow: hidden; /* contain hover visuals */
+        }
+
+        /* Background visual layer for futuristic hover effect */
+        .benefit-sphere::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            z-index: 0; /* behind text */
+            pointer-events: none;
+            background-image: radial-gradient(circle at 30% 30%, rgba(0,220,255,0.12), transparent 30%),
+                              conic-gradient(from 200deg at 50% 50%, rgba(0,200,255,0.06), rgba(0,120,200,0.06), rgba(0,200,255,0.06));
+            background-blend-mode: screen;
+            opacity: 0;
+            transform: scale(0.96);
+            transition: opacity 320ms ease, transform 420ms cubic-bezier(.2,.9,.2,1), filter 320ms ease;
+            filter: blur(4px) saturate(120%);
+        }
+
+        /* subtle holographic lines overlay */
+        .benefit-sphere::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            z-index: 1; /* above bg layer but below text */
+            pointer-events: none;
+            background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 12px),
+                              repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 12px);
+            mix-blend-mode: overlay;
+            opacity: 0;
+            transition: opacity 420ms ease;
+        }
+
+    /* Positions across the section (spread out and non-overlapping) */
+    /* Nudge spheres slightly apart to avoid overlap while keeping them central */
+    .benefit-sphere:nth-child(1) { left: 26%; top: 28%; transform: translate(-50%, -50%); }
+    .benefit-sphere:nth-child(2) { left: 74%; top: 26%; transform: translate(-50%, -50%); }
+    .benefit-sphere:nth-child(3) { left: 30%; top: 72%; transform: translate(-50%, -50%); }
+    .benefit-sphere:nth-child(4) { left: 70%; top: 76%; transform: translate(-50%, -50%); }
+
+        .benefit-sphere:focus,
+        .benefit-sphere:hover {
+            /* pause float animation so hover transform applies cleanly */
+            animation-play-state: paused;
+            transform: translate(-50%, -50%) translateY(-12px) scale(1.12);
+            box-shadow: 0 56px 140px rgba(0,60,140,0.62);
+            outline: none;
+            filter: saturate(130%);
+            transition: transform 360ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms ease, filter 260ms ease;
+            /* reveal futuristic background visuals */
+        }
+
+        .benefit-sphere:focus::before,
+        .benefit-sphere:hover::before {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(2px) saturate(150%);
+            animation: bgDrift 10s linear infinite;
+        }
+
+        .benefit-sphere:focus::after,
+        .benefit-sphere:hover::after {
+            opacity: 0.18;
+        }
+
+        @keyframes bgDrift {
+            0% { background-position: 0% 0%, 0% 0%; }
+            50% { background-position: 30% 20%, 50% 50%; }
+            100% { background-position: 0% 0%, 0% 0%; }
+        }
+
+        .benefit-sphere h4 {
+            font-size: 24px; /* larger heading */
+            margin: 0 0 10px 0;
+            color: #dff8ff;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+
+        .benefit-sphere p {
+            margin: 0;
+            font-size: 16px; /* larger body copy */
+            color: rgba(234,244,255,0.98);
+            line-height: 1.5;
+            max-height: 14rem;
+            overflow: auto;
+            padding-right: 8px;
+        }
+
+        /* Button placed at the bottom of a benefit sphere */
+        .benefit-sphere .sphere-btn {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, var(--neon-blue), #0095d6);
+            color: #00121a;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,212,255,0.14);
+            z-index: 6;
+            transition: transform 180ms ease, box-shadow 160ms ease, opacity 180ms ease;
+        }
+
+        .benefit-sphere .sphere-btn:hover {
+            transform: translateX(-50%) translateY(-4px);
+            box-shadow: 0 18px 44px rgba(0,212,255,0.22);
+        }
+
+        /* gentle float animation for spheres to feel alive */
+        @keyframes sphereFloat {
+            0% { transform: translate(-50%, -50%) translateY(0) rotate(-0.4deg); }
+            50% { transform: translate(-50%, -50%) translateY(-10px) rotate(0.6deg); }
+            100% { transform: translate(-50%, -50%) translateY(0) rotate(-0.4deg); }
+        }
+
+        .benefit-sphere { animation: sphereFloat 12s ease-in-out infinite; }
+
+        /* staggered variations so spheres don't move in unison */
+        .benefit-sphere:nth-child(1) { animation-delay: 0s; }
+        .benefit-sphere:nth-child(2) { animation-delay: 1.6s; }
+        .benefit-sphere:nth-child(3) { animation-delay: 3.2s; }
+        .benefit-sphere:nth-child(4) { animation-delay: 4.8s; }
+
+        /* responsive: stack vertically on small screens and scale down sizes */
+        @media (max-width: 980px) {
+            .benefit-sphere { position: static; width: 96%; height: auto; border-radius: 16px; padding: 18px; animation: none; }
+            .benefit-spheres { display: flex; flex-direction: column; gap: 18px; align-items: center; justify-content: center; padding: 28px 0; }
+            .benefit-sphere h4 { font-size: 20px; }
+            .benefit-sphere p { font-size: 15px; max-height: none; }
+        }
         
         /* Technology Section */
         .technology-section {
             padding: 120px 0;
             background: var(--space-black);
         }
+
+        /* AI Integration background canvas */
+        .ai-integration-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none; /* overlay visuals only; interactions handled by section */
+            overflow: hidden;
+        }
+
+        .ai-integration-bg canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* ensure tech-grid content sits above the canvas */
+        .technology-section .container, .technology-section .tech-grid { position: relative; z-index: 2; }
         
         .tech-grid {
             display: grid;
@@ -785,6 +1049,39 @@
         .section.visible {
             opacity: 1;
             transform: translateY(0);
+        }
+
+        /* "Getting in" enter effect for the solution section: animated light-blue gradient */
+        #solution {
+            position: relative;
+            overflow: visible;
+        }
+
+        #solution::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0; /* sits behind section content */
+            pointer-events: none;
+            background: linear-gradient(120deg, rgba(2,18,40,0.86) 0%, rgba(0,61,138,0.94) 40%, rgba(0,212,255,0.06) 100%);
+            background-size: 200% 200%;
+            opacity: 0;
+            transition: opacity 420ms ease, transform 420ms ease;
+            filter: blur(16px) saturate(120%);
+            transform: translateZ(0) scale(1.02);
+            mix-blend-mode: screen;
+        }
+
+        /* When the section enters the viewport add a subtle animation */
+        #solution.in::before {
+            opacity: 1;
+            animation: gradientShift 8s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .section.visible .section-title,
@@ -979,21 +1276,48 @@
         </div>
     </section>
     
-    <!-- Orbital Solution Section -->
-    <section id="solution" class="orbital-solution section">
+    <!-- Technical Benefits Section -->
+    <section id="solution" class="Technical Benefits section">
         <div class="container">
-            <h2 class="section-title">The Orbital Solution</h2>
+            <h2 class="section-title"> Technical Benefits </h2>
             
             <div class="orbital-visualization">
                 <!-- Dedicated canvas for a small 3D orbital viewer -->
                 <canvas id="orbitalCanvas" style="width:100%;height:100%;display:block;opacity:0;transition:opacity 420ms ease;"></canvas>
 
-                <!-- Datacenter image that will morph into a 3D sphere as user scrolls -->
-                <div id="datacenterWrap" class="datacenter-wrap" aria-hidden="true">
-                    <img id="datacenterImage" src="./resources/datacenter.svg" alt="Terrestrial data center racks with greenery overlay" class="datacenter-img" />
-                </div>
-
                 <!-- Orbit labels removed per request -->
+
+                <!-- Informational spheres: key technical benefits (Low Latency, Bandwidth Conservation, Open Access, Resilience) -->
+                <div class="benefit-spheres" aria-hidden="false">
+                    <div class="benefit-sphere" tabindex="0" role="article" aria-labelledby="b1-title">
+                        <h4 id="b1-title">Low Latency</h4>
+                        <p>
+                            Placing compute in LEO keeps inference a few hundred–few thousand km from the sensor, yielding ~25–88 ms round-trip latency and ~50% faster free-space propagation than fiber—far below GEO. This shrinks the interval from data acquisition to user insight, enabling near-real-time edge analytics for constellations and cislunar operations.
+                        </p>
+                        <button class="sphere-btn" aria-label="Low Latency action">Click me!</button>
+                    </div>
+
+                    <div class="benefit-sphere" tabindex="0" role="article" aria-labelledby="b2-title">
+                        <h4 id="b2-title">Bandwidth Conservation</h4>
+                        <p>
+                            Orbital edge systems pre-process data on-board (detection, compression, summarization), downlinking only salient products so terabyte-scale raw streams become kilobyte-scale telemetry. Federated learning exchanges model updates rather than datasets, further reducing downlink load and Earth-side storage.
+                        </p>
+                    </div>
+
+                    <div class="benefit-sphere" tabindex="0" role="article" aria-labelledby="b3-title">
+                        <h4 id="b3-title">Open Access</h4>
+                        <p>
+                            An orbital cloud system exposes a network of compute/storage nodes reachable from ground stations and partner networks, decoupling access from local land, power, and water constraints. Workloads can be placed at—and retrieved from—the most efficient node via inter-satellite links.
+                        </p>
+                    </div>
+
+                    <div class="benefit-sphere" tabindex="0" role="article" aria-labelledby="b4-title">
+                        <h4 id="b4-title">Resilience</h4>
+                        <p>
+                            Constellation architectures provide intrinsic redundancy: N+3–N+5 replication, ECC/TMR for radiation upsets, and autonomous failover that restores service in seconds rather than minutes. Mesh topologies and predictive routing sustain continuity despite single-satellite faults or regional ground outages.
+                        </p>
+                    </div>
+                </div>
 
                 <!-- Fallback (for non-3D) decorative data streams -->
                 <div class="data-stream" style="left: 10%; animation-delay: 0s;"></div>
@@ -1003,18 +1327,20 @@
                 <div class="data-stream" style="left: 90%; animation-delay: 2s;"></div>
             </div>
             
-            <div class="chart-container">
-                <h3 class="chart-title">Environmental Benefits Comparison</h3>
-                <canvas id="benefitsChart" width="400" height="200"></canvas>
-            </div>
+            <!-- Environmental Benefits Comparison removed -->
         </div>
     </section>
     
     <!-- Technology Section -->
     <section id="technology" class="technology-section section">
         <div class="container">
-            <h2 class="section-title">Current Projects & Technology</h2>
+            <h2 class="section-title">AI Integration</h2>
             
+            <!-- AI Integration interactive background -->
+            <div class="ai-integration-bg" aria-hidden="true">
+                <canvas id="aiIntegrationCanvas"></canvas>
+            </div>
+
             <div class="tech-grid">
                 <div class="tech-card">
                     <div class="tech-logo">SC</div>
@@ -1191,6 +1517,30 @@
         // touch support: apply a subtle parallax on touchmove
         abstract.addEventListener('touchmove', function(e){ if(e.touches && e.touches[0]) onMove(e.touches[0]); }, { passive: true });
         abstract.addEventListener('touchend', onLeave);
+    })();
+    </script>
+    <script>
+    // Section enter observer: when #solution scrolls into view, add .in to trigger the blue gradient effect
+    (function(){
+        try {
+            const target = document.getElementById('solution');
+            if (!target) return;
+
+            const observer = new IntersectionObserver((entries)=>{
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.intersectionRatio > 0.15) {
+                        entry.target.classList.add('in');
+                    } else {
+                        // keep the effect after first reveal; comment out removal to allow repeated toggles
+                        // entry.target.classList.remove('in');
+                    }
+                });
+            }, { root: null, rootMargin: '0px', threshold: [0.15] });
+
+            observer.observe(target);
+        } catch (e) {
+            console.warn('Section enter observer failed', e);
+        }
     })();
     </script>
 </body>

@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     init3DEarth();
     initOrbitalViewer();
     initCharts();
+    initAIIntegrationBackground();
     initInteractiveElements();
     initSmoothScrolling();
 });
@@ -1241,3 +1242,593 @@ const additionalStyles = `
 const styleSheet = document.createElement('style');
 styleSheet.textContent = additionalStyles;
 document.head.appendChild(styleSheet);
+
+// Benefit spheres: small contextual popups on hover / focus / click
+(function(){
+    const spheres = Array.from(document.querySelectorAll('.benefit-sphere'));
+    if (!spheres.length) return;
+
+    let activePopup = null;
+    let hideTimer = null;
+
+    function createPopup(title, html) {
+        const wrap = document.createElement('div');
+        wrap.className = 'benefit-popup';
+        wrap.setAttribute('role','dialog');
+        wrap.setAttribute('aria-live','polite');
+        wrap.style.position = 'absolute';
+        wrap.style.zIndex = 2300;
+        wrap.style.pointerEvents = 'auto';
+        wrap.style.transition = 'transform 220ms cubic-bezier(.2,.9,.2,1), opacity 180ms ease';
+        wrap.style.transformOrigin = 'center bottom';
+        wrap.style.opacity = '0';
+        wrap.innerHTML = `
+            <div style="background: linear-gradient(180deg, rgba(2,10,30,0.96), rgba(8,16,40,0.98)); border:1px solid rgba(0,212,255,0.12); padding:14px 16px; border-radius:12px; box-shadow:0 14px 40px rgba(2,12,30,0.6); max-width:360px; color:#eaf4ff;">
+                <strong style="display:block;color:#9fdcff;margin-bottom:6px;font-size:15px;">${title}</strong>
+                <div style="font-size:14px;line-height:1.45;color:rgba(234,244,255,0.95);">${html}</div>
+            </div>
+        `;
+        // close on pointerdown outside
+        wrap.addEventListener('pointerdown', (e)=>{ e.stopPropagation(); });
+        return wrap;
+    }
+
+    function showPopupForSphere(sphere, immediate) {
+        hidePopup();
+        const h = sphere.querySelector('h4');
+        const p = sphere.querySelector('p');
+        if (!h || !p) return;
+        const title = h.textContent.trim();
+        const html = p.innerHTML.trim();
+
+        const popup = createPopup(title, html);
+        document.body.appendChild(popup);
+        activePopup = popup;
+
+        // position it above the sphere (or to the side if near top of viewport)
+        const r = sphere.getBoundingClientRect();
+        const pw = Math.min(360, Math.max(220, Math.floor(window.innerWidth * 0.28)));
+        const ph = popup.offsetHeight || 120;
+        let left = r.left + (r.width / 2) - (pw / 2);
+        left = Math.max(8, Math.min(window.innerWidth - pw - 8, left));
+        let top = r.top - ph - 14; // above
+        if (top < 12) top = r.bottom + 12; // place below if not enough space above
+
+        popup.style.width = pw + 'px';
+        popup.style.left = left + 'px';
+        popup.style.top = top + 'px';
+
+        // small entrance animation
+        requestAnimationFrame(()=>{
+            popup.style.opacity = '1';
+            popup.style.transform = 'translateY(0) scale(1)';
+        });
+
+        // when pointer enters the popup, cancel hide; when leaves, schedule hide
+        popup.addEventListener('mouseenter', cancelHide);
+        popup.addEventListener('mouseleave', scheduleHide);
+
+        // close when clicking elsewhere
+        setTimeout(()=>{
+            window.addEventListener('pointerdown', onOutsidePointer);
+        }, 20);
+    }
+
+    function hidePopup() {
+        if (!activePopup) return;
+        try {
+            activePopup.style.opacity = '0';
+            activePopup.style.transform = 'translateY(6px) scale(0.98)';
+        } catch(e){}
+        const rem = activePopup;
+        activePopup = null;
+        window.removeEventListener('pointerdown', onOutsidePointer);
+        setTimeout(()=>{ if (rem && rem.parentNode) rem.parentNode.removeChild(rem); }, 240);
+    }
+
+    function scheduleHide(delay = 220) { cancelHide(); hideTimer = setTimeout(hidePopup, delay); }
+    function cancelHide() { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } }
+
+    function onOutsidePointer(e) {
+        if (!activePopup) return;
+        if (e.target.closest('.benefit-popup')) return;
+        if (e.target.closest('.benefit-sphere')) return;
+        hidePopup();
+    }
+
+    // attach listeners
+    spheres.forEach(s => {
+        s.addEventListener('mouseenter', () => { cancelHide(); showPopupForSphere(s); });
+        s.addEventListener('mouseleave', () => { scheduleHide(); });
+        s.addEventListener('focus', () => { cancelHide(); showPopupForSphere(s); });
+        s.addEventListener('blur', () => { scheduleHide(); });
+        // touch / click to toggle (useful for mobile)
+        s.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            // if this is the Low Latency sphere, open the detailed Earth modal
+            try {
+                const title = (s.querySelector('h4') || {}).textContent || '';
+                if (/low latency/i.test(title)) {
+                    // hide any small popup and open the large interactive Earth modal
+                    hidePopup();
+                    openEarthModal();
+                    return;
+                }
+            } catch (err) { /* ignore */ }
+
+            if (activePopup) hidePopup(); else showPopupForSphere(s);
+        });
+    });
+})();
+
+// AI Integration background: interactive node network for the Technology/AI Integration section
+(function(){
+    let canvas, ctx, w, h, nodes = [], anchors = [], rafId;
+    const config = { nodeCount: 18, linkDist: 140, nodeRadius: 3.5 };
+
+    function init() {
+        const el = document.getElementById('aiIntegrationCanvas');
+        if (!el) return;
+        canvas = el; ctx = canvas.getContext('2d');
+        resize();
+        buildNodes();
+        attachListeners();
+        loop();
+    }
+
+    function resize(){
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        w = Math.max(100, rect.width); h = Math.max(100, rect.height);
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+
+    function buildNodes(){
+        nodes = [];
+        anchors = [];
+        // Add anchor nodes aligned with the 4 tech cards if present
+        const cards = Array.from(document.querySelectorAll('.technology-section .tech-card'));
+        cards.forEach((card, i) => {
+            const r = card.getBoundingClientRect();
+            const parent = document.querySelector('.technology-section');
+            const pr = parent.getBoundingClientRect();
+            const nx = (r.left + r.width/2) - pr.left;
+            const ny = (r.top + r.height/2) - pr.top;
+            anchors.push({ x: nx, y: ny, baseRadius: 5 + i*1.4 });
+        });
+
+        // Populate nodes randomly across canvas, biasing towards anchors
+        for (let i=0;i<config.nodeCount;i++){
+            let ax = Math.random()*w, ay = Math.random()*h;
+            if (anchors.length && Math.random() < 0.6){
+                const a = anchors[Math.floor(Math.random()*anchors.length)];
+                ax = a.x + (Math.random()-0.5)*120;
+                ay = a.y + (Math.random()-0.5)*80;
+            }
+            nodes.push({ x: ax, y: ay, vx: (Math.random()-0.5)*0.25, vy: (Math.random()-0.5)*0.25, r: config.nodeRadius, pulse:0 });
+        }
+    }
+
+    function attachListeners(){
+        window.addEventListener('resize', () => { resize(); buildNodes(); });
+        const section = document.querySelector('.technology-section');
+        if (section){
+            section.addEventListener('mousemove', onMove);
+            section.addEventListener('mouseleave', () => { section._mouse = null; });
+        }
+
+        // pulse nodes when hovering tech cards
+        const cards = Array.from(document.querySelectorAll('.technology-section .tech-card'));
+        cards.forEach((card)=>{
+            card.addEventListener('mouseenter', (e)=>{
+                const rect = card.getBoundingClientRect();
+                const parent = document.querySelector('.technology-section').getBoundingClientRect();
+                const cx = (rect.left + rect.width/2) - parent.left;
+                const cy = (rect.top + rect.height/2) - parent.top;
+                // find nearest node and pulse it
+                let best=null, bd=Infinity;
+                nodes.forEach(n=>{ const d = (n.x-cx)*(n.x-cx)+(n.y-cy)*(n.y-cy); if(d<bd){ bd=d; best=n; }});
+                if (best) best.pulse = 1.8;
+            });
+        });
+    }
+
+    function onMove(e){
+        const parent = document.querySelector('.technology-section').getBoundingClientRect();
+        const mx = e.clientX - parent.left; const my = e.clientY - parent.top;
+        const section = document.querySelector('.technology-section');
+        section._mouse = { x: mx, y: my };
+        // softly attract nearest nodes
+        let nearest = null, bd = Infinity;
+        nodes.forEach(n=>{ const d = (n.x-mx)*(n.x-mx)+(n.y-my)*(n.y-my); if(d<bd){ bd=d; nearest=n; }});
+        if (nearest) nearest.pulse = Math.max(nearest.pulse, 1.4);
+    }
+
+    function loop(){
+        rafId = requestAnimationFrame(loop);
+        update(); draw();
+    }
+
+    function update(){
+        // physics
+        nodes.forEach(n=>{
+            n.x += n.vx; n.y += n.vy;
+            // bounce bounds
+            if (n.x < 8 || n.x > w-8) n.vx *= -1.0;
+            if (n.y < 8 || n.y > h-8) n.vy *= -1.0;
+            // gentle damping
+            n.vx *= 0.998; n.vy *= 0.998;
+            // pulse decay
+            n.pulse = Math.max(0, n.pulse - 0.04);
+        });
+        // small repulsion from mouse
+        const section = document.querySelector('.technology-section');
+        if (section && section._mouse){
+            const mx = section._mouse.x, my = section._mouse.y;
+            nodes.forEach(n=>{
+                const dx = n.x - mx, dy = n.y - my; const d2 = dx*dx+dy*dy; const min = 60;
+                if (d2 < min*min && d2>0){ const d = Math.sqrt(d2); const f = (min-d)/min * 0.6; n.vx += (dx/d)*f; n.vy += (dy/d)*f; }
+            });
+        }
+    }
+
+    function draw(){
+        ctx.clearRect(0,0,w,h);
+
+        // draw links between nearby nodes
+        ctx.lineWidth = 1;
+        for (let i=0;i<nodes.length;i++){
+            const a = nodes[i];
+            for (let j=i+1;j<nodes.length;j++){
+                const b = nodes[j];
+                const dx = a.x-b.x, dy = a.y-b.y; const d2 = dx*dx+dy*dy;
+                if (d2 < config.linkDist*config.linkDist){
+                    const alpha = 0.28 * (1 - d2/(config.linkDist*config.linkDist));
+                    ctx.strokeStyle = `rgba(40,220,255,${alpha})`;
+                    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+                }
+            }
+        }
+
+        // draw nodes
+        nodes.forEach(n=>{
+            const r = n.r * (1 + n.pulse * 0.45);
+            const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r*4);
+            grad.addColorStop(0, 'rgba(0,240,255,0.95)');
+            grad.addColorStop(0.2, 'rgba(0,210,220,0.55)');
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI*2); ctx.fill();
+        });
+    }
+
+    // Public initializer used during DOMContentLoaded
+    window.initAIIntegrationBackground = function(){
+        try{ init(); }catch(e){ console.warn('AI Integration background init failed', e); }
+    };
+
+})();
+
+    // Open an interactive Earth modal (used for Low Latency detail)
+    function openEarthModal() {
+        // prevent multiple modals
+        if (document.querySelector('.earth-modal-overlay')) return;
+
+        // build modal skeleton
+        const overlay = document.createElement('div');
+        overlay.className = 'earth-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);padding:20px;';
+
+        const box = document.createElement('div');
+        box.className = 'earth-modal';
+        box.style.cssText = 'width:min(1100px,96%);height:min(760px,86%);background:linear-gradient(180deg,rgba(2,8,30,0.98),rgba(4,12,40,0.98));border-radius:14px;position:relative;overflow:hidden;border:1px solid rgba(0,212,255,0.06);box-shadow:0 40px 120px rgba(0,0,0,0.6);display:flex;';
+
+        // left: canvas, right: info panel
+        const canvasWrap = document.createElement('div');
+        canvasWrap.style.cssText = 'flex:1;position:relative;';
+        const canvas = document.createElement('canvas');
+        canvas.id = 'earthModalCanvas';
+        canvas.style.cssText = 'width:100%;height:100%;display:block;';
+        canvasWrap.appendChild(canvas);
+
+        const info = document.createElement('div');
+        info.style.cssText = 'width:340px;padding:20px;color:#eaf4ff;overflow:auto;background:linear-gradient(180deg,rgba(0,10,30,0.04),transparent);';
+        info.innerHTML = `
+            <h3 style="color:#9fdcff;margin-top:0;margin-bottom:12px;">Orbital Regimes</h3>
+            <div id="orbitInfo" style="font-size:14px;line-height:1.45;color:rgba(234,244,255,0.95);">
+                <div id="orbit-leo"><strong>Low Earth Orbit (LEO)</strong>
+                <p>Altitude: 160–2,000 km<br>Latency: ~20–50 ms<br>Notes: Close to Earth; low latency and easy communication; higher atmospheric drag and increased radiation exposure at very low altitudes.</p></div>
+
+                <div id="orbit-meo"><strong>Medium Earth Orbit (MEO)</strong>
+                <p>Altitude: 2,000–35,786 km (GNSS ≈20,000 km)<br>Latency: ~100–150 ms<br>Notes: Moderate latency; often used for navigation (GNSS) and medium-coverage constellations; radiation belts can be intense in portions of this band.</p></div>
+
+                <div id="orbit-geo"><strong>Geostationary Orbit (GEO)</strong>
+                <p>Altitude: ≈35,786 km<br>Latency: ~250 ms<br>Notes: Fixed relative to Earth (equatorial), wide coverage but higher latency.</p></div>
+
+                <div id="orbit-heo"><strong>Highly Elliptical Orbit (HEO)</strong>
+                <p>Examples: Molniya, Tundra<br>Characteristics: Long dwell times over poles or specific regions; useful for extended coverage of high latitudes and targeted monitoring.</p></div>
+            </div>
+            <div style="margin-top:12px;font-size:13px;color:var(--gray-medium);">Scroll (wheel) or pinch to zoom the view; drag to rotate the globe.</div>
+        `;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = 'Close';
+        closeBtn.style.cssText = 'position:absolute;right:12px;top:12px;background:transparent;border:1px solid rgba(159,220,255,0.12);color:#9fdcff;padding:8px 10px;border-radius:8px;cursor:pointer;';
+        closeBtn.addEventListener('click', closeEarthModal);
+
+        box.appendChild(canvasWrap);
+        box.appendChild(info);
+        box.appendChild(closeBtn);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        // init three scene in canvas
+        let renderer, scene, camera, earthMesh, animId;
+        try {
+            scene = new THREE.Scene();
+            const aspect = canvas.clientWidth / Math.max(200, canvas.clientHeight);
+            camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 2000);
+            camera.position.set(0, 0.6, 6);
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            const dpr = window.devicePixelRatio || 1;
+            renderer.setPixelRatio(dpr);
+            function resizeRenderer(){
+                const rect = canvas.getBoundingClientRect();
+                renderer.setSize(rect.width, rect.height, false);
+                camera.aspect = rect.width / Math.max(200, rect.height);
+                camera.updateProjectionMatrix();
+            }
+            resizeRenderer();
+            window.addEventListener('resize', resizeRenderer);
+
+            // Earth
+            const geo = new THREE.SphereGeometry(1.9, 64, 64);
+            const mat = new THREE.MeshPhongMaterial({ emissive:0x020814, shininess:8 });
+            try { mat.map = createEarthTexture(2048,1024); } catch(e){}
+            earthMesh = new THREE.Mesh(geo, mat);
+            scene.add(earthMesh);
+
+            // atmosphere
+            const atmGeo = new THREE.SphereGeometry(1.94, 48, 48);
+            const atmMat = new THREE.MeshBasicMaterial({ color: 0x7ec8ff, transparent:true, opacity:0.06, blending: THREE.AdditiveBlending, side: THREE.BackSide });
+            const atm = new THREE.Mesh(atmGeo, atmMat);
+
+            // lights
+            scene.add(new THREE.AmbientLight(0x404040, 0.6));
+            const dir = new THREE.DirectionalLight(0xffffff, 1.0); dir.position.set(5,3,5); scene.add(dir);
+
+            // simple stars background using a large points cloud (cheap)
+            const starsGeo = new THREE.BufferGeometry();
+            const starCount = 400;
+            const positions = new Float32Array(starCount*3);
+            for (let i=0;i<starCount;i++){ positions[i*3]= (Math.random()-0.5)*200; positions[i*3+1]=(Math.random()-0.5)*200; positions[i*3+2]=(Math.random()-0.5)*200; }
+            starsGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+            const starsMat = new THREE.PointsMaterial({ color:0xffffff, size:0.9, sizeAttenuation:true, opacity:0.9, transparent:true });
+            const starPoints = new THREE.Points(starsGeo, starsMat); scene.add(starPoints);
+
+            // Orbit visualizations: three circular rings (LEO, MEO, GEO) and one elliptical HEO
+            try {
+                const orbitsGroup = new THREE.Group();
+                // base radii (relative to Earth mesh radius ~1.9)
+                const leoR = 2.6;
+                const meoR = 4.2;
+                const geoR = 6.8;
+
+                // color coding (hex)
+                const leoColor = 0x00ff88; // green
+                const meoColor = 0x00d4ff; // blue
+                const geoColor = 0xff6b35; // orange
+                const heoColor = 0x9fdcff; // light cyan
+
+                const torusParams = [ { r: leoR, color: leoColor }, { r: meoR, color: meoColor }, { r: geoR, color: geoColor } ];
+                const orbitMeshes = {};
+                torusParams.forEach((obj, i) => {
+                    const torus = new THREE.TorusGeometry(obj.r, 0.02 + i*0.004, 64, 240);
+                    const mat = new THREE.MeshBasicMaterial({ color: obj.color, transparent: true, opacity: 0.12 + i * 0.06, side: THREE.DoubleSide });
+                    const mesh = new THREE.Mesh(torus, mat);
+                    // rotate into equatorial plane
+                    mesh.rotation.x = Math.PI / 2;
+                    // stagger small tilts for visual depth
+                    mesh.rotation.z = (i - 1) * 0.06;
+                    orbitsGroup.add(mesh);
+                    if (i === 0) orbitMeshes.leo = mesh;
+                    if (i === 1) orbitMeshes.meo = mesh;
+                    if (i === 2) orbitMeshes.geo = mesh;
+                });
+
+                // HEO - an inclined elliptical orbit (line)
+                const pts = [];
+                const a = 6.0; // semi-major
+                const b = 3.2; // semi-minor
+                const segments = 240;
+                for (let i = 0; i <= segments; i++) {
+                    const t = (i / segments) * Math.PI * 2;
+                    const x = Math.cos(t) * a;
+                    const z = Math.sin(t) * b;
+                    pts.push(new THREE.Vector3(x, 0, z));
+                }
+                const heoGeom = new THREE.BufferGeometry().setFromPoints(pts);
+                const heoMat = new THREE.LineDashedMaterial({ color: heoColor, dashSize: 0.18, gapSize: 0.12, linewidth: 1, transparent: true, opacity: 0.46 });
+                const heoLine = new THREE.Line(heoGeom, heoMat);
+                heoLine.computeLineDistances && heoLine.computeLineDistances();
+                // tilt the ellipse to show inclination / long dwell over poles
+                heoLine.rotation.x = 0.9; // tilt about X
+                heoLine.rotation.z = 0.28; // slight rotation around Z
+                orbitsGroup.add(heoLine);
+                orbitMeshes.heo = heoLine;
+
+                // attach rings and HEO to the globe so they rotate together with the Earth
+                // remove earth/atm from scene root if present and add them to a globe group
+                try {
+                    if (scene && earthMesh) scene.remove(earthMesh);
+                    if (scene && typeof atm !== 'undefined') scene.remove(atm);
+                } catch(e){}
+                const globeGroup = new THREE.Group();
+                globeGroup.add(earthMesh);
+                globeGroup.add(atm);
+                globeGroup.add(orbitsGroup);
+                scene.add(globeGroup);
+                // expose globeGroup and orbit meshes to the outer scope for highlighting
+                window.__earthGlobeGroup = globeGroup;
+                window.__earthOrbits = orbitMeshes;
+
+                // color the text labels in the info panel to match orbits (if present)
+                try {
+                    const elLeo = document.getElementById('orbit-leo'); if (elLeo) elLeo.querySelector('strong') && (elLeo.querySelector('strong').style.color = '#00ff88');
+                    const elMeo = document.getElementById('orbit-meo'); if (elMeo) elMeo.querySelector('strong') && (elMeo.querySelector('strong').style.color = '#00d4ff');
+                    const elGeo = document.getElementById('orbit-geo'); if (elGeo) elGeo.querySelector('strong') && (elGeo.querySelector('strong').style.color = '#ff6b35');
+                    const elHeo = document.getElementById('orbit-heo'); if (elHeo) elHeo.querySelector('strong') && (elHeo.querySelector('strong').style.color = '#9fdcff');
+                } catch (e) {}
+            } catch (errOrbit) {
+                console.warn('Failed to create orbit visualizations', errOrbit);
+            }
+
+            // interaction state
+            let isDown=false, prevX=0, prevY=0; let targetRotX=0, targetRotY=0;
+
+            canvas.addEventListener('pointerdown', (e)=>{ isDown=true; prevX=e.clientX; prevY=e.clientY; canvas.setPointerCapture(e.pointerId); });
+            window.addEventListener('pointerup', (e)=>{ isDown=false; try{ canvas.releasePointerCapture(e.pointerId);}catch(e){} });
+            window.addEventListener('pointermove', (e)=>{ if(!isDown) return; const dx=(e.clientX-prevX)/200; const dy=(e.clientY-prevY)/200; prevX=e.clientX; prevY=e.clientY; targetRotY += dx; targetRotX += dy; });
+
+            // wheel zoom (desktop)
+            // Prevent zooming closer than the LEO threshold (minZ = 6)
+            const minZoomZ = 6;
+            canvas.addEventListener('wheel', (e)=>{ e.preventDefault(); camera.position.z = Math.max(minZoomZ, Math.min(18, camera.position.z + Math.sign(e.deltaY)*0.6)); updateOrbitInfo(); }, { passive:false });
+
+            // helper: de-emphasize all orbit boxes
+            function clearOrbitHighlights(){
+                ['leo','meo','geo','heo'].forEach(k=>{
+                    const el = document.getElementById('orbit-'+k);
+                    if (!el) return;
+                    el.style.opacity = 0.38;
+                    el.classList && el.classList.remove('active');
+                });
+            }
+
+            // update info by camera distance and highlight the matching regime
+            function updateOrbitInfo(){
+                const z = camera.position.z;
+                clearOrbitHighlights();
+                const elLeo = document.getElementById('orbit-leo');
+                const elMeo = document.getElementById('orbit-meo');
+                const elGeo = document.getElementById('orbit-geo');
+                const elHeo = document.getElementById('orbit-heo');
+
+                // Visual orbit meshes (if present)
+                const orbitMeshes = window.__earthOrbits || {};
+                const baseline = { leo: 0.12, meo: 0.18, geo: 0.24, heo: 0.46 };
+                const highlight = { leo: 0.9, meo: 0.9, geo: 0.9, heo: 0.86 };
+
+                // reset visuals
+                try {
+                    Object.keys(baseline).forEach(k => {
+                        const m = orbitMeshes[k];
+                        if (!m) return;
+                        if (m.material) {
+                            m.material.opacity = baseline[k];
+                        }
+                        if (m.scale) {
+                            m.scale.set(1,1,1);
+                        }
+                    });
+                } catch (e) { /* ignore visual reset failures */ }
+
+                // mapping thresholds (tuned for this camera range)
+                if (z <= 6) {
+                    if (elLeo) { elLeo.style.opacity = 1; elLeo.classList.add('active'); }
+                    try { if (orbitMeshes.leo && orbitMeshes.leo.material) { orbitMeshes.leo.material.opacity = highlight.leo; orbitMeshes.leo.scale.set(1.04,1.04,1.04); } } catch(e){}
+                } else if (z <= 10.5) {
+                    if (elMeo) { elMeo.style.opacity = 1; elMeo.classList.add('active'); }
+                    try { if (orbitMeshes.meo && orbitMeshes.meo.material) { orbitMeshes.meo.material.opacity = highlight.meo; orbitMeshes.meo.scale.set(1.04,1.04,1.04); } } catch(e){}
+                } else if (z <= 14.5) {
+                    if (elHeo) { elHeo.style.opacity = 1; elHeo.classList.add('active'); }
+                    try { if (orbitMeshes.heo && orbitMeshes.heo.material) { orbitMeshes.heo.material.opacity = highlight.heo; } } catch(e){}
+                } else {
+                    if (elGeo) { elGeo.style.opacity = 1; elGeo.classList.add('active'); }
+                    try { if (orbitMeshes.geo && orbitMeshes.geo.material) { orbitMeshes.geo.material.opacity = highlight.geo; orbitMeshes.geo.scale.set(1.04,1.04,1.04); } } catch(e){}
+                }
+
+                // auto-hide highlight after a few seconds of idle (and reset visuals)
+                clearTimeout(window._orbitInfoHide);
+                window._orbitInfoHide = setTimeout(()=>{ clearOrbitHighlights(); try{ Object.keys(baseline).forEach(k=>{ const m = orbitMeshes[k]; if(!m) return; if(m.material) m.material.opacity = baseline[k]; if(m.scale) m.scale.set(1,1,1); }); }catch(e){} }, 3800);
+            }
+            updateOrbitInfo();
+
+            // Touch pinch-to-zoom support (mobile)
+            const pinch = { active:false, startDist:0, startZ: null };
+            function getTouchDist(t1, t2){ const dx = t2.clientX - t1.clientX; const dy = t2.clientY - t1.clientY; return Math.sqrt(dx*dx + dy*dy); }
+            function onTouchStart(e){
+                if (!e.touches) return;
+                if (e.touches.length === 2) {
+                    pinch.active = true;
+                    pinch.startDist = getTouchDist(e.touches[0], e.touches[1]);
+                    pinch.startZ = camera.position.z;
+                }
+            }
+            function onTouchMove(e){
+                if (!pinch.active || !e.touches || e.touches.length < 2) return;
+                e.preventDefault();
+                const d = getTouchDist(e.touches[0], e.touches[1]);
+                const diff = d - pinch.startDist;
+                const scale = diff * 0.02; // tuned sensitivity
+                camera.position.z = Math.max(minZoomZ, Math.min(18, pinch.startZ - scale));
+                updateOrbitInfo();
+            }
+            function onTouchEnd(e){ if (!e.touches || e.touches.length < 2) { pinch.active = false; pinch.startDist = 0; pinch.startZ = null; } }
+            canvas.addEventListener('touchstart', onTouchStart, { passive:false });
+            canvas.addEventListener('touchmove', onTouchMove, { passive:false });
+            canvas.addEventListener('touchend', onTouchEnd, { passive:true });
+
+            // animate
+            function render(){
+                animId = requestAnimationFrame(render);
+                // rotate the globeGroup (if present) so orbits move with the Earth; fallback to earthMesh
+                const globe = window.__earthGlobeGroup || earthMesh;
+                if (globe) {
+                    globe.rotation.y += (targetRotY - globe.rotation.y) * 0.08;
+                    globe.rotation.x = Math.max(-0.9, Math.min(0.9, globe.rotation.x + (targetRotX - globe.rotation.x) * 0.08));
+                    // subtle auto-rotation
+                    globe.rotation.y += 0.002;
+                }
+                renderer.render(scene, camera);
+            }
+            render();
+
+            // cleanup closure
+            function destroy(){
+                cancelAnimationFrame(animId);
+                try { window.removeEventListener('resize', resizeRenderer); } catch(e){}
+                try { canvas.removeEventListener('wheel', ()=>{}); } catch(e){}
+                // remove touch handlers we added
+                try { canvas.removeEventListener('touchstart', onTouchStart); canvas.removeEventListener('touchmove', onTouchMove); canvas.removeEventListener('touchend', onTouchEnd); } catch(e){}
+                // best-effort: release pointer capture and allow GC
+                try { overlay.querySelector('canvas') && overlay.querySelector('canvas').releasePointerCapture && overlay.querySelector('canvas').releasePointerCapture(); } catch(e){}
+                try { renderer.dispose(); } catch(e){}
+                try { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); } catch(e){ overlay.remove(); }
+            }
+
+            // expose destroy on close
+            overlay._destroy = destroy;
+
+        } catch (e) {
+            console.warn('Failed to initialize Earth modal', e);
+            overlay.remove();
+        }
+
+        // close on outside click
+        overlay.addEventListener('pointerdown', (e)=>{ if (e.target === overlay) closeEarthModal(); });
+
+        function closeEarthModal(){
+            const ov = document.querySelector('.earth-modal-overlay');
+            if (!ov) return;
+            if (ov._destroy) ov._destroy(); else ov.remove();
+        }
+
+        // also attach global close function
+        window.closeEarthModal = closeEarthModal;
+    }
