@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Orbital Data Centers - The Future of Sustainable Computing</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.0/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.2.4/pixi.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/splitting@1.0.6/dist/splitting.css">
+    <script src="https://unpkg.com/splitting@1.0.6/dist/splitting.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #000514 0%, #000000 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        /* Navigation */
+        .nav-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(0, 5, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .isu-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000514;
+            font-size: 0.8rem;
+            background-image: url('resources/isu-logo.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 400;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #00d4ff;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #00d4ff;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+        
+        /* Hero Section */
+        .hero-section {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .earth-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            z-index: 10;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 20;
+            text-align: center;
+            max-width: 1000px;
+            padding: 2rem;
+        }
+        
+        .hero-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #00d4ff 50%, #ffd700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 300;
+            margin-bottom: 2rem;
+            color: #e0e0e0;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .hero-abstract {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #b0b0b0;
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateY(20px);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.4);
+        }
+        
+        /* Starfield Background */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        /* Problem Section */
+        .problem-section {
+            min-height: 100vh;
+            padding: 5rem 2rem;
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 5, 20, 0.9) 0%, rgba(20, 0, 0, 0.8) 100%);
+        }
+        
+        .problem-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .problem-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 4rem;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .problem-description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            text-align: center;
+            margin-bottom: 4rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .datacenters-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .datacenter {
+            position: absolute;
+            width: 80px;
+            height: 60px;
+            background: linear-gradient(135deg, #333 0%, #555 100%);
+            border: 2px solid #666;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            opacity: 0.7;
+            transform-origin: center;
+            transition: all 0.3s ease;
+        }
+        
+        .datacenter::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            background: repeating-linear-gradient(
+                90deg,
+                #222 0px,
+                #222 3px,
+                #333 3px,
+                #333 6px
+            );
+            border-radius: 3px;
+        }
+        
+        .datacenter::after {
+            content: '🖥️';
+            position: relative;
+            z-index: 1;
+        }
+        
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-bottom: 5rem;
+        }
+        
+        .problem-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(50px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 107, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .problem-card:hover::before {
+            left: 100%;
+        }
+        
+        .problem-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 107, 107, 0.1);
+            border-color: rgba(255, 107, 107, 0.3);
+            box-shadow: 0 20px 40px rgba(255, 107, 107, 0.2);
+        }
+        
+        .problem-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        
+        .problem-card:hover .problem-icon {
+            transform: scale(1.2);
+        }
+        
+        .problem-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #ff6b6b;
+        }
+        
+        .problem-card p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #e0e0e0;
+        }
+        
+        /* Solution Section */
+        .solution-section {
+            min-height: 100vh;
+            padding: 5rem 2rem;
+            position: relative;
+            background: linear-gradient(180deg, rgba(20, 0, 0, 0.8) 0%, rgba(0, 20, 84, 0.8) 100%);
+        }
+        
+        .solution-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .solution-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #ffd700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .solution-description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .orbital-visualization {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            margin: 4rem 0;
+            border-radius: 20px;
+            overflow: hidden;
+            background: radial-gradient(circle at center, rgba(0, 20, 84, 0.3) 0%, rgba(0, 5, 20, 0.8) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .orbit-controls {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .orbit-btn {
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .orbit-btn:hover,
+        .orbit-btn.active {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .orbit-info {
+            position: absolute;
+            bottom: 2rem;
+            left: 2rem;
+            right: 2rem;
+            background: rgba(0, 5, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .orbit-info.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .orbit-info h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            color: #00d4ff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .orbit-info p {
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+        
+        .benefit-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(50px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .benefit-card:hover::before {
+            left: 100%;
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+        }
+        
+        .benefit-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        
+        .benefit-card:hover .benefit-icon {
+            transform: scale(1.2);
+        }
+        
+        .benefit-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #00d4ff;
+        }
+        
+        .benefit-card p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #e0e0e0;
+        }
+        
+        /* Data Launch Animation */
+        .data-launch {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .data-launch.active {
+            opacity: 1;
+        }
+        
+        .data-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00d4ff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00d4ff;
+            font-size: 8px;
+            color: #00d4ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* AI Section */
+        .ai-section {
+            padding: 5rem 2rem;
+            background: linear-gradient(180deg, rgba(0, 20, 84, 0.8) 0%, rgba(20, 0, 20, 0.8) 100%);
+        }
+        
+        .ai-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .ai-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .ai-description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .ai-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        
+        .ai-feature {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.3s ease;
+        }
+        
+        .ai-feature:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 15px 30px rgba(255, 215, 0, 0.2);
+        }
+        
+        .ai-feature h4 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            color: #ffd700;
+            margin-bottom: 1rem;
+        }
+        
+        .ai-feature p {
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        /* Environmental Impact Section */
+        .environmental-section {
+            padding: 5rem 2rem;
+            background: linear-gradient(180deg, rgba(20, 0, 20, 0.8) 0%, rgba(0, 5, 20, 0.9) 100%);
+        }
+        
+        .environmental-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .environmental-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 4rem;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .environmental-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+        
+        .environmental-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .environmental-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+        }
+        
+        .environmental-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        
+        .environmental-card:hover .environmental-icon {
+            transform: scale(1.2);
+        }
+        
+        .environmental-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #00d4ff;
+        }
+        
+        .environmental-card p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #e0e0e0;
+        }
+        
+        .environmental-metric {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 600;
+            color: #ffd700;
+            margin: 1rem 0;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .earth-container {
+                width: 400px;
+                height: 400px;
+            }
+            
+            .problem-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .ai-features {
+                grid-template-columns: 1fr;
+            }
+            
+            .environmental-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .orbital-visualization {
+                height: 400px;
+            }
+            
+            .orbit-controls {
+                top: 1rem;
+                left: 1rem;
+                right: 1rem;
+                flex-direction: row;
+                justify-content: center;
+            }
+            
+            .orbit-info {
+                left: 1rem;
+                right: 1rem;
+                bottom: 1rem;
+            }
+        }
+        
+        /* Animation Classes */
+        .fade-in {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+        
+        .slide-in-left {
+            opacity: 1 !important;
+            transform: translateX(0) !important;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        /* Loading Animation */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000514;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- Data Launch Animation Container -->
+    <div class="data-launch" id="data-launch"></div>
+    
+    <!-- Starfield Background -->
+    <div class="starfield" id="starfield"></div>
+    
+    <!-- Navigation -->
+    <nav class="nav-container">
+        <div class="nav-content">
+            <a href="#" class="nav-logo">
+                <div class="isu-logo"></div>
+                AI Orbital Data Centers
+            </a>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="problem.html">Problem</a></li>
+                <li><a href="solution.html">Solution</a></li>
+                <li><a href="technology.html">Technology</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+        <div class="earth-container" id="earth-container"></div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title" data-splitting>AI Orbital Data Centers</h1>
+            <h2 class="hero-subtitle">The Future of Sustainable Computing</h2>
+            <div class="hero-abstract">
+                <p>The cloud isn't weightless. Behind every streamed song, every financial transaction, every AI query — lie vast industrial fortresses of computation. Each one drinks up to 450,000 gallons of water a day and burns gigawatts of electricity, just to keep from overheating.</p>
+                <p>What if the next leap in sustainability didn't come from the Earth — but from beyond it? Orbital Data Centers imagine a world where computation leaves the planet's surface — rising into orbit to harness the cold of space and the abundance of sunlight, freeing the digital cloud from its earthly weight.</p>
+            </div>
+            <a href="problem.html" class="cta-button">Explore the Challenge</a>
+        </div>
+    </section>
+    
+    <!-- Problem Section -->
+    <section class="problem-section">
+        <div class="datacenters-container" id="datacenters-container"></div>
+        
+        <div class="problem-content">
+            <h2 class="problem-title">The Terrestrial Challenge</h2>
+            <div class="problem-description">
+                <p>Current data centers consume massive resources and create significant environmental impact. As AI demand grows exponentially, these terrestrial constraints become increasingly unsustainable.</p>
+            </div>
+            
+            <div class="problem-grid">
+                <div class="problem-card" data-problem="energy">
+                    <span class="problem-icon">⚡</span>
+                    <h3>Energy Consumption Crisis</h3>
+                    <p>Data centers consume 1-2% of global electricity, projected to double by 2030. Cooling alone accounts for 30-40% of facility energy use, creating massive carbon footprints and operational costs reaching $13.14M annually per facility.</p>
+                </div>
+                
+                <div class="problem-card" data-problem="water">
+                    <span class="problem-icon">💧</span>
+                    <h3>Water Resource Strain</h3>
+                    <p>US data centers use 163.7 billion gallons annually for cooling. Google reports 450,000 gallons per day per site average, intensifying stress in water-scarce regions worldwide while consuming over 620 billion liters nationally.</p>
+                </div>
+                
+                <div class="problem-card" data-problem="space">
+                    <span class="problem-icon">🏗️</span>
+                    <h3>Physical & Economic Constraints</h3>
+                    <p>Land acquisition costs and zoning restrictions limit expansion. Large data centers require 100+ acres, competing with agriculture and urban development. Most upfront costs go to power (35%) and cooling (35%) infrastructure.</p>
+                </div>
+                
+                <div class="problem-card" data-problem="climate">
+                    <span class="problem-icon">🌡️</span>
+                    <h3>Climate Vulnerability</h3>
+                    <p>Rising global temperatures increase cooling demands by 15-25%, creating negative feedback loops. Extreme weather events threaten infrastructure reliability and cause $50B+ in data center downtime annually.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Solution Section -->
+    <section class="solution-section">
+        <div class="solution-content">
+            <h2 class="solution-title">The Orbital Solution</h2>
+            <div class="solution-description">
+                <p>Harnessing unlimited solar power and space's natural cooling to create sustainable, scalable computing infrastructure beyond Earth's constraints.</p>
+            </div>
+            
+            <div class="orbital-visualization" id="orbital-viz">
+                <div class="orbit-controls">
+                    <button class="orbit-btn active" data-orbit="leo">LEO</button>
+                    <button class="orbit-btn" data-orbit="meo">MEO</button>
+                    <button class="orbit-btn" data-orbit="geo">GEO</button>
+                </div>
+                
+                <div class="orbit-info" id="orbit-info">
+                    <h3>Low Earth Orbit (LEO)</h3>
+                    <p>
+                        Altitude: 200-2,000 km | Latency: 25-88ms<br>
+                        Ideal for real-time AI processing, edge computing, and low-latency applications. Starlink and similar constellations operate here, providing global coverage with minimal signal delay for time-sensitive workloads.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="benefits-grid">
+                <div class="benefit-card" data-benefit="solar">
+                    <span class="benefit-icon">🌞</span>
+                    <h3>Unlimited Solar Power</h3>
+                    <p>24/7 solar energy with 40% higher efficiency than Earth-based systems. No atmospheric interference, weather disruptions, or day/night cycles. Continuous 1,361 W/m² solar irradiance enables unprecedented energy independence.</p>
+                </div>
+                
+                <div class="benefit-card" data-benefit="cooling">
+                    <span class="benefit-icon">❄️</span>
+                    <h3>Natural Radiative Cooling</h3>
+                    <p>Space's 3K thermal sink enables efficient heat dissipation without water consumption. Radiative cooling eliminates the need for energy-intensive HVAC systems, reducing operational costs by up to 60% while maintaining temperature stability.</p>
+                </div>
+                
+                <div class="benefit-card" data-benefit="ai">
+                    <span class="benefit-icon">🤖</span>
+                    <h3>AI Autonomous Operations</h3>
+                    <p>Self-managing systems with AI-driven maintenance, workload orchestration, and thermal control. Predictive analytics optimize performance while minimizing human intervention and enabling 6-second autonomous recovery.</p>
+                </div>
+                
+                <div class="benefit-card" data-benefit="performance">
+                    <span class="benefit-icon">⚡</span>
+                    <h3>Superior Performance</h3>
+                    <p>Optical inter-satellite links and free-space propagation enable faster-than-fiber speeds. LEO systems achieve 25-88ms latency, far below GEO satellites, supporting real-time edge computing with N+3 to N+5 redundancy.</p>
+                </div>
+                
+                <div class="benefit-card" data-benefit="security">
+                    <span class="benefit-icon">🔒</span>
+                    <h3>Enhanced Security & Reliability</h3>
+                    <p>Physical isolation from terrestrial threats, unhackable laser communications, and immunity to natural disasters. Data sovereignty and regulatory compliance in the ultimate secure environment with 99.5-99.95% reliability.</p>
+                </div>
+                
+                <div class="benefit-card" data-benefit="scalability">
+                    <span class="benefit-icon">🚀</span>
+                    <h3>Infinite Scalability</h3>
+                    <p>Unconstrained by land availability, zoning restrictions, or local infrastructure. Modular design enables rapid deployment and expansion without competing for Earth's finite resources or environmental impact.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- AI Section -->
+    <section class="ai-section">
+        <div class="ai-content">
+            <h2 class="ai-title">AI: The Orbital Enabler</h2>
+            <p class="ai-description">
+                Artificial Intelligence transforms orbital data centers from static infrastructure into 
+                adaptive, self-optimizing systems that learn and evolve with operational demands.
+            </p>
+            
+            <div class="ai-features">
+                <div class="ai-feature">
+                    <h4>🧠 Predictive Maintenance</h4>
+                    <p>AI algorithms analyze system telemetry to predict component failures before they occur, scheduling autonomous maintenance and ensuring 99.9% uptime through intelligent resource allocation.</p>
+                </div>
+                
+                <div class="ai-feature">
+                    <h4>🌡️ Thermal Optimization</h4>
+                    <p>Machine learning models optimize radiative cooling patterns and workload distribution to maintain ideal operating temperatures across the orbital constellation while minimizing energy consumption.</p>
+                </div>
+                
+                <div class="ai-feature">
+                    <h4>📊 Workload Orchestration</h4>
+                    <p>Intelligent scheduling algorithms route computational tasks to optimal orbital positions based on latency requirements, solar availability, and system load for maximum efficiency.</p>
+                </div>
+                
+                <div class="ai-feature">
+                    <h4>🔧 Autonomous Repair</h4>
+                    <p>Robotic systems guided by computer vision perform repairs and upgrades without human intervention, reducing operational costs and improving safety in the harsh space environment.</p>
+                </div>
+            </div>
+            
+            <a href="technology.html" class="cta-button" style="margin-top: 2rem;">Explore Current Technologies</a>
+        </div>
+    </section>
+    
+    <!-- Environmental Impact Section -->
+    <section class="environmental-section">
+        <div class="environmental-content">
+            <h2 class="environmental-title">Environmental Impact</h2>
+            
+            <div class="environmental-grid">
+                <div class="environmental-card" data-impact="cooling">
+                    <span class="environmental-icon">❄️</span>
+                    <h3>Radiative Cooling</h3>
+                    <div class="environmental-metric">3K</div>
+                    <p>Space thermal sink enables passive cooling at 770-1300 W/m² efficiency, 7.7-13× more effective than air-cooled ground systems. Eliminates water consumption and reduces energy costs by up to 60%.</p>
+                </div>
+                
+                <div class="environmental-card" data-impact="solar">
+                    <span class="environmental-icon">🌞</span>
+                    <h3>Solar Power</h3>
+                    <div class="environmental-metric">1,361 W/m²</div>
+                    <p>Continuous solar irradiance in orbit with 40% higher efficiency than Earth-based systems. Achieves carbon-neutral operations with zero fossil fuel dependence and minimal atmospheric loss.</p>
+                </div>
+                
+                <div class="environmental-card" data-impact="water">
+                    <span class="environmental-icon">💧</span>
+                    <h3>Water Conservation</h3>
+                    <div class="environmental-metric">Zero</div>
+                    <p>Orbital data centers require no water for cooling or power generation, saving 620+ billion liters annually compared to US terrestrial facilities. Net-zero water-use infrastructure.</p>
+                </div>
+                
+                <div class="environmental-card" data-impact="carbon">
+                    <span class="environmental-icon">🌱</span>
+                    <h3>Carbon Neutrality</h3>
+                    <div class="environmental-metric">20-380</div>
+                    <p>Lifecycle Carbon Usage Effectiveness (CUE) in gCO₂e kWh⁻¹, approaching terrestrial facilities powered by 100% renewable grids. Near-zero operational Scope 2 emissions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer style="padding: 2rem; text-align: center; background: rgba(0, 5, 20, 0.9); border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <p style="color: #b0b0b0; font-size: 0.9rem;">
+            © 2025 AI Orbital Data Centers Research Initiative | International Space University
+        </p>
+    </footer>
+    
+    <script src="main.js"></script>
+</body>
+</html>

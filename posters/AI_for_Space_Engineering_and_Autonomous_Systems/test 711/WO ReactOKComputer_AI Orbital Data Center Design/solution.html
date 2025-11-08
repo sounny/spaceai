@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Orbital Solution - AI Orbital Data Centers</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.0/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.2.4/pixi.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #000514 0%, #000000 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        /* Navigation */
+        .nav-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(0, 5, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 400;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #00d4ff;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #00d4ff;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+        
+        /* Solution Hero */
+        .solution-hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .solution-hero-content {
+            max-width: 1000px;
+            padding: 2rem;
+            z-index: 10;
+        }
+        
+        .solution-hero-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #ffd700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .solution-hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 300;
+            margin-bottom: 3rem;
+            color: #e0e0e0;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        /* Orbital Visualization */
+        .orbital-section {
+            min-height: 100vh;
+            padding: 5rem 2rem;
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 5, 20, 0.9) 0%, rgba(0, 20, 84, 0.8) 100%);
+        }
+        
+        .orbital-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .orbital-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .orbital-description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            margin-bottom: 4rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .orbital-visualization {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            margin: 4rem 0;
+            border-radius: 20px;
+            overflow: hidden;
+            background: radial-gradient(circle at center, rgba(0, 20, 84, 0.3) 0%, rgba(0, 5, 20, 0.8) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .orbit-controls {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .orbit-btn {
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .orbit-btn:hover,
+        .orbit-btn.active {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .orbit-info {
+            position: absolute;
+            bottom: 2rem;
+            left: 2rem;
+            right: 2rem;
+            background: rgba(0, 5, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .orbit-info.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .orbit-info h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            color: #00d4ff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .orbit-info p {
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        /* Benefits Section */
+        .benefits-section {
+            padding: 5rem 2rem;
+            background: linear-gradient(180deg, rgba(0, 20, 84, 0.8) 0%, rgba(0, 5, 20, 0.9) 100%);
+        }
+        
+        .benefits-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .benefits-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 4rem;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+        }
+        
+        .benefit-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(50px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .benefit-card:hover::before {
+            left: 100%;
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+        }
+        
+        .benefit-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        
+        .benefit-card:hover .benefit-icon {
+            transform: scale(1.2);
+        }
+        
+        .benefit-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #00d4ff;
+        }
+        
+        .benefit-card p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #e0e0e0;
+        }
+        
+        /* AI Section */
+        .ai-section {
+            padding: 5rem 2rem;
+            background: linear-gradient(180deg, rgba(0, 5, 20, 0.9) 0%, rgba(20, 0, 20, 0.8) 100%);
+        }
+        
+        .ai-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .ai-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .ai-description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .ai-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        
+        .ai-feature {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.3s ease;
+        }
+        
+        .ai-feature:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 15px 30px rgba(255, 215, 0, 0.2);
+        }
+        
+        .ai-feature h4 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            color: #ffd700;
+            margin-bottom: 1rem;
+        }
+        
+        .ai-feature p {
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        /* Data Launch Animation */
+        .data-launch {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .data-launch.active {
+            opacity: 1;
+        }
+        
+        .data-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00d4ff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00d4ff;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .orbital-visualization {
+                height: 400px;
+            }
+            
+            .orbit-controls {
+                top: 1rem;
+                left: 1rem;
+                right: 1rem;
+                flex-direction: row;
+                justify-content: center;
+            }
+            
+            .orbit-info {
+                left: 1rem;
+                right: 1rem;
+                bottom: 1rem;
+            }
+            
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .ai-features {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Animation Classes */
+        .fade-in {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- Data Launch Animation Container -->
+    <div class="data-launch" id="data-launch"></div>
+    
+    <!-- Navigation -->
+    <nav class="nav-container">
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">AI Orbital Data Centers</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="problem.html">Problem</a></li>
+                <li><a href="solution.html" class="active">Solution</a></li>
+                <li><a href="technology.html">Technology</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- Solution Hero -->
+    <section class="solution-hero">
+        <div class="solution-hero-content">
+            <h1 class="solution-hero-title" data-splitting>The Orbital Solution</h1>
+            <p class="solution-hero-subtitle">
+                Harnessing unlimited solar power and space's natural cooling to create sustainable, 
+                scalable computing infrastructure beyond Earth's constraints
+            </p>
+        </div>
+    </section>
+    
+    <!-- Orbital Visualization -->
+    <section class="orbital-section">
+        <div class="orbital-container">
+            <h2 class="orbital-title">Orbital Architecture</h2>
+            <p class="orbital-description">
+                Explore the three-tier orbital system designed for optimal performance and coverage. 
+                Click on each orbital layer to discover its unique advantages and applications.
+            </p>
+            
+            <div class="orbital-visualization" id="orbital-viz">
+                <div class="orbit-controls">
+                    <button class="orbit-btn active" data-orbit="leo">LEO</button>
+                    <button class="orbit-btn" data-orbit="meo">MEO</button>
+                    <button class="orbit-btn" data-orbit="geo">GEO</button>
+                </div>
+                
+                <div class="orbit-info" id="orbit-info">
+                    <h3>Low Earth Orbit (LEO)</h3>
+                    <p>
+                        Altitude: 200-2,000 km | Latency: 25-88ms<br>
+                        Ideal for real-time AI processing, edge computing, and low-latency applications. 
+                        Starlink and similar constellations operate here, providing global coverage with 
+                        minimal signal delay for time-sensitive workloads.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Benefits Section -->
+    <section class="benefits-section">
+        <div class="benefits-content">
+            <h2 class="benefits-title">Revolutionary Benefits</h2>
+            
+            <div class="benefits-grid">
+                <div class="benefit-card" data-benefit="solar">
+                    <span class="benefit-icon">🌞</span>
+                    <h3>Unlimited Solar Power</h3>
+                    <p>24/7 solar energy with 40% higher efficiency than Earth-based systems. No atmospheric interference, weather disruptions, or day/night cycles. Continuous 1,361 W/m² solar irradiance enables unprecedented energy independence.</p>
+                </div>
+                
+                <div class="benefit-card" data-benefit="cooling">
+                    <span class="benefit-icon">❄️</span>
+                    <h3>Natural Radiative Cooling</h3>
+                    <p>Space's 3K thermal sink enables efficient heat dissipation without water consumption. Radiative cooling eliminates the need for energy-intensive HVAC systems, reducing operational costs by up to 60%.</p>
+                </div>
+                
+                <div class="benefit-card" data-benefit="ai">
+                    <span class="benefit-icon">🤖</span>
+                    <h3>AI Autonomous Operations</h3>
+                    <p>Self-managing systems with AI-driven maintenance, workload orchestration, and thermal control. Predictive analytics optimize performance while minimizing human intervention and operational risks.</p>
+                </div>
+                
+                <div class="benefit-card" data-benefit="latency">
+                    <span class="benefit-icon">⚡</span>
+                    <h3>Superior Performance</h3>
+                    <p>Optical inter-satellite links and free-space propagation enable faster-than-fiber speeds. LEO systems achieve 25-88ms latency, far below GEO satellites, supporting real-time edge computing applications.</p>
+                </div>
+                
+                <div class="benefit-card" data-benefit="security">
+                    <span class="benefit-icon">🔒</span>
+                    <h3>Enhanced Security</h3>
+                    <p>Physical isolation from terrestrial threats, unhackable laser communications, and immunity to natural disasters. Data sovereignty and regulatory compliance in the ultimate secure environment.</p>
+                </div>
+                
+                <div class="benefit-card" data-benefit="scalability">
+                    <span class="benefit-icon">🚀</span>
+                    <h3>Infinite Scalability</h3>
+                    <p>Unconstrained by land availability, zoning restrictions, or local infrastructure. Modular design enables rapid deployment and expansion without competing for Earth's finite resources.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- AI Section -->
+    <section class="ai-section">
+        <div class="ai-content">
+            <h2 class="ai-title">AI: The Orbital Enabler</h2>
+            <p class="ai-description">
+                Artificial Intelligence transforms orbital data centers from static infrastructure into 
+                adaptive, self-optimizing systems that learn and evolve with operational demands.
+            </p>
+            
+            <div class="ai-features">
+                <div class="ai-feature">
+                    <h4>🧠 Predictive Maintenance</h4>
+                    <p>AI algorithms analyze system telemetry to predict component failures before they occur, scheduling autonomous maintenance and ensuring 99.9% uptime.</p>
+                </div>
+                
+                <div class="ai-feature">
+                    <h4>🌡️ Thermal Optimization</h4>
+                    <p>Machine learning models optimize radiative cooling patterns and workload distribution to maintain ideal operating temperatures across the orbital constellation.</p>
+                </div>
+                
+                <div class="ai-feature">
+                    <h4>📊 Workload Orchestration</h4>
+                    <p>Intelligent scheduling algorithms route computational tasks to optimal orbital positions based on latency requirements, solar availability, and system load.</p>
+                </div>
+                
+                <div class="ai-feature">
+                    <h4>🔧 Autonomous Repair</h4>
+                    <p>Robotic systems guided by computer vision perform repairs and upgrades without human intervention, reducing operational costs and improving safety.</p>
+                </div>
+            </div>
+            
+            <a href="technology.html" class="cta-button" style="margin-top: 2rem;">Explore Current Technologies</a>
+        </div>
+    </section>
+    
+    <script>
+        // Solution page specific JavaScript
+        class SolutionVisualization {
+            constructor() {
+                this.currentOrbit = 'leo';
+                this.orbitalData = {
+                    leo: {
+                        title: 'Low Earth Orbit (LEO)',
+                        altitude: '200-2,000 km',
+                        latency: '25-88ms',
+                        description: 'Ideal for real-time AI processing, edge computing, and low-latency applications. Starlink and similar constellations operate here, providing global coverage with minimal signal delay for time-sensitive workloads.'
+                    },
+                    meo: {
+                        title: 'Medium Earth Orbit (MEO)',
+                        altitude: '2,000-35,786 km',
+                        latency: '125-250ms',
+                        description: 'Perfect balance between coverage area and latency. GPS and communication satellites use MEO for regional coverage with moderate signal delay, suitable for batch processing and data synchronization.'
+                    },
+                    geo: {
+                        title: 'Geostationary Orbit (GEO)',
+                        altitude: '35,786 km',
+                        latency: '250-300ms',
+                        description: 'Fixed position relative to Earth enables continuous coverage of specific regions. Ideal for data archiving, backup systems, and applications where latency is less critical than persistent availability.'
+                    }
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                this.setupAnimations();
+                this.setupOrbitalVisualization();
+                this.setupDataLaunchAnimation();
+                this.setupInteractions();
+                this.setupScrollAnimations();
+            }
+            
+            setupAnimations() {
+                // Hero animations
+                anime.timeline()
+                    .add({
+                        targets: '.solution-hero-title',
+                        opacity: [0, 1],
+                        translateY: [50, 0],
+                        duration: 1000,
+                        easing: 'easeOutExpo'
+                    })
+                    .add({
+                        targets: '.solution-hero-subtitle',
+                        opacity: [0, 1],
+                        translateY: [30, 0],
+                        duration: 800,
+                        easing: 'easeOutExpo'
+                    }, '-=500');
+            }
+            
+            setupOrbitalVisualization() {
+                // Create 3D orbital visualization
+                this.createOrbitalScene();
+                this.setupOrbitControls();
+            }
+            
+            createOrbitalScene() {
+                const container = document.getElementById('orbital-viz');
+                
+                // Scene setup
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                
+                this.renderer.setSize(container.clientWidth, container.clientHeight);
+                this.renderer.setClearColor(0x000000, 0);
+                container.appendChild(this.renderer.domElement);
+                
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+                this.scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(5, 3, 5);
+                this.scene.add(directionalLight);
+                
+                // Create Earth
+                this.createEarth();
+                
+                // Create orbital rings
+                this.createOrbitalRings();
+                
+                // Create satellites
+                this.createSatellites();
+                
+                // Position camera
+                this.camera.position.set(0, 5, 8);
+                this.camera.lookAt(0, 0, 0);
+                
+                // Start animation
+                this.animateOrbital();
+            }
+            
+            createEarth() {
+                const geometry = new THREE.SphereGeometry(1, 64, 64);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: 0x4a90e2,
+                    shininess: 30
+                });
+                
+                this.earth = new THREE.Mesh(geometry, material);
+                this.scene.add(this.earth);
+                
+                // Add atmosphere
+                const atmosphereGeometry = new THREE.SphereGeometry(1.05, 32, 32);
+                const atmosphereMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x4a90e2,
+                    transparent: true,
+                    opacity: 0.1,
+                    side: THREE.BackSide
+                });
+                const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+                this.scene.add(atmosphere);
+            }
+            
+            createOrbitalRings() {
+                // LEO Ring
+                const leoGeometry = new THREE.RingGeometry(1.5, 1.52, 64);
+                const leoMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00d4ff,
+                    transparent: true,
+                    opacity: 0.6,
+                    side: THREE.DoubleSide
+                });
+                this.leoRing = new THREE.Mesh(leoGeometry, leoMaterial);
+                this.leoRing.rotation.x = Math.PI / 2;
+                this.scene.add(this.leoRing);
+                
+                // MEO Ring
+                const meoGeometry = new THREE.RingGeometry(2.5, 2.52, 64);
+                const meoMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffd700,
+                    transparent: true,
+                    opacity: 0.4,
+                    side: THREE.DoubleSide
+                });
+                this.meoRing = new THREE.Mesh(meoGeometry, meoMaterial);
+                this.meoRing.rotation.x = Math.PI / 2;
+                this.scene.add(this.meoRing);
+                
+                // GEO Ring
+                const geoGeometry = new THREE.RingGeometry(4, 4.02, 64);
+                const geoMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff6b6b,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                this.geoRing = new THREE.Mesh(geoGeometry, geoMaterial);
+                this.geoRing.rotation.x = Math.PI / 2;
+                this.scene.add(this.geoRing);
+            }
+            
+            createSatellites() {
+                this.satellites = { leo: [], meo: [], geo: [] };
+                
+                // LEO Satellites
+                for (let i = 0; i < 8; i++) {
+                    const satellite = this.createSatellite(0x00d4ff, 1.5);
+                    const angle = (i / 8) * Math.PI * 2;
+                    satellite.position.x = Math.cos(angle) * 1.5;
+                    satellite.position.z = Math.sin(angle) * 1.5;
+                    this.satellites.leo.push({ mesh: satellite, angle: angle, speed: 0.02 });
+                    this.scene.add(satellite);
+                }
+                
+                // MEO Satellites
+                for (let i = 0; i < 6; i++) {
+                    const satellite = this.createSatellite(0xffd700, 2.5);
+                    const angle = (i / 6) * Math.PI * 2;
+                    satellite.position.x = Math.cos(angle) * 2.5;
+                    satellite.position.z = Math.sin(angle) * 2.5;
+                    this.satellites.meo.push({ mesh: satellite, angle: angle, speed: 0.01 });
+                    this.scene.add(satellite);
+                }
+                
+                // GEO Satellites
+                for (let i = 0; i < 3; i++) {
+                    const satellite = this.createSatellite(0xff6b6b, 4);
+                    const angle = (i / 3) * Math.PI * 2;
+                    satellite.position.x = Math.cos(angle) * 4;
+                    satellite.position.z = Math.sin(angle) * 4;
+                    this.satellites.geo.push({ mesh: satellite, angle: angle, speed: 0.005 });
+                    this.scene.add(satellite);
+                }
+            }
+            
+            createSatellite(color, radius) {
+                const group = new THREE.Group();
+                
+                // Main body
+                const bodyGeometry = new THREE.BoxGeometry(0.1, 0.05, 0.1);
+                const bodyMaterial = new THREE.MeshPhongMaterial({ color: color });
+                const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                group.add(body);
+                
+                // Solar panels
+                const panelGeometry = new THREE.BoxGeometry(0.2, 0.01, 0.1);
+                const panelMaterial = new THREE.MeshPhongMaterial({ color: 0x1a4d80 });
+                const leftPanel = new THREE.Mesh(panelGeometry, panelMaterial);
+                const rightPanel = new THREE.Mesh(panelGeometry, panelMaterial);
+                leftPanel.position.x = -0.15;
+                rightPanel.position.x = 0.15;
+                group.add(leftPanel);
+                group.add(rightPanel);
+                
+                return group;
+            }
+            
+            setupOrbitControls() {
+                const buttons = document.querySelectorAll('.orbit-btn');
+                const infoPanel = document.getElementById('orbit-info');
+                
+                buttons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        // Update active button
+                        buttons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        
+                        // Update current orbit
+                        this.currentOrbit = button.dataset.orbit;
+                        
+                        // Update info panel
+                        const data = this.orbitalData[this.currentOrbit];
+                        infoPanel.innerHTML = `
+                            <h3>${data.title}</h3>
+                            <p>
+                                Altitude: ${data.altitude} | Latency: ${data.latency}<br>
+                                ${data.description}
+                            </p>
+                        `;
+                        infoPanel.classList.add('show');
+                        
+                        // Animate camera to orbit
+                        this.animateToOrbit(this.currentOrbit);
+                    });
+                });
+            }
+            
+            animateToOrbit(orbit) {
+                const distances = { leo: 5, meo: 7, geo: 10 };
+                const targetDistance = distances[orbit];
+                
+                anime({
+                    targets: this.camera.position,
+                    x: targetDistance,
+                    z: targetDistance,
+                    duration: 2000,
+                    easing: 'easeOutQuad',
+                    update: () => {
+                        this.camera.lookAt(0, 0, 0);
+                    }
+                });
+                
+                // Highlight active orbit
+                this.highlightOrbit(orbit);
+            }
+            
+            highlightOrbit(orbit) {
+                // Reset all rings
+                this.leoRing.material.opacity = 0.3;
+                this.meoRing.material.opacity = 0.2;
+                this.geoRing.material.opacity = 0.1;
+                
+                // Highlight active ring
+                switch(orbit) {
+                    case 'leo':
+                        this.leoRing.material.opacity = 0.8;
+                        break;
+                    case 'meo':
+                        this.meoRing.material.opacity = 0.6;
+                        break;
+                    case 'geo':
+                        this.geoRing.material.opacity = 0.5;
+                        break;
+                }
+            }
+            
+            animateOrbital() {
+                requestAnimationFrame(() => this.animateOrbital());
+                
+                // Rotate earth
+                if (this.earth) {
+                    this.earth.rotation.y += 0.002;
+                }
+                
+                // Animate satellites
+                Object.keys(this.satellites).forEach(orbitType => {
+                    this.satellites[orbitType].forEach(satellite => {
+                        satellite.angle += satellite.speed;
+                        const radius = { leo: 1.5, meo: 2.5, geo: 4 }[orbitType];
+                        satellite.mesh.position.x = Math.cos(satellite.angle) * radius;
+                        satellite.mesh.position.z = Math.sin(satellite.angle) * radius;
+                        satellite.mesh.rotation.y += 0.01;
+                    });
+                });
+                
+                this.renderer.render(this.scene, this.camera);
+            }
+            
+            setupDataLaunchAnimation() {
+                const dataLaunch = document.getElementById('data-launch');
+                
+                // Create data particles
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'data-particle';
+                    particle.style.left = Math.random() * window.innerWidth + 'px';
+                    particle.style.top = window.innerHeight + 'px';
+                    dataLaunch.appendChild(particle);
+                }
+                
+                // Trigger animation on scroll
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            this.triggerDataLaunch();
+                        }
+                    });
+                }, { threshold: 0.5 });
+                
+                observer.observe(document.querySelector('.orbital-section'));
+            }
+            
+            triggerDataLaunch() {
+                const dataLaunch = document.getElementById('data-launch');
+                const particles = dataLaunch.querySelectorAll('.data-particle');
+                
+                dataLaunch.classList.add('active');
+                
+                particles.forEach((particle, index) => {
+                    anime({
+                        targets: particle,
+                        translateY: [-window.innerHeight, -window.innerHeight * 2],
+                        translateX: [0, (Math.random() - 0.5) * 200],
+                        opacity: [1, 0],
+                        duration: 3000,
+                        delay: index * 100,
+                        easing: 'easeOutQuad',
+                        complete: () => {
+                            particle.style.top = window.innerHeight + 'px';
+                            particle.style.left = Math.random() * window.innerWidth + 'px';
+                        }
+                    });
+                });
+                
+                setTimeout(() => {
+                    dataLaunch.classList.remove('active');
+                }, 5000);
+            }
+            
+            setupInteractions() {
+                // Benefit card interactions
+                document.querySelectorAll('.benefit-card').forEach(card => {
+                    card.addEventListener('mouseenter', () => {
+                        anime({
+                            targets: card,
+                            scale: [1, 1.05],
+                            duration: 300,
+                            easing: 'easeOutQuad'
+                        });
+                        
+                        // Add glow effect
+                        card.classList.add('glow');
+                    });
+                    
+                    card.addEventListener('mouseleave', () => {
+                        anime({
+                            targets: card,
+                            scale: [1.05, 1],
+                            duration: 300,
+                            easing: 'easeOutQuad'
+                        });
+                        
+                        card.classList.remove('glow');
+                    });
+                });
+                
+                // AI feature interactions
+                document.querySelectorAll('.ai-feature').forEach(feature => {
+                    feature.addEventListener('mouseenter', () => {
+                        anime({
+                            targets: feature,
+                            scale: [1, 1.02],
+                            duration: 300,
+                            easing: 'easeOutQuad'
+                        });
+                    });
+                    
+                    feature.addEventListener('mouseleave', () => {
+                        anime({
+                            targets: feature,
+                            scale: [1.02, 1],
+                            duration: 300,
+                            easing: 'easeOutQuad'
+                        });
+                    });
+                });
+            }
+            
+            setupScrollAnimations() {
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+                
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('fade-in');
+                        }
+                    });
+                }, observerOptions);
+                
+                // Observe all animated elements
+                document.querySelectorAll('.orbital-title, .orbital-description, .orbital-visualization, .benefits-title, .benefit-card, .ai-title, .ai-description, .ai-feature').forEach(el => {
+                    observer.observe(el);
+                });
+            }
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new SolutionVisualization();
+        });
+    </script>
+</body>
+</html>

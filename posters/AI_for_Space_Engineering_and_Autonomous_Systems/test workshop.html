@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base href="https://cpoclkuna6now.ok.kimi.link/">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Beyond the Cloud: Orbital Data Centers Explorer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.0/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/scrollreveal"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+<style>
+    :root {
+        --deep-space: #0a0a0a;
+        --cosmic-blue: #1a237e;
+        --stellar-white: #f8f9fa;
+        --solar-gold: #ffd700;
+        --orbital-silver: #c0c0c0;
+        --nebula-purple: #4a148c;
+    }
+    body {
+        font-family: 'Inter', sans-serif;
+        background: var(--deep-space);
+        color: var(--stellar-white);
+        overflow-x: hidden;
+        transition: background-color 0.5s ease, color 0.5s ease;
+    }
+    .orbitron {
+        font-family: 'Orbitron', monospace;
+    }
+    .jetbrains {
+        font-family: 'JetBrains Mono', monospace;
+    }
+    nav {
+        background: rgba(10, 10, 10, 0.5);
+        backdrop-filter: blur(6px);
+        transition: background-color 0.3s ease;
+    }
+    nav.scrolled {
+        background: rgba(10, 10, 10, 0.95);
+    }
+    .hero-bg {
+        background: linear-gradient(135deg, var(--deep-space) 0%, var(--cosmic-blue) 100%);
+        position: relative;
+    }
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+    }
+    .orbit-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        user-select: none;
+    }
+    .orbit-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: var(--solar-gold);
+        transform: translateY(-2px);
+    }
+    .orbit-btn.active {
+        background: var(--solar-gold);
+        color: var(--deep-space);
+        border-color: var(--solar-gold);
+    }
+    .animate__animated {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .animate__fadeIn, .animate__fadeInUp, .animate__fadeInDown {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    section {
+        padding-top: 5rem;
+        padding-bottom: 5rem;
+    }
+    button#themeToggle {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1000;
+        padding: 0.5rem 1rem;
+        background: var(--solar-gold);
+        border-radius: 8px;
+        font-weight: 700;
+        color: var(--deep-space);
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.3s ease;
+    }
+    button#themeToggle:hover {
+        background: #e6c200;
+    }
+    /* FAQ Section */
+    .faq-item {
+        border-bottom: 1px solid rgba(255 255 255 / 0.2);
+        padding: 1rem 0;
+        cursor: pointer;
+        user-select: none;
+    }
+    .faq-item h3 {
+        font-weight: 600;
+        font-size: 1.3rem;
+    }
+    .faq-item p {
+        margin-top: 0.5rem;
+        color: #ccc;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s ease;
+    }
+    .faq-item.active p {
+        max-height: 200px;
+    }
+    /* Light mode overrides */
+    .light-mode {
+        --deep-space: #f0f0f0;
+        --cosmic-blue: #4658A7;
+        --stellar-white: #181818;
+        background-color: var(--deep-space);
+        color: var(--stellar-white);
+    }
+    .light-mode nav {
+        background: rgba(255 255 255 / 0.8);
+        color: var(--deep-space);
+        backdrop-filter: none;
+    }
+    .light-mode .glass-panel {
+        background: rgba(255 255 255 / 0.9);
+        border-color: rgba(0,0,0,0.1);
+        color: var(--deep-space);
+    }
+    .light-mode .orbit-btn {
+        color: var(--deep-space);
+        background: #eee;
+    }
+    .light-mode .orbit-btn.active {
+        background: var(--solar-gold);
+        color: var(--deep-space);
+    }
+</style>
+</head>
+<body>
+
+<button id="themeToggle" aria-label="Toggle dark/light mode">Toggle Light Mode</button>
+
+<!-- Navigation -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div class="orbitron text-xl font-bold text-solar-gold">Orbital Data Centers</div>
+        <div class="hidden md:flex space-x-6">
+            <a href="#home" class="hover:text-solar-gold transition">Home</a>
+            <a href="#orbits" class="hover:text-solar-gold transition">Orbit Explorer</a>
+            <a href="#environment" class="hover:text-solar-gold transition">Environmental Benefits</a>
+            <a href="#financial" class="hover:text-solar-gold transition">Financial Implications</a>
+            <a href="#projects" class="hover:text-solar-gold transition">Current Projects</a>
+            <a href="#barriers" class="hover:text-solar-gold transition">Barriers</a>
+            <a href="#impact" class="hover:text-solar-gold transition">Impacts</a>
+            <a href="#technology" class="hover:text-solar-gold transition">Technology</a>
+            <a href="#faq" class="hover:text-solar-gold transition">FAQ</a>
+            <a href="#poll" class="hover:text-solar-gold transition">Poll</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section id="home" class="hero-bg min-h-screen flex items-center justify-center relative px-6">
+    <div class="max-w-4xl text-center relative z-10">
+        <h1 class="orbitron text-5xl md:text-7xl font-black mb-6 animate__animated animate__fadeInDown">Beyond the Cloud: Orbital Data Centers</h1>
+        <p class="text-xl md:text-2xl mb-8 text-gray-300 animate__animated animate__fadeIn" style="animation-delay: 0.2s;">
+            Empowering next-generation sustainable computing by harnessing orbital technology to meet the demands of growing global data.
+        </p>
+        <div class="flex justify-center gap-6">
+            <button onclick="scrollToSection('orbits')" class="orbit-btn px-8 py-4 rounded-lg text-lg font-semibold active">Explore Orbits</button>
+            <a href="#technology" class="orbit-btn px-8 py-4 rounded-lg text-lg font-semibold">View Technology</a>
+        </div>
+    </div>
+</section>
+
+<!-- Orbit Selector -->
+<section id="orbits" class="py-20 bg-gradient-to-b from-black to-cosmic-blue">
+    <div class="container mx-auto px-6">
+        <h2 class="orbitron text-4xl md:text-5xl font-bold mb-12 text-center text-solar-gold animate__animated animate__fadeIn">Orbital Data Center Constellations</h2>
+        <div id="orbitButtons" class="flex justify-center mb-12 space-x-4">
+            <button class="orbit-btn active px-6 py-3 rounded-lg font-semibold" data-orbit="LEO" onclick="updateOrbitInfo('LEO')">LEO</button>
+            <button class="orbit-btn px-6 py-3 rounded-lg font-semibold" data-orbit="MEO" onclick="updateOrbitInfo('MEO')">MEO</button>
+            <button class="orbit-btn px-6 py-3 rounded-lg font-semibold" data-orbit="GEO" onclick="updateOrbitInfo('GEO')">GEO</button>
+        </div>
+        <div class="glass-panel p-8 mb-12 grid md:grid-cols-2 gap-8 animate__animated animate__fadeInUp">
+            <div>
+                <h3 class="orbitron text-2xl font-bold mb-4 text-solar-gold" id="orbitName">Low Earth Orbit</h3>
+                <ul class="space-y-2 text-gray-300">
+                    <li><strong>Altitude:</strong> <span id="altitude">160-2,000 km</span></li>
+                    <li><strong>Orbital Period:</strong> <span id="period">90-120 minutes</span></li>
+                    <li><strong>Latency:</strong> <span id="latency">25-50 ms</span></li>
+                    <li><strong>Active Satellites:</strong> <span id="satCount">8 active nodes</span></li>
+                    <li><strong>Coverage:</strong> <span id="coverage">Regional</span></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="orbitron text-xl font-bold mb-4">Key Advantages</h4>
+                <ul id="advantagesList" class="space-y-2 text-gray-300">
+                    <li>Ultra-low latency for real-time processing</li>
+                    <li>Optimal for edge computing applications</li>
+                    <li>High-resolution Earth observation</li>
+                    <li>Frequent orbital passes for data collection</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Environmental Benefits -->
+<section id="environment" class="py-20 bg-black text-center px-6">
+    <h2 class="orbitron text-4xl md:text-5xl font-bold mb-8 text-solar-gold animate__animated animate__fadeIn">Environmental Benefits</h2>
+    <ul class="max-w-3xl mx-auto space-y-4 text-xl text-gray-300 animate__animated animate__fadeInUp">
+        <li>Significant reduction in terrestrial data center carbon footprint by leveraging solar-powered orbital facilities.</li>
+        <li>Elimination of water consumption due to radiative cooling in the cold vacuum of space.</li>
+        <li>Minimization of e-waste on Earth by centralized upgrades and longer satellite lifespans.</li>
+        <li>Reduced land-use and habitat disruption compared to traditional data centers.</li>
+        <li>Contribution to global sustainability goals through clean, renewable energy utilization.</li>
+    </ul>
+</section>
+
+<!-- Financial Implications -->
+<section id="financial" class="py-20 bg-gradient-to-b from-black to-cosmic-blue text-center px-6">
+    <h2 class="orbitron text-4xl md:text-5xl font-bold mb-8 text-solar-gold animate__animated animate__fadeIn">Financial Implications</h2>
+    <ul class="max-w-3xl mx-auto space-y-4 text-xl text-gray-300 animate__animated animate__fadeInUp">
+        <li>High initial investment balanced by long-term operational cost savings from zero land and water usage.</li>
+        <li>Reduction in expensive terrestrial infrastructure maintenance and cooling costs.</li>
+        <li>Potential for revenue through premium low-latency edge computing services.</li>
+        <li>Strategic partnerships with governments and tech giants to share deployment risks and costs.</li>
+        <li>Market growth opportunities in space-based cloud computing and data services sectors.</li>
+    </ul>
+</section>
+
+<!-- Current Project Examples -->
+<section id="projects" class="py-20 bg-black text-center px-6">
+    <h2 class="orbitron text-4xl md:text-5xl font-bold mb-8 text-solar-gold animate__animated animate__fadeIn">Current Project Examples</h2>
+    <ul class="max-w-3xl mx-auto space-y-4 text-xl text-gray-300 text-left animate__animated animate__fadeInUp">
+        <li><strong>SpaceX Starlink:</strong> Satellite constellation providing low-latency internet with groundwork for distributed computing.</li>
+        <li><strong>Amazon Kuiper:</strong> Focused on broadband and cloud connectivity, integrating edge computing capabilities.</li>
+        <li><strong>Microsoft Project Natick:</strong> Underwater data centers exploring alternative cooling methods with parallels to space cooling.</li>
+        <li><strong>European Space Agency (ESA):</strong> Studies on orbital data relays and edge processing nodes for Earth observation missions.</li>
+    </ul>
+</section>
+
+<!-- Implementation Barriers -->
+<section id="barriers" class="py-20 bg-gradient-to-b from-black to-cosmic-blue text-center px-6">
+    <h2 class="orbitron text-4xl md:text-5xl font-bold mb-8 text-solar-gold animate__animated animate__fadeIn">Implementation Barriers</h2>
+    <ul class="max-w-3xl mx-auto space-y-4 text-xl text-gray-300 text-left animate__animated animate__fadeInUp">
+        <li>High upfront capital expenditure and uncertainty in return on investment timelines.</li>
+        <li>Technical challenges including radiation-hardening for hardware and latency optimization.</li>
+        <li>Regulatory and frequency spectrum allocation complexities in space communication.</li>
+        <li>Risks related to space debris and satellite end-of-life disposal protocols.</li>
+        <li>Need for robust space-to-ground communication infrastructure.</li>
+    </ul>
+</section>
+
+<!-- Impact Metrics -->
+<section id="impact" class="py-20 bg-gradient-to-b from-black to-cosmic-blue px-6">
+    <h2 class="text-4xl md:text-5xl text-center mb-12 font-bold orbitron text-solar-gold animate__animated animate__fadeIn">Impact Metrics</h2>
+    <div class="max-w-4xl mx-auto grid md:grid-cols-4 gap-6 text-center">
+        <div class="p-6 bg-gray-900 rounded-lg cursor-pointer hover:scale-105 transition" onclick="animateCounter('co2Count', 0, 5000)">
+            <h3 class="text-3xl mb-2" id="co2Count">0</h3>
+            <p>CO₂ Reduction (tons)</p>
+        </div>
+        <div class="p-6 bg-gray-900 rounded-lg cursor-pointer hover:scale-105 transition" onclick="animateCounter('waterCount', 0, 10000)">
+            <h3 class="text-3xl mb-2" id="waterCount">0</h3>
+            <p>Water Saved (L)</p>
+        </div>
+        <div class="p-6 bg-gray-900 rounded-lg cursor-pointer hover:scale-105 transition" onclick="animateCounter('energyCount', 0, 30000)">
+            <h3 class="text-3xl mb-2" id="energyCount">0</h3>
+            <p>Energy Saved (kWh)</p>
+        </div>
+        <div class="p-6 bg-gray-900 rounded-lg cursor-pointer hover:scale-105 transition" onclick="animateCounter('speedCount', 0, 200)">
+            <h3 class="text-3xl mb-2" id="speedCount">0</h3>
+            <p>Speed Improvement (%)</p>
+        </div>
+    </div>
+</section>
+
+<!-- Technology with 3D Model -->
+<section id="technology" class="py-20 bg-gradient-to-b from-cosmic-blue to-black px-6">
+    <h2 class="orbitron text-4xl md:text-5xl font-bold mb-8 text-center text-solar-gold animate__animated animate__fadeIn">Revolutionary Space Technology</h2>
+    <div id="spaceModel" class="mx-auto max-w-4xl h-96 bg-gray-900 rounded-lg shadow-lg mb-6"></div>
+    <p class="max-w-2xl mx-auto text-gray-300 text-center mb-8 animate__animated animate__fadeIn" style="animation-delay: 0.3s;">
+        Advanced modular systems designed for the harsh environment of space, including solar power arrays, AI cores, and radiative cooling technology.
+    </p>
+    <div class="text-center">
+        <a href="technology.html" class="orbit-btn px-8 py-4 rounded-lg font-semibold inline-block">Explore Full Technology Stack</a>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section id="faq" class="py-20 bg-gradient-to-b from-black to-cosmic-blue text-white px-6 max-w-4xl mx-auto">
+    <h2 class="orbitron text-4xl font-bold mb-8 text-solar-gold text-center">Frequently Asked Questions</h2>
+    <div class="faq-item" onclick="toggleFAQ(this)">
+        <h3>What altitude ranges do orbital data centers use?</h3>
+        <p>They operate mainly in Low Earth Orbit (160-2,000 km), Medium Earth Orbit, and Geostationary Orbit.</p>
+    </div>
+    <div class="faq-item" onclick="toggleFAQ(this)">
+        <h3>How is cooling handled in space?</h3>
+        <p>By radiative cooling systems dispersing heat directly into space, eliminating water needs.</p>
+    </div>
+    <div class="faq-item" onclick="toggleFAQ(this)">
+        <h3>What are the main barriers to implementation?</h3>
+        <p>High capital costs, technical challenges with radiation-hardening, regulatory issues, space debris, and communication infrastructure needs.</p>
+    </div>
+</section>
+
+<!-- User Poll Section -->
+<section id="poll" class="py-20 bg-black text-white max-w-xl mx-auto px-6 rounded-lg shadow-lg">
+    <h2 class="orbitron text-3xl font-bold mb-6 text-solar-gold text-center">Your Priority for Orbital Data Centers</h2>
+    <form id="pollForm" class="space-y-4">
+        <label><input type="radio" name="priority" value="Latency" required> Latency</label><br/>
+        <label><input type="radio" name="priority" value="Sustainability"> Sustainability</label><br/>
+        <label><input type="radio" name="priority" value="Cost"> Cost Efficiency</label><br/>
+        <button type="submit" class="orbit-btn px-6 py-2 rounded-lg font-semibold w-full">Submit</button>
+    </form>
+    <div id="pollResults" class="hidden mt-8 text-gray-300">
+        <h3 class="font-semibold mb-2">Poll Results:</h3>
+        <ul id="resultsList" class="list-disc pl-6"></ul>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-12 bg-black border-t border-gray-800 text-center text-gray-400">
+    <div class="container mx-auto px-6">
+        <div class="orbitron text-lg font-bold mb-4 text-solar-gold">Orbital Data Centers</div>
+        <p>&copy; 2025 Beyond the Cloud Initiative. Pioneering space sustainable computing.</p>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script>
+    // Scroll animations on load and scroll
+    const animateElements = document.querySelectorAll('.animate__animated');
+    function revealAnimations() {
+        animateElements.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            if(rect.top < window.innerHeight - 100) {
+                el.classList.add('animate__fadeIn');
+                el.classList.remove('animate__fadeInUp', 'animate__fadeInDown');
+            }
+        });
+    }
+    window.addEventListener('scroll', revealAnimations);
+    window.addEventListener('load', revealAnimations);
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        nav.classList.toggle('scrolled', window.scrollY > 80);
+    });
+
+    // Smooth Scroll function
+    function scrollToSection(id) {
+        document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Orbit info update
+    const orbitData = {
+        LEO: { name: 'Low Earth Orbit', altitude: '160-2,000 km', period:'90-120 min', latency:'25-50 ms', sats:'8 active nodes', coverage:'Regional', advantages:['Ultra-low latency for real-time processing', 'Optimal for edge computing applications', 'High-resolution Earth observation', 'Frequent orbital passes for data collection'] },
+        MEO: { name: 'Medium Earth Orbit', altitude:'2,000-35,786 km', period:'12 hours', latency:'100-150 ms', sats:'12 active nodes', coverage:'Global', advantages:['Global coverage', 'Stable latency', 'Good for relay signals'] },
+        GEO: { name: 'Geostationary Orbit', altitude:'35,786 km', period:'24 hours', latency:'250-350 ms', sats:'5 active nodes', coverage:'Global', advantages:['Steady coverage', 'Ideal for communications'] }
+    };
+    function updateOrbitInfo(orbit) {
+        const buttons = document.querySelectorAll('#orbitButtons .orbit-btn');
+        buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.orbit === orbit));
+        const data = orbitData[orbit];
+        document.getElementById('orbitName').innerText = data.name;
+        document.getElementById('altitude').innerText = data.altitude;
+        document.getElementById('period').innerText = data.period;
+        document.getElementById('latency').innerText = data.latency;
+        document.getElementById('satCount').innerText = data.sats;
+        document.getElementById('coverage').innerText = data.coverage;
+        const advantagesList = document.getElementById('advantagesList');
+        advantagesList.innerHTML = '';
+        data.advantages.forEach(adv => {
+            const li = document.createElement('li');
+            li.textContent = adv;
+            advantagesList.appendChild(li);
+        });
+    }
+    // Initialize orbit
+    updateOrbitInfo('LEO');
+
+    // Counter animation function
+    function animateCounter(id, start, end) {
+        let current = start;
+        const el = document.getElementById(id);
+        const duration = 1500;
+        const stepTime = Math.max(Math.floor(duration / (end - start)), 10);
+        const timer = setInterval(() => {
+            current++;
+            el.innerText = current;
+            if(current >= end) clearInterval(timer);
+        }, stepTime);
+    }
+
+    // Dark/light mode toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.onclick = () => {
+        document.body.classList.toggle('light-mode');
+        if(document.body.classList.contains('light-mode')){
+            themeToggle.textContent = 'Toggle Dark Mode';
+        } else {
+            themeToggle.textContent = 'Toggle Light Mode';
+        }
+    };
+
+    // FAQ accordion toggle
+    document.querySelectorAll('.faq-item').forEach(item => {
+        item.querySelector('h3').addEventListener('click', () => {
+            const isActive = item.classList.contains('active');
+            document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+            if(!isActive) item.classList.add('active');
+        });
+        item.addEventListener('click', () => {
+            const isActive = item.classList.contains('active');
+            document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+            if(!isActive) item.classList.add('active');
+        });
+    });
+
+    // Poll functionality
+    const voteCounts = { Latency: 0, Sustainability: 0, Cost: 0 };
+    const pollForm = document.getElementById('pollForm');
+    const pollResults = document.getElementById('pollResults');
+    const resultsList = document.getElementById('resultsList');
+
+    pollForm.onsubmit = e => {
+        e.preventDefault();
+        const formData = new FormData(pollForm);
+        const choice = formData.get('priority');
+        if(choice){
+            voteCounts[choice]++;
+            updatePollResults();
+            pollForm.reset();
+        }
+    };
+
+    function updatePollResults(){
+        pollResults.classList.remove('hidden');
+        resultsList.innerHTML = '';
+        for(const [key, val] of Object.entries(voteCounts)){
+            const li = document.createElement('li');
+            li.textContent = `${key}: ${val} vote${val !== 1 ? 's' : ''}`;
+            resultsList.appendChild(li);
+        }
+    }
+
+    // Three.js 3D space model initialization
+    function initSpaceModel(){
+        const container = document.getElementById('spaceModel');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
+
+        // Sphere for Earth representation
+        const geometry = new THREE.SphereGeometry(1, 32, 32);
+        const material = new THREE.MeshPhongMaterial({color: 0x2233ff, shininess: 50, opacity:0.8, transparent:true});
+        const earth = new THREE.Mesh(geometry, material);
+        scene.add(earth);
+
+        // Satellites as small spheres orbiting earth
+        const satellites = [];
+        for(let i = 0; i < 15; i++){
+            const satGeo = new THREE.SphereGeometry(0.05, 8, 8);
+            const satMat = new THREE.MeshPhongMaterial({color: 0xffd700});
+            const sat = new THREE.Mesh(satGeo, satMat);
+            sat.position.set(Math.cos(i/15 * Math.PI*2)*2, Math.sin(i/15 * Math.PI*2)*2, 0);
+            scene.add(sat);
+            satellites.push(sat);
+        }
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 0.8);
+        pointLight.position.set(5,5,5);
+        scene.add(pointLight);
+
+        camera.position.z = 4;
+
+        function animate(){
+            requestAnimationFrame(animate);
+            earth.rotation.y += 0.002;
+            satellites.forEach((sat, idx) => {
+                sat.position.applyAxisAngle(new THREE.Vector3(0,1,0), 0.01 + 0.001*idx);
+                sat.rotation.y += 0.02;
+            });
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            renderer.setSize(w, h);
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+        });
+    }
+    window.onload = () => initSpaceModel();
+</script>
+
+</body>
+</html>
