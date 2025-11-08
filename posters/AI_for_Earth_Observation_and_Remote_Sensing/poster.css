@@ -1,0 +1,247 @@
+/* poster.css — ISU-inspired color palette, typographic scale, layout, and print rules
+   Inspired by: Miller (Effective Research Posters), "Bridging the Gap", Brown University poster guide,
+   and ISU branding guidance. Designed for screen and print (high-res). */
+
+:root{
+  --isu-blue: rgb(0, 0, 0); /* ISU corporate blue */
+  --white: #ffffff;
+  --isu-accent: #0b90ff; /* accent for highlights */
+  --isu-green: #2ca02c; /* NDVI/positive */
+  --bg-dark: linear-gradient(145deg,#001026,#001a36);
+  --panel-bg: rgba(255,255,255,0.03);
+  --text-light: #f2f5fb; /* light text */
+  --muted: rgba(242,245,251,0.75);
+}
+
+/* Page shell and print sizing */
+html,body{
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', Calibri, Arial, 'Helvetica Neue', sans-serif;
+  /* body kept as a dark canvas; the poster container will display the Earth image */
+  background: var(--bg-dark);
+  color: var(--text-light);
+}
+
+.poster{
+  max-width: 1200px; /* poster frame for screen preview */
+  margin: 24px auto;
+  /* CSS-generated starry night background (no external image required) */
+  background-color: #000000;
+  /* layered small radial gradients create star dots at different densities/sizes */
+  background-image:
+    radial-gradient(rgba(255,255,255,0.9) 0.8px, rgba(255,255,255,0) 1px),
+    radial-gradient(rgba(255,255,255,0.7) 0.6px, rgba(255,255,255,0) 1px),
+    radial-gradient(rgba(255,255,255,0.5) 1.6px, rgba(255,255,255,0) 1.8px);
+  background-size: 180px 180px, 320px 320px, 640px 640px;
+  background-position: 0 0, 40px 60px, 120px 220px;
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  color: var(--text-light);
+  position: relative;
+  overflow: hidden;
+}
+
+/* make the poster vertically scrollable in the viewport so the intro bar stays visible at top
+   while the rest of the poster can be scrolled into view */
+.poster{
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+/* A faint nebula / Milky Way wash for realism using a pseudo-element */
+.poster::before{
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(600px 200px at 70% 20%, rgba(120,100,200,0.06), transparent 30%),
+              radial-gradient(500px 180px at 30% 60%, rgba(60,120,200,0.04), transparent 30%);
+  mix-blend-mode: screen;
+  opacity: 0.9;
+  z-index: 0;
+}
+
+/* animated twinkle layer */
+.poster::after{
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* denser set of tiny star dots for twinkling (separate from main starfield) */
+  background-image:
+    radial-gradient(rgba(255,255,255,0.95) 0.6px, rgba(255,255,255,0) 1px),
+    radial-gradient(rgba(255,255,255,0.9) 0.5px, rgba(255,255,255,0) 1px),
+    radial-gradient(rgba(255,240,220,0.85) 1.2px, rgba(255,255,255,0) 1.6px);
+  background-size: 160px 160px, 320px 320px, 640px 640px;
+  background-position: 10px 20px, 90px 140px, 200px 90px;
+  mix-blend-mode: screen;
+  opacity: 0.95;
+  z-index: 1;
+  /* Animations: subtle opacity twinkle and very slow background drift */
+  animation: twinkle 6s ease-in-out infinite alternate, drift 40s linear infinite;
+}
+
+@keyframes twinkle{
+  0% { opacity: 0.85; filter: brightness(0.9); }
+  10% { opacity: 1; filter: brightness(1.55); }
+  30% { opacity: 0.8; filter: brightness(0.85); }
+  50% { opacity: 1; filter: brightness(1.35); }
+  70% { opacity: 0.82; filter: brightness(1.9); }
+  90% { opacity: 1; filter: brightness(1.3); }
+  100% { opacity: 0.9; filter: brightness(1); }
+}
+
+@keyframes drift{
+  0% { background-position: 10px 20px, 90px 140px, 200px 90px; }
+  50% { background-position: 30px 10px, 70px 160px, 180px 110px; }
+  100% { background-position: 10px 20px, 90px 140px, 200px 90px; }
+}
+
+/* Header */
+.poster-header{
+  position: relative;
+  /* keep the title visually centered while placing the logo at the absolute top-right */
+  display: block;
+  padding: 6px 40px 8px 40px;
+}
+
+#poster-title{
+  font-family: 'Orbitron', 'Inter', sans-serif;
+  font-size: 56px;
+  line-height: 1.02;
+  margin: 6px 0 8px 0;
+  color: var(--white);
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  z-index: 2; /* keep title above overlays */
+}
+
+.subtitle{
+  font: size 24px;
+  color:var(--muted);
+  margin:6px 0 12px 0;
+  text-transform:none;
+}
+
+.authors{
+  font-size:14px;
+  color:var(--muted);
+  margin:0;
+}
+
+.logos{ display:flex; gap:12px; align-items:center; }
+.logo{ padding:8px 12px; background:transparent; border-radius:6px; color:var(--text-light); font-weight:700; }
+.isu-logo{ width: clamp(72px, 10vw, 120px); height: auto; object-fit:contain; background:transparent; display:block; }
+
+/* top-right positioned logo aligned with the title */
+.brand-right{ display:none; }
+.brand-left{ text-align:center; }
+
+/* Top logo styles: center above the title */
+.top-logo{ display:flex; justify-content:center; align-items:center; width:100%; margin-bottom:8px; z-index:3; }
+.top-logo .top-logo-img{ width: clamp(84px, 10vw, 140px); height:auto; display:block; }
+
+/* add spacing so the title never overlaps the logo */
+.poster-header .brand-left{ padding-top:8px; }
+.poster-header #poster-title{ margin-top:6px; }
+
+/* subtle vignette to darken bright areas and improve legibility */
+/* vignette removed per user request */
+
+/* Two-column grid following poster layout */
+.content-grid{
+  display:grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap:18px;
+  margin-top:18px;
+  padding-bottom: 18px; /* give space above bottom key-findings */
+}
+
+.col-left .panel, .col-right .panel{ background:var(--panel-bg); padding:16px; border-radius:8px; }
+
+.panel h2{ font-size:26px; margin:0 0 8px 0; color:var(--text-light); }
+.panel p, .panel li{ font-size:16px; color:var(--muted); }
+
+/* Intro banner: large, full-width bar at the top of the poster */
+.intro-banner{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:260px;
+  padding:22px 28px;
+  margin: 14px 0;
+  /* slightly more opaque than the black background for better legibility */
+  background: linear-gradient(180deg, rgba(8, 0, 255, 0.4), rgba(201, 138, 138, 0.03));
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  position: relative;
+  z-index: 2;
+}
+.intro-banner .intro-inner{ max-width:1100px; text-align:center; }
+.intro-banner h2{ font-size:40px; margin:0 0 8px 0; }
+.intro-banner p{ font-size:18px; color:var(--muted); max-width:980px; margin:0 auto; }
+
+/* Objectives banner styling: prominent but slightly smaller than intro */
+.objectives-banner{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:200px;
+  padding:18px 24px;
+  margin: 12px 0 18px 0;
+  background: linear-gradient(180deg, rgba(8, 0, 255, 0.4), rgba(255,255,255,0.03));
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 8px;
+  position: relative;
+  z-index: 2;
+}
+.objectives-inner{ max-width:1050px; text-align:center; }
+.objectives-banner h2{ font-size:28px; margin:0 0 8px 0; letter-spacing:0.04em; }
+.objectives-banner p{ font-size:16px; color:var(--muted); margin:0 auto; }
+
+.panel.small h3{ font-size:20px; }
+
+/* Stat/Key-findings row */
+.stats{
+  display:flex; gap:12px; margin:8px 0 0 0;
+}
+.stat{ flex:1; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:14px; border-radius:8px; text-align:center; box-shadow:0 6px 16px rgba(0,0,0,0.6); }
+.stat .num{ font-size:28px; font-weight:800; color:var(--isu-accent); }
+.stat .label{ font-size:13px; color:var(--muted); }
+
+/* Interactive area */
+.interactive{ display:flex; flex-direction:column; gap:12px; }
+.viewer{ background:transparent; border-radius:8px; border:1px solid rgba(255,255,255,0.04); overflow:hidden; }
+.viewer-topbar{ display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:transparent; border-bottom:1px solid rgba(255,255,255,0.03); }
+.viewer-title{ font-weight:700; color:var(--text-light); }
+.viewer-controls .control{ margin-left:8px; padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); color:var(--text-light); cursor:pointer; }
+
+.visual-area{ height:420px; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg,#021124,#022b4a); }
+.visual-area svg{ width:100%; height:100%; display:block; }
+
+.carousel{ display:flex; align-items:center; gap:10px; }
+.carousel-frame{ width:100%; overflow:hidden; }
+.carousel-frame .carousel-slide{ width:100%; }
+.carousel-btn{ background:transparent; border:1px solid rgba(255,255,255,0.06); padding:8px 12px; border-radius:6px; color:var(--text-light); cursor:pointer; }
+.image-placeholder{ display:flex; align-items:center; justify-content:center; height:120px; background:rgba(255,255,255,0.02); border-radius:6px; color:var(--text-light); font-weight:700; }
+
+.caption{ font-size:13px; color:var(--muted); }
+
+/* Footer */
+.poster-footer{ margin-top:14px; font-size:12px; color:var(--muted); }
+
+/* Print rules for high-res posters (A0/A1 guidance) */
+@media print{
+  body{ background:white; color:#06112a; }
+  .poster{ max-width: 1188px; padding:40px; box-shadow:none; background:white; }
+  .poster{ max-height: none; overflow: visible; }
+  #poster-title{ font-size:72px; color:#021124; }
+  .panel p, .panel li{ font-size:20px; color:#021124; }
+  .visual-area{ height:1200px; }
+}
+
+/* Responsive */
+@media (max-width:980px){ .content-grid{ grid-template-columns: 1fr; } .visual-area{ height:360px; } }
