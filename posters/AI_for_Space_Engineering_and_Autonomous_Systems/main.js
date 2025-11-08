@@ -15,8 +15,55 @@ document.addEventListener('DOMContentLoaded', function() {
     initCharts();
     initAIIntegrationBackground();
     initInteractiveElements();
+    initSphereIdleMotion();
     initSmoothScrolling();
 });
+
+// Subtle idle motion for benefit spheres (in-place, small offsets)
+function initSphereIdleMotion() {
+    try {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const spheres = Array.from(document.querySelectorAll('.benefit-sphere'));
+        if (!spheres.length) return;
+
+        // assign unique parameters per sphere
+        const params = spheres.map((el, i) => {
+            const phase = Math.random() * Math.PI * 2;
+            return {
+                el,
+                phase,
+                ax: 6 + Math.random() * 6,    // px amplitude x
+                ay: 6 + Math.random() * 6,    // px amplitude y
+                rot: (Math.random() - 0.5) * 2.6, // deg amplitude
+                freq: 0.45 + Math.random() * 0.6,
+                freq2: 0.35 + Math.random() * 0.6,
+                scaleAmp: 0.01 + Math.random() * 0.02
+            };
+        });
+
+        let start = performance.now();
+        function loop(now) {
+            const t = (now - start) / 1000;
+            params.forEach(p => {
+                const x = Math.sin(t * p.freq + p.phase) * p.ax;
+                const y = Math.cos(t * p.freq2 + p.phase * 0.7) * p.ay;
+                const r = Math.sin(t * (p.freq * 0.7) + p.phase) * p.rot;
+                const s = 1 + Math.sin(t * (p.freq * 0.9) + p.phase * 1.3) * p.scaleAmp;
+                try {
+                    p.el.style.setProperty('--idle-x', `${x.toFixed(2)}px`);
+                    p.el.style.setProperty('--idle-y', `${y.toFixed(2)}px`);
+                    p.el.style.setProperty('--idle-rot', `${r.toFixed(2)}deg`);
+                    p.el.style.setProperty('--idle-scale', `${s.toFixed(3)}`);
+                } catch (e) {}
+            });
+            window._sphereIdleRaf = requestAnimationFrame(loop);
+        }
+        window._sphereIdleRaf = requestAnimationFrame(loop);
+
+        // cleanup when navigating away or if spheres removed
+        window.addEventListener('beforeunload', () => { try { cancelAnimationFrame(window._sphereIdleRaf); } catch(e){} });
+    } catch (e) { console.warn('initSphereIdleMotion failed', e); }
+}
 
 // Small interactive orbital viewer inside the Orbital Solution section
 let orbitalScene, orbitalCamera, orbitalRenderer, orbitalGroup, orbitalSatellites = [];
