@@ -186,7 +186,6 @@ function initStarfield() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let w, h, dpi;
-
     function resize() {
         dpi = window.devicePixelRatio || 1;
         w = Math.floor(window.innerWidth);
@@ -198,18 +197,30 @@ function initStarfield() {
         ctx.setTransform(dpi, 0, 0, dpi, 0, 0);
     }
 
-    const numStars = Math.min(450, Math.floor((window.innerWidth * window.innerHeight) / 8000));
+    // Denser starfield: more stars on larger screens but bounded for performance
+    const numStars = Math.min(900, Math.floor((window.innerWidth * window.innerHeight) / 4000));
     const stars = [];
     for (let i = 0; i < numStars; i++) {
         stars.push({
             x: Math.random() * window.innerWidth,
             y: Math.random() * window.innerHeight,
-            z: Math.random() * 1.0,
-            size: Math.random() * 1.4 + 0.3,
+            z: Math.random(),
+            size: Math.random() * 1.6 + 0.2,
             twinkle: Math.random() * Math.PI * 2,
-            speed: 0.02 + Math.random() * 0.04
+            speed: 0.02 + Math.random() * 0.06,
+            vx: (Math.random() - 0.5) * 0.02,
+            vy: (Math.random() - 0.5) * 0.02
         });
     }
+
+    // Mouse interaction state for starfield
+    const mouse = { x: 0, y: 0, active: false };
+    window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        mouse.active = true;
+    });
+    window.addEventListener('mouseleave', () => { mouse.active = false; });
 
     let last = performance.now();
 
@@ -218,42 +229,75 @@ function initStarfield() {
         last = now;
         ctx.clearRect(0, 0, w, h);
 
-        // soft nebula glows: draw faint radial gradients occasionally
-        // (lightweight) - draw a couple of big radial gradients
-        const g1 = ctx.createRadialGradient(w * 0.2, h * 0.15, 0, w * 0.2, h * 0.15, Math.max(w, h) * 0.6);
+        // nebula glows
+        const g1 = ctx.createRadialGradient(w * 0.18, h * 0.12, 0, w * 0.18, h * 0.12, Math.max(w, h) * 0.6);
         g1.addColorStop(0, 'rgba(60,80,140,0.06)');
         g1.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = g1;
         ctx.fillRect(0, 0, w, h);
 
-        const g2 = ctx.createRadialGradient(w * 0.85, h * 0.8, 0, w * 0.85, h * 0.8, Math.max(w, h) * 0.6);
+        const g2 = ctx.createRadialGradient(w * 0.82, h * 0.82, 0, w * 0.82, h * 0.82, Math.max(w, h) * 0.6);
         g2.addColorStop(0, 'rgba(120,60,130,0.04)');
         g2.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = g2;
         ctx.fillRect(0, 0, w, h);
 
-        // update and draw stars
+        // optional cursor halo
+        if (mouse.active) {
+            const haloR = Math.min(220, Math.max(w, h) * 0.08);
+            const hg = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, haloR);
+            hg.addColorStop(0, 'rgba(0,212,255,0.12)');
+            hg.addColorStop(0.35, 'rgba(0,212,255,0.03)');
+            hg.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = hg;
+            ctx.fillRect(mouse.x - haloR, mouse.y - haloR, haloR * 2, haloR * 2);
+        }
+
+        // update and draw stars with lightweight interaction
         for (let i = 0; i < stars.length; i++) {
             const s = stars[i];
-            // twinkle
+            // twinkle base
             s.twinkle += dt * (0.5 + s.z);
-            const alpha = 0.5 + 0.5 * Math.sin(s.twinkle);
+            let alpha = 0.45 + 0.5 * Math.sin(s.twinkle);
 
-            // slight drift for parallax effect based on time
-            s.x += (Math.sin(now * 0.0001 + i) * 0.02) * (0.5 + s.z);
-            s.y += (Math.cos(now * 0.00013 + i) * 0.02) * (0.5 + s.z);
+            // gentle drift
+            s.x += s.vx * (1 + s.z);
+            s.y += s.vy * (1 + s.z);
 
-            // wrap
-            if (s.x < -5) s.x = w + 5;
-            if (s.x > w + 5) s.x = -5;
-            if (s.y < -5) s.y = h + 5;
-            if (s.y > h + 5) s.y = -5;
+            // parallax based on mouse position (subtle)
+            if (mouse.active) {
+                const px = (mouse.x - w / 2) * 0.00025 * (1 + s.z);
+                const py = (mouse.y - h / 2) * 0.00025 * (1 + s.z);
+                s.x += px * 12 * (0.5 + s.z);
+                s.y += py * 12 * (0.5 + s.z);
+            }
+
+            // repel effect when cursor is near
+            if (mouse.active) {
+                const dx = s.x - mouse.x;
+                const dy = s.y - mouse.y;
+                const d2 = dx * dx + dy * dy;
+                const thresh = 150 * (1 + (1 - s.z) * 0.5);
+                if (d2 < thresh * thresh && d2 > 0.1) {
+                    const d = Math.sqrt(d2);
+                    const factor = (thresh - d) / thresh; // 0..1
+                    // push away proportionally to factor and depth
+                    s.x += (dx / d) * factor * (1.2 + s.z);
+                    s.y += (dy / d) * factor * (1.2 + s.z);
+                    alpha += 0.6 * factor; // brighten close stars
+                }
+            }
+
+            // wrap-around
+            if (s.x < -6) s.x = w + 6;
+            if (s.x > w + 6) s.x = -6;
+            if (s.y < -6) s.y = h + 6;
+            if (s.y > h + 6) s.y = -6;
 
             ctx.beginPath();
-            // use radial gradient for a soft star
             const r = s.size * (0.6 + s.z * 1.2);
             const gradient = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, r * 3);
-            gradient.addColorStop(0, `rgba(255,255,255,${0.8 * alpha})`);
+            gradient.addColorStop(0, `rgba(255,255,255,${Math.min(1, 0.9 * alpha)})`);
             gradient.addColorStop(0.2, `rgba(200,230,255,${0.35 * alpha})`);
             gradient.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = gradient;
