@@ -32,12 +32,15 @@ function initSphereIdleMotion() {
             return {
                 el,
                 phase,
-                ax: 6 + Math.random() * 6,    // px amplitude x
-                ay: 6 + Math.random() * 6,    // px amplitude y
-                rot: (Math.random() - 0.5) * 2.6, // deg amplitude
-                freq: 0.45 + Math.random() * 0.6,
-                freq2: 0.35 + Math.random() * 0.6,
-                scaleAmp: 0.01 + Math.random() * 0.02
+                // larger amplitudes for more noticeable motion (but still subtle)
+                ax: 14 + Math.random() * 18,    // px amplitude x (14..32)
+                ay: 10 + Math.random() * 18,    // px amplitude y (10..28)
+                rot: (Math.random() - 0.5) * 8.0, // deg amplitude (~±4°)
+                // slightly higher and varied frequencies for livelier motion
+                freq: 0.7 + Math.random() * 1.0,
+                freq2: 0.55 + Math.random() * 1.0,
+                // slightly stronger scale pulsing
+                scaleAmp: 0.02 + Math.random() * 0.05
             };
         });
 
