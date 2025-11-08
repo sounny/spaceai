@@ -79,6 +79,7 @@ function initOrbitalViewer() {
         const spr = (function(){
             const c = document.createElement('canvas'); const s = 48; c.width = s; c.height = s; const cx = c.getContext('2d');
             const gg = cx.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2); gg.addColorStop(0,'rgba(0,255,220,0.7)'); gg.addColorStop(0.2,'rgba(0,255,220,0.18)'); gg.addColorStop(1,'rgba(0,0,0,0)'); cx.fillStyle = gg; cx.fillRect(0,0,s,s);
+        const _satProj = new THREE.Vector3();
             const tex = new THREE.CanvasTexture(c); return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, blending: THREE.AdditiveBlending }));
         })();
         spr.scale.set(0.45 * scale, 0.45 * scale, 1);
@@ -88,12 +89,14 @@ function initOrbitalViewer() {
     }
     for (let i = 0; i < 9; i++) {
         const sat = buildOrbitalSat(0.7);
-        const radius = 2.0 + (i % 3) * 0.6;
-        const angle = (i / 9) * Math.PI * 2;
-        sat.userData = { radius: radius, angle: angle, speed: 0.008 + (i % 3) * 0.002 };
-        sat.position.set(Math.cos(angle) * radius, Math.sin(angle * 0.9) * 0.1, Math.sin(angle) * radius);
-        orbitalSatellites.push(sat);
-        orbitalGroup.add(sat);
+                const baseSpeed = 0.01 + (i % 3) * 0.005;
+                satellite.userData = {
+                    radius: radius,
+                    angle: angle,
+                    baseSpeed: baseSpeed * 0.1, // run much slower by default
+                    currentSpeed: baseSpeed * 0.1,
+                    originalY: height
+                };
     }
 
     // Camera position
@@ -102,7 +105,8 @@ function initOrbitalViewer() {
 
     // Simple drag-to-rotate controls
     let isDragging = false;
-    let prevX = 0, prevY = 0;
+                const baseSpeed = 0.008 + (i % 3) * 0.002;
+                sat.userData = { radius: radius, angle: angle, baseSpeed: baseSpeed * 0.1, currentSpeed: baseSpeed * 0.1 };
     container.addEventListener('mousedown', (e) => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
     window.addEventListener('mouseup', () => { isDragging = false; });
     window.addEventListener('mousemove', (e) => {
@@ -195,7 +199,26 @@ function initOrbitalViewer() {
         // Rotate earth slowly
         orbitalGroup.rotation.y += 0.0012;
         orbitalSatellites.forEach((s) => {
-            s.userData.angle += s.userData.speed;
+            // proximity-based speed modulation (orbital viewer)
+            let target = s.userData.baseSpeed;
+            if (typeof orbitalMouse !== 'undefined' && orbitalMouse.active) {
+                // project satellite to screen coords
+                s.getWorldPosition(_satProj);
+                _satProj.project(orbitalCamera);
+                const sx = ( _satProj.x + 1 ) / 2 * container.clientWidth;
+                const sy = ( 1 - _satProj.y ) / 2 * container.clientHeight;
+                const dx = sx - orbitalMouse.x;
+                const dy = sy - orbitalMouse.y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                const thresh = 120;
+                if (d < thresh) {
+                    const factor = (thresh - d) / thresh; // 0..1
+                    target = s.userData.baseSpeed * (1 + factor * 6); // speed up up to ~7x
+                }
+            }
+            // smooth toward target
+            s.userData.currentSpeed += (target - s.userData.currentSpeed) * 0.12;
+            s.userData.angle += s.userData.currentSpeed;
             s.position.x = Math.cos(s.userData.angle) * s.userData.radius;
             s.position.z = Math.sin(s.userData.angle) * s.userData.radius;
             s.position.y = Math.sin(Date.now() * 0.001 + s.userData.angle) * 0.12;
@@ -204,6 +227,22 @@ function initOrbitalViewer() {
     }
     renderOrbital();
 }
+
+    // track mouse inside orbital container for proximity interactions
+    // (attach after renderOrbital closure so orbitalMouse is available in that scope)
+    // NOTE: orbitalMouse is used above in renderOrbital
+    // add listeners
+    (function attachOrbitalMouse() {
+        const rect = container.getBoundingClientRect();
+        window.orbitalMouse = { x: 0, y: 0, active: false };
+        container.addEventListener('mousemove', (e) => {
+            const r = container.getBoundingClientRect();
+            orbitalMouse.x = e.clientX - r.left;
+            orbitalMouse.y = e.clientY - r.top;
+            orbitalMouse.active = true;
+        });
+        container.addEventListener('mouseleave', () => { orbitalMouse.active = false; });
+    })();
 
 // Starfield background initialization
 function initStarfield() {
@@ -608,12 +647,34 @@ function animate() {
         
         // Animate satellites
         satellites.forEach((satellite, index) => {
-            satellite.userData.angle += satellite.userData.speed;
+            // proximity-based speed modulation (hero scene)
+            let target = satellite.userData.baseSpeed;
+            // compute mouse position in screen pixels
+            const mx = (mouseX + 1) / 2 * window.innerWidth;
+            const my = (1 - mouseY) / 2 * window.innerHeight;
+            // project satellite to screen
+            satellite.getWorldPosition(_satProj);
+            _satProj.project(camera);
+            const sx = (_satProj.x + 1) / 2 * window.innerWidth;
+            const sy = (1 - _satProj.y) / 2 * window.innerHeight;
+            const dx = sx - mx;
+            const dy = sy - my;
+            const d = Math.sqrt(dx*dx + dy*dy);
+            const thresh = 160;
+            if (d < thresh) {
+                const factor = (thresh - d) / thresh; // 0..1
+                target = satellite.userData.baseSpeed * (1 + factor * 6); // up to ~7x
+            }
+            // smooth toward target
+            satellite.userData.currentSpeed += (target - satellite.userData.currentSpeed) * 0.12;
+
+            satellite.userData.angle += satellite.userData.currentSpeed;
             satellite.position.x = Math.cos(satellite.userData.angle) * satellite.userData.radius;
             satellite.position.z = Math.sin(satellite.userData.angle) * satellite.userData.radius;
             satellite.position.y = satellite.userData.originalY + Math.sin(Date.now() * 0.001 + index) * 0.2;
-            
-            satellite.rotation.y += 0.1;
+
+            // small rotation to make them feel alive
+            satellite.rotation.y += 0.05;
         });
         
         // Camera movement based on mouse
