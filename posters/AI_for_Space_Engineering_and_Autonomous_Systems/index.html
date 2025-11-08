@@ -938,12 +938,13 @@
                 </div>
             </div>
             
-            <!-- Cost Breakdown Chart -->
-            <div class="chart-container">
-                <h3 class="chart-title">Data Center Cost Structure</h3>
-                <div style="max-width:340px;margin:0 auto;">
-                    <canvas id="costChart" width="340" height="340"></canvas>
+            <!-- CAPEX Breakdown (donut) inserted per user request: medium-sized Chart.js doughnut -->
+            <div class="chart-container" style="max-width:720px; margin:36px auto;">
+                <h3 class="chart-title">CAPEX Breakdown of terrestrial datacenters</h3>
+                <div style="height:320px;">
+                    <canvas id="costChart" aria-label="CAPEX breakdown donut chart" role="img" style="width:100%;height:100%;display:block;"></canvas>
                 </div>
+                <p style="text-align:center;margin-top:12px;color:var(--gray-medium);font-size:13px;">CAPEX allocation (Electrical, Thermal, Shell, Network) — percentages of total capital expenditure.</p>
             </div>
         </div>
     </section>
@@ -955,7 +956,10 @@
             
             <div class="orbital-visualization">
                 <!-- Dedicated canvas for a small 3D orbital viewer -->
-                <canvas id="orbitalCanvas" style="width:100%;height:100%;display:block;"></canvas>
+                <canvas id="orbitalCanvas" style="width:100%;height:100%;display:block;opacity:0;transition:opacity 420ms ease;"></canvas>
+
+                <!-- Datacenter image that will morph into a 3D sphere as user scrolls -->
+                <img id="datacenterImage" src="./resources/datacenter.svg" alt="Terrestrial data center racks with greenery overlay" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:62%;max-width:760px;height:auto;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.6);object-fit:cover;z-index:2;pointer-events:none;transition:opacity 420ms ease, transform 700ms cubic-bezier(.2,.9,.2,1);" />
 
                 <!-- Orbit labels (LEO / MEO / GEO) -> positioned visually over the rings -->
                 <div class="orbit-label orbit-label-leo">LEO</div>
@@ -1054,6 +1058,50 @@
     
     <!-- Core JavaScript -->
     <script src="main.js"></script>
+    <!-- Fallback/init helper: ensure CAPEX donut renders even if Chart.js initialization timing or resize prevented it -->
+    <script>
+    window.addEventListener('load', function() {
+        try {
+            const el = document.getElementById('costChart');
+            if (!el) return;
+
+            // If Chart.js is present and there's no existing chart attached, create one.
+            if (typeof Chart !== 'undefined') {
+                // Chart.getChart returns an instance if one exists (v3+); guard for older builds.
+                let existing = null;
+                try { existing = Chart.getChart ? Chart.getChart(el) : null; } catch(e) { existing = null; }
+                if (!existing) {
+                    new Chart(el, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Electrical (35%)', 'Thermal (35%)', 'Shell (15%)', 'Network (15%)'],
+                            datasets: [{
+                                data: [35, 35, 15, 15],
+                                backgroundColor: ['#00d4ff','#00ff88','#ff6b35','#ff35a6'],
+                                hoverOffset: 8,
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '55%',
+                            plugins: {
+                                legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12 } },
+                                tooltip: { backgroundColor: 'rgba(0,20,84,0.9)', titleColor: '#fff', bodyColor: '#fff' }
+                            }
+                        }
+                    });
+                }
+            } else {
+                console.warn('Chart.js not available to initialize costChart.');
+            }
+        } catch(err) {
+            // fail silently but log for debugging
+            console.error('Failed to initialize CAPEX donut chart:', err);
+        }
+    });
+    </script>
     <script>
     // Parallax for the abstract: subtle parent rotation + per-term parallax
     (function(){

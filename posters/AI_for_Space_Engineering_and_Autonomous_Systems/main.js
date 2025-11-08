@@ -38,11 +38,43 @@ function initOrbitalViewer() {
     orbitalGroup = new THREE.Group();
     orbitalScene.add(orbitalGroup);
 
-    // Earth (smaller, stylized)
+    // Earth / Datacenter sphere (starts as image; morphs into textured sphere on scroll)
     const earthGeo = new THREE.SphereGeometry(1.0, 32, 32);
+    const datacenterImage = document.getElementById('datacenterImage');
+    let dataTexture = null;
     const earthMat = new THREE.MeshStandardMaterial({ color: 0x2255ff, emissive: 0x001122, metalness: 0.1, roughness: 0.7 });
     const orbitalEarth = new THREE.Mesh(earthGeo, earthMat);
+    // start scaled down so it can 'grow' during the morph
+    orbitalEarth.scale.setScalar(0.28);
     orbitalGroup.add(orbitalEarth);
+
+    // If a datacenter image exists, create a Three texture from it when loaded
+    if (datacenterImage) {
+        console.debug('[orbital] datacenterImage element found, complete=', datacenterImage.complete);
+        if (datacenterImage.complete && datacenterImage.naturalWidth) {
+            try {
+                dataTexture = new THREE.Texture(datacenterImage);
+                dataTexture.needsUpdate = true;
+                earthMat.map = dataTexture;
+                earthMat.needsUpdate = true;
+                console.debug('[orbital] created texture from datacenter image (synchronous)');
+            } catch (e) {
+                console.warn('Failed to create texture from datacenter image (sync):', e);
+            }
+        } else {
+            datacenterImage.addEventListener('load', function() {
+                try {
+                    dataTexture = new THREE.Texture(datacenterImage);
+                    dataTexture.needsUpdate = true;
+                    earthMat.map = dataTexture;
+                    earthMat.needsUpdate = true;
+                    console.debug('[orbital] created texture from datacenter image (onload)');
+                } catch (e) {
+                    console.warn('Failed to create texture from datacenter image (onload):', e);
+                }
+            });
+        }
+    }
 
     // Ambient + rim light
     orbitalScene.add(new THREE.AmbientLight(0xffffff, 0.35));
@@ -105,6 +137,43 @@ function initOrbitalViewer() {
     // Camera position
     orbitalCamera.position.set(0, 0.6, 6);
     orbitalCamera.lookAt(orbitalScene.position);
+
+    // Scroll-driven morph: crossfade image -> 3D sphere and scale sphere
+    // Compute progress (0..1) based on how far the container has scrolled into view
+    function clamp(v, a=0, b=1) { return Math.max(a, Math.min(b, v)); }
+    function updateMorph() {
+        const r = container.getBoundingClientRect();
+        // progress: when top of container reaches bottom of viewport -> ~0; when container fully in view -> ~0.5-0.7; when near top -> ~1
+        const progress = clamp((window.innerHeight - r.top) / (window.innerHeight + r.height));
+        // map a sweet spot into 0..1 (start ~0.18, end ~0.78)
+        const t = clamp((progress - 0.18) / 0.6, 0, 1);
+
+    // crossfade image and canvas
+    if (datacenterImage) datacenterImage.style.opacity = (1 - t).toFixed(3);
+    try { orbitalRenderer.domElement.style.opacity = t.toFixed(3); } catch(e){}
+
+    // debug
+    if (window.__orbital_debug) console.debug('[orbital] morph t=', t.toFixed(3), 'progress=', progress.toFixed(3));
+
+        // subtle image transform during morph
+        if (datacenterImage) datacenterImage.style.transform = `translate(-50%,-50%) scale(${1 - 0.06 * t})`;
+
+        // scale sphere smoothly
+        const scale = 0.28 + 0.72 * t; // 0.28 -> 1.0
+        orbitalGroup.scale.setScalar(scale);
+
+        // once t passes small threshold, ensure the material uses the texture if available
+        if (t > 0.06 && dataTexture && earthMat.map !== dataTexture) {
+            earthMat.map = dataTexture;
+            earthMat.needsUpdate = true;
+            console.debug('[orbital] applied dataTexture to sphere at t=', t.toFixed(3));
+        }
+    }
+
+    // init morph state and attach scroll/resize listeners
+    updateMorph();
+    window.addEventListener('scroll', () => { requestAnimationFrame(updateMorph); }, { passive: true });
+    window.addEventListener('resize', () => { requestAnimationFrame(updateMorph); }, { passive: true });
 
     // Simple drag-to-rotate controls
     let isDragging = false;
@@ -229,23 +298,17 @@ function initOrbitalViewer() {
         orbitalRenderer.render(orbitalScene, orbitalCamera);
     }
     renderOrbital();
-}
 
-    // track mouse inside orbital container for proximity interactions
-    // (attach after renderOrbital closure so orbitalMouse is available in that scope)
-    // NOTE: orbitalMouse is used above in renderOrbital
-    // add listeners
-    (function attachOrbitalMouse() {
-        const rect = container.getBoundingClientRect();
-        window.orbitalMouse = { x: 0, y: 0, active: false };
-        container.addEventListener('mousemove', (e) => {
-            const r = container.getBoundingClientRect();
-            orbitalMouse.x = e.clientX - r.left;
-            orbitalMouse.y = e.clientY - r.top;
-            orbitalMouse.active = true;
-        });
-        container.addEventListener('mouseleave', () => { orbitalMouse.active = false; });
-    })();
+    // track mouse inside orbital container for proximity interactions (scoped)
+    window.orbitalMouse = { x: 0, y: 0, active: false };
+    container.addEventListener('mousemove', (e) => {
+        const r = container.getBoundingClientRect();
+        orbitalMouse.x = e.clientX - r.left;
+        orbitalMouse.y = e.clientY - r.top;
+        orbitalMouse.active = true;
+    });
+    container.addEventListener('mouseleave', () => { orbitalMouse.active = false; });
+}
 
 // Starfield background initialization
 function initStarfield() {
