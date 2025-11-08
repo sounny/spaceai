@@ -58,11 +58,36 @@ function initOrbitalViewer() {
         orbitalGroup.add(mesh);
     });
 
-    // Create orbital satellites (spheres) that orbit at different radii
-    const satGeo = new THREE.SphereGeometry(0.06, 12, 12);
-    const satMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive: 0x00ffcc, emissiveIntensity: 0.4 });
+    // Create orbital satellites (small stylized models) that orbit at different radii
+    function buildOrbitalSat(scale = 0.55) {
+        // reuse the same concept as hero satellites but smaller
+        const g = new THREE.Group();
+        const body = new THREE.SphereGeometry(0.06 * scale, 12, 12);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0fffe0, emissive: 0x00ffd0, emissiveIntensity: 0.55, metalness: 0.2, roughness: 0.25 });
+        const bodyMesh = new THREE.Mesh(body, bodyMat);
+        g.add(bodyMesh);
+
+        // tiny panel hints
+        const panelGeo = new THREE.BoxGeometry(0.02 * scale, 0.05 * scale, 0.002 * scale);
+        const panelMat = new THREE.MeshStandardMaterial({ color: 0x05202a, emissive: 0x001122, metalness: 0.1, roughness: 0.45 });
+        const p1 = new THREE.Mesh(panelGeo, panelMat);
+        p1.position.set(-0.05 * scale, 0, 0.03 * scale);
+        const p2 = p1.clone(); p2.position.set(-0.05 * scale, 0, -0.03 * scale);
+        g.add(p1); g.add(p2);
+
+        // glow sprite
+        const spr = (function(){
+            const c = document.createElement('canvas'); const s = 48; c.width = s; c.height = s; const cx = c.getContext('2d');
+            const gg = cx.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2); gg.addColorStop(0,'rgba(0,255,220,0.7)'); gg.addColorStop(0.2,'rgba(0,255,220,0.18)'); gg.addColorStop(1,'rgba(0,0,0,0)'); cx.fillStyle = gg; cx.fillRect(0,0,s,s);
+            const tex = new THREE.CanvasTexture(c); return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, blending: THREE.AdditiveBlending }));
+        })();
+        spr.scale.set(0.45 * scale, 0.45 * scale, 1);
+        g.add(spr);
+
+        return g;
+    }
     for (let i = 0; i < 9; i++) {
-        const sat = new THREE.Mesh(satGeo, satMat.clone());
+        const sat = buildOrbitalSat(0.7);
         const radius = 2.0 + (i % 3) * 0.6;
         const angle = (i / 9) * Math.PI * 2;
         sat.userData = { radius: radius, angle: angle, speed: 0.008 + (i % 3) * 0.002 };
@@ -471,33 +496,93 @@ function init3DEarth() {
 
 // Create orbiting satellites
 function createSatellites() {
-    const satelliteGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.3);
-    const satelliteMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0x00d4ff,
-        emissive: 0x00d4ff,
-        emissiveIntensity: 0.3
-    });
+    // Helper: create glow sprite for subtle bloom around satellites
+    function createGlowSprite(size = 64, color = 'rgba(0,212,255,0.9)') {
+        const c = document.createElement('canvas');
+        const s = size;
+        c.width = s;
+        c.height = s;
+        const ctx = c.getContext('2d');
+        const g = ctx.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+        g.addColorStop(0, color);
+        g.addColorStop(0.2, color.replace(/,[^,]+\)$/, ',0.35)'));
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0,0,s,s);
+        const tex = new THREE.CanvasTexture(c);
+        const mat = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending });
+        return new THREE.Sprite(mat);
+    }
+
+    // Helper: construct a stylized futuristic satellite group
+    function buildSatellite(scale = 1.0) {
+        const group = new THREE.Group();
+
+        // central body - rounded capsule using cylinder + sphere caps
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x121826, emissive: 0x00374d, metalness: 0.6, roughness: 0.2 });
+        const cyl = new THREE.CylinderGeometry(0.06 * scale, 0.06 * scale, 0.2 * scale, 12);
+        const body = new THREE.Mesh(cyl, bodyMat);
+        body.rotation.z = Math.PI / 2;
+        group.add(body);
+
+        // small front plate with emissive window
+        const windowMat = new THREE.MeshStandardMaterial({ color: 0x00e6ff, emissive: 0x00e6ff, emissiveIntensity: 0.8, metalness: 0.1, roughness: 0.3 });
+        const win = new THREE.BoxGeometry(0.04 * scale, 0.02 * scale, 0.02 * scale);
+        const winMesh = new THREE.Mesh(win, windowMat);
+        winMesh.position.set(0.12 * scale, 0, 0);
+        group.add(winMesh);
+
+        // solar panels (thin boxes) on either side
+        const panelMat = new THREE.MeshStandardMaterial({ color: 0x072033, emissive: 0x003344, emissiveIntensity: 0.15, metalness: 0.1, roughness: 0.45 });
+        const panelGeo = new THREE.BoxGeometry(0.0015 * scale, 0.12 * scale, 0.06 * scale);
+        const leftPanel = new THREE.Mesh(panelGeo, panelMat);
+        leftPanel.position.set(-0.02 * scale, 0, 0.12 * scale);
+        const rightPanel = leftPanel.clone();
+        rightPanel.position.set(-0.02 * scale, 0, -0.12 * scale);
+        group.add(leftPanel);
+        group.add(rightPanel);
+
+        // small antenna
+        const antMat = new THREE.MeshStandardMaterial({ color: 0x99f6ff, emissive: 0x66ffff, emissiveIntensity: 0.5, metalness: 0.4, roughness: 0.3 });
+        const antStem = new THREE.CylinderGeometry(0.005 * scale, 0.005 * scale, 0.12 * scale, 6);
+        const stem = new THREE.Mesh(antStem, antMat);
+        stem.position.set(-0.12 * scale, 0, 0);
+        stem.rotation.z = Math.PI / 2;
+        group.add(stem);
+        const antDish = new THREE.SphereGeometry(0.02 * scale, 8, 8);
+        const dish = new THREE.Mesh(antDish, antMat);
+        dish.position.set(-0.18 * scale, 0, 0);
+        group.add(dish);
+
+        // subtle glow sprite behind the satellite
+        const glow = createGlowSprite(80 * Math.max(0.6, scale), 'rgba(0,212,255,0.55)');
+        glow.scale.set(0.6 * scale, 0.6 * scale, 1);
+        glow.position.set(0, 0, 0);
+        group.add(glow);
+
+        return group;
+    }
 
     // Create multiple satellites at different orbits
     for (let i = 0; i < 8; i++) {
-        const satellite = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
-        
+        const satellite = buildSatellite(1.0);
+
         // Different orbital radii
         const radius = 3 + (i % 3) * 0.8;
         const angle = (i / 8) * Math.PI * 2;
         const height = Math.sin(i) * 0.5;
-        
+
         satellite.position.x = Math.cos(angle) * radius;
         satellite.position.z = Math.sin(angle) * radius;
         satellite.position.y = height;
-        
+
         satellite.userData = {
             radius: radius,
             angle: angle,
             speed: 0.01 + (i % 3) * 0.005,
             originalY: height
         };
-        
+
         satellites.push(satellite);
         scene.add(satellite);
     }
