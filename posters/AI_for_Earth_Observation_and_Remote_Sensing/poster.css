@@ -159,7 +159,22 @@ html,body{
 .image-compare .img{ position:absolute; inset:0; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#021124; font-weight:800; }
 .image-compare .img-b{ clip-path: inset(0 0 0 0); }
 .image-compare .img-a{ clip-path: inset(0 50% 0 0); }
-.image-compare input[type="range"]{ position:absolute; left:50%; top:0; bottom:0; transform: translateX(-50%) rotate(90deg); width:320px; height:28px; opacity:0.9; }
+.image-compare .img-b{ z-index:30; }
+.image-compare .img-a{ z-index:40; }
+.image-compare input[type="range"]{
+  position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0; background:transparent;
+  opacity:0; cursor: ew-resize; z-index:50; /* invisible but interactive */
+}
+
+.image-compare .divider{
+  position:absolute; top:0; bottom:0; width:3px; left:50%; transform: translateX(-50%); background: rgba(255,255,255,0.95);
+  z-index:55; box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+}
+.image-compare .divider::after{
+  content: '';
+  position: absolute; left:50%; top:50%; transform: translate(-50%, -50%);
+  width:14px; height:14px; border-radius:50%; background: var(--isu-accent); box-shadow:0 6px 12px rgba(0,0,0,0.45);
+}
 
 .videos-row{ display:flex; gap:18px; }
 .video-placeholder{ flex:1; min-height:180px; border-radius:6px; background:rgba(255,255,255,0.02); display:flex; align-items:center; justify-content:center; }
@@ -167,10 +182,12 @@ html,body{
 .timeline-wrap{ position:relative; height:240px; }
 .timeline-curve{ position:absolute; left:0; right:0; top:0; bottom:0; width:100%; height:100%; }
 .timeline{ position:relative; width:200%; height:100%; overflow-x:auto; overflow-y:visible; }
-.timeline .cube{ position:absolute; top:40%; width:28px; height:28px; background:#ffffff; border-radius:4px; transform: translateY(-50%); animation: float 3s ease-in-out infinite; }
+.timeline .cube{ position:absolute; top:40%; width:28px; height:28px; background:#ffffff; border-radius:4px; transform: translateY(-50%); animation: float 3s ease-in-out infinite; z-index:35; }
 @keyframes float{ 0%{ transform: translateY(-50%) translateX(0);}50%{ transform: translateY(-56%) translateX(0);}100%{ transform: translateY(-50%) translateX(0);} }
 
 /* Tooltip for timeline cubes */
+.timeline-curve{ z-index: 20; pointer-events: none; }
+
 .timeline .cube{
   background: var(--isu-accent);
   box-shadow: 0 6px 16px rgba(0,0,0,0.6);
@@ -195,6 +212,10 @@ html,body{
 }
 .timeline .cube:focus::after, .timeline .cube:hover::after{ opacity:1; transform: translateX(-50%) translateY(0); }
 .timeline .cube:focus{ outline: 3px solid rgba(11,144,255,0.18); outline-offset:6px; }
+
+/* References overlay that sits above the bottom hero video */
+.references-overlay{ max-width:1100px; margin: 0 auto; position: relative; z-index:90; transform: translateY(-120px); }
+.references-overlay .section-box{ background: rgba(0,0,0,0.45); border: 2px solid rgba(255,255,255,0.12); }
 
 .references-box{ position:relative; }
 .references-box .section-body{ min-height:60px; }

@@ -159,11 +159,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const compareRange = document.getElementById('compare-range');
   const imgA = document.querySelector('.image-compare .img-a');
   const imgB = document.querySelector('.image-compare .img-b');
+  const divider = document.getElementById('compare-divider');
   function updateCompare(val){
     const v = Number(val);
     // clip right side so that left image A shows v% width
     const clipRight = 100 - v;
     if (imgA) imgA.style.clipPath = `inset(0 ${clipRight}% 0 0)`;
+    if (divider) divider.style.left = `${v}%`;
     if (compareRange) compareRange.setAttribute('aria-valuenow', String(v));
   }
   if (compareRange){
