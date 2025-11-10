@@ -15,10 +15,9 @@
       <source src="../../ISS Video.mp4" type="video/mp4">
       Your browser does not support the video tag.
     </video>
-  </div>
 
-  <main class="poster" role="main" aria-labelledby="poster-title">
-    <header class="poster-header">
+    <!-- Overlay header sits on top of the top video -->
+    <header class="poster-header overlay">
       <div class="top-logo" aria-hidden="true">
         <img src="../../ISU-Logo-patch-300px.png" alt="ISU logo patch" class="isu-logo top-logo-img">
       </div>
@@ -29,125 +28,50 @@
         <p class="isu-address">International Space University, Parc d'Innovation, 1 Rue Jean‑Dominique Cassini, 67400 Illkirch‑Graffenstaden, France</p>
       </div>
     </header>
+  </div>
 
-    <!-- Introduction banner: large, full-width top bar -->
-    <section class="intro-banner panel" aria-labelledby="intro-title">
-      <div class="intro-inner">
-        <h2 id="intro-title">Introduction</h2>
-        <p>Explain SDG Goals; What does food insecurity mean? Problem definition; Role of space technology in Agriculture: what is remote sensing?</p>
-      </div>
-    </section>
+  <main class="poster" role="main" aria-labelledby="poster-title">
 
-    <!-- Objectives banner placed under the introduction as a large box -->
-    <section class="objectives-banner panel" aria-labelledby="objectives-title">
-      <div class="objectives-inner">
-        <h2 id="objectives-title">OBJECTIVES</h2>
-        <p>PLACEHOLDER — define the objectives of this project: high-level goals, target outcomes, and scope of the pilot work.</p>
-      </div>
-    </section>
-
-    <section class="content-grid">
-      <aside class="col col-left">
-        <!-- Objective section removed per request -->
-
-        <details class="panel collapsible" open>
-          <summary><h2>Methods</h2></summary>
-          <div class="panel-body">
-            <p>PLACEHOLDER — describe datasets (vegetation indices, Sentinel), cloud platforms (GEE), and AI approach (CNNs, temporal models).</p>
-            <figure class="infographic-placeholder" role="img" aria-label="Methods infographic placeholder">
-              <div class="image-placeholder">Methods infographic placeholder</div>
-              <figcaption class="caption">Caption: methods diagram (placeholder)</figcaption>
-            </figure>
+    <!-- Replace body with a linear list of large boxed sections as requested -->
+    <section class="sections-list">
+      <div class="section-box"><h2>Abstract</h2><div class="section-body">PLACEHOLDER</div></div>
+      <div class="section-box"><h2>Background</h2><div class="section-body">PLACEHOLDER</div></div>
+      <div class="section-box"><h2>SDGs</h2><div class="section-body">PLACEHOLDER</div></div>
+      <div class="section-box"><h2>Food Insecurity</h2><div class="section-body">PLACEHOLDER</div></div>
+      <div class="section-box"><h2>Methodology</h2><div class="section-body">PLACEHOLDER</div></div>
+      <div class="section-box" id="evi-comparison"><h2>EVI vs. Classification</h2>
+        <div class="section-body">
+          <div class="image-compare">
+            <div class="img img-a" style="background:linear-gradient(135deg,#8ec5ff,#6a82fb)">Picture A (placeholder)</div>
+            <div class="img img-b" style="background:linear-gradient(135deg,#f6d365,#fda085)">Picture B (placeholder)</div>
+            <input type="range" min="0" max="100" value="50" id="compare-range">
           </div>
-        </details>
-
-        <details class="panel collapsible" open>
-          <summary><h2>Results</h2></summary>
-          <div class="panel-body">
-            <p>Interactive EVI AI data viewer (toggle between two AI collections).</p>
-            <!-- Embedded Results interactive viewer -->
-            <div class="viewer">
-              <div class="viewer-topbar">
-                <div class="viewer-title">EVI AI Data — Toggle datasets</div>
-                <div class="viewer-controls" role="toolbar" aria-label="Viewer controls">
-                  <button id="toggle-aiA" class="control" aria-pressed="false">AI dataset A</button>
-                  <button id="toggle-aiB" class="control" aria-pressed="false">AI dataset B</button>
-                  <button id="reset-view" class="control">Reset View</button>
-                </div>
-              </div>
-
-              <div class="visual-area" id="visual-area" tabindex="0" aria-label="Interactive EVI visualization">
-                <svg id="visual-svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" role="img" aria-describedby="viewer-caption">
-                  <defs>
-                    <linearGradient id="satGrad" x1="0" x2="1">
-                      <stop offset="0%" stop-color="#03102a" />
-                      <stop offset="100%" stop-color="#08325a" />
-                    </linearGradient>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#satGrad)" />
-
-                  <!-- Example base features -->
-                  <g id="water" fill="#1f6fb4" opacity="0.9"><ellipse cx="300" cy="600" rx="220" ry="80"/></g>
-
-                  <!-- AI dataset A (toggleable) -->
-                  <g id="ai-a" data-hidden="false">
-                    <rect x="150" y="120" width="380" height="260" fill="#2ca02c" opacity="0.6" />
-                  </g>
-
-                  <!-- AI dataset B (toggleable) -->
-                  <g id="ai-b" data-hidden="true" style="display:none;">
-                    <rect x="640" y="150" width="420" height="300" fill="#f5a623" opacity="0.55" />
-                  </g>
-
-                  <!-- Legend -->
-                  <g id="legend" transform="translate(20,20)" font-family="sans-serif">
-                    <rect x="-10" y="-10" width="220" height="120" rx="8" fill="rgba(255,255,255,0.04)" />
-                    <text x="0" y="10" font-size="16" font-weight="700" fill="#f2f5fb">Legend</text>
-                  </g>
-                </svg>
-              </div>
-              <div id="viewer-caption" class="caption">Caption: Interactive EVI viewer — toggle to compare two AI outputs. Use keyboard arrows to pan carousel and TAB to focus controls.</div>
+        </div>
+      </div>
+      <div class="section-box"><h2>Video A and Video B</h2>
+        <div class="section-body videos-row">
+          <div class="video-placeholder">Video A (placeholder)</div>
+          <div class="video-placeholder">Video B (placeholder)</div>
+        </div>
+      </div>
+      <div class="section-box"><h2>Conclusion</h2><div class="section-body">PLACEHOLDER</div></div>
+      <div class="section-box" id="way-forward-box"><h2>Way Forward</h2>
+        <div class="section-body">
+          <div class="timeline-wrap">
+            <svg class="timeline-curve" viewBox="0 0 1000 200" preserveAspectRatio="none"><path d="M0,150 C250,20 750,20 1000,150" stroke="rgba(255,255,255,0.12)" stroke-width="4" fill="none"/></svg>
+            <div class="timeline" tabindex="0">
+              <!-- floating cubes placed along the timeline -->
+              <div class="cube" data-pos="5" data-label="Pilot study: Rwanda feasibility" tabindex="0" role="button" aria-label="Pilot study: Rwanda feasibility"></div>
+              <div class="cube" data-pos="22" data-label="Model development: EVI & classification" tabindex="0" role="button" aria-label="Model development: EVI and classification"></div>
+              <div class="cube" data-pos="42" data-label="Validation & field surveys" tabindex="0" role="button" aria-label="Validation and field surveys"></div>
+              <div class="cube" data-pos="64" data-label="Operational deployment" tabindex="0" role="button" aria-label="Operational deployment"></div>
+              <div class="cube" data-pos="86" data-label="Scale-up & policy integration" tabindex="0" role="button" aria-label="Scale-up and policy integration"></div>
             </div>
           </div>
-        </details>
-
-        <details class="panel collapsible" open>
-          <summary><h2>Way Forward</h2></summary>
-          <div class="panel-body">
-            <p>PLACEHOLDER — next steps, pilot validation, scaling, capacity building and operational deployment.</p>
-            <figure class="infographic-placeholder" role="img" aria-label="Way forward infographic placeholder">
-              <div class="image-placeholder">Way-forward infographic placeholder</div>
-              <figcaption class="caption">Caption: roadmap infographic (placeholder)</figcaption>
-            </figure>
-          </div>
-        </details>
-
-        <details class="panel collapsible small" open>
-          <summary><h3>References</h3></summary>
-          <div class="panel-body">
-            <p>PLACEHOLDER — add references (UN OOSA report, team presentation, supporting literature).</p>
-          </div>
-        </details>
-      </aside>
-
-      <section class="col col-right">
-        <section class="panel">
-          <h2>Image Carousel</h2>
-          <div class="carousel" aria-label="Image carousel">
-            <button id="prev" class="carousel-btn" aria-label="Previous slide">◀</button>
-            <div class="carousel-frame" aria-live="polite">
-              <div class="carousel-slide" data-index="0"><div class="image-placeholder" role="img" aria-label="Optical composite">Optical composite (placeholder)</div></div>
-              <div class="carousel-slide" data-index="1"><div class="image-placeholder" role="img" aria-label="SAR composite">SAR composite (placeholder)</div></div>
-              <div class="carousel-slide" data-index="2"><div class="image-placeholder" role="img" aria-label="Model output">Model output (placeholder)</div></div>
-            </div>
-            <button id="next" class="carousel-btn" aria-label="Next slide">▶</button>
-          </div>
-        </section>
-
-      </section>
+        </div>
+      </div>
+      <div class="section-box references-box"><h2>References</h2><div class="section-body">PLACEHOLDER</div></div>
     </section>
-
-    <!-- Key Findings removed per request -->
 
     <footer class="poster-footer">
       <small> International Space University 2024
