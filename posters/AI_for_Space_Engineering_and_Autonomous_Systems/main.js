@@ -5,6 +5,157 @@ let satellites = [];
 let _satProj = new THREE.Vector3();
 let mouseX = 0, mouseY = 0;
 
+/* Financial Impacts spotlight: creates an overlay that follows the mouse and makes the
+   surrounding area visually solid (radial mask). Respects prefers-reduced-motion. */
+function initFinancialSpotlight(){
+    try{
+        const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if(prefersReduced) return; // don't create motion-heavy effects
+
+        const section = document.getElementById('financial-impacts') || document.querySelector('.financial-section');
+        if(!section) return;
+
+        // ensure container ordering (content sits above the spotlight)
+        let overlay = section.querySelector('.financial-spotlight');
+        if(!overlay){
+            overlay = document.createElement('div');
+            overlay.className = 'financial-spotlight';
+            section.appendChild(overlay);
+        }
+
+        let rafId = null;
+        let lastPos = {x: 0, y: 0, radius: 200};
+
+        function updateOverlay(){
+            rafId = null;
+            const {x,y,radius} = lastPos;
+            // clamp radius for very small/large sections
+            overlay.style.background = `radial-gradient(circle ${radius}px at ${x}px ${y}px, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0) 60%)`;
+            overlay.style.opacity = '1';
+        }
+
+        function scheduleUpdate(clientX, clientY){
+            const rect = section.getBoundingClientRect();
+            // compute coordinates relative to section
+            const x = Math.round(Math.max(0, Math.min(rect.width, clientX - rect.left)));
+            const y = Math.round(Math.max(0, Math.min(rect.height, clientY - rect.top)));
+            const base = Math.max(rect.width, rect.height);
+            const radius = Math.round(Math.max(140, Math.min(420, Math.floor(base * 0.22))));
+            lastPos = {x, y, radius};
+            if(rafId) return;
+            rafId = requestAnimationFrame(updateOverlay);
+        }
+
+        function onMouseMove(e){
+            scheduleUpdate(e.clientX, e.clientY);
+        }
+
+        function onTouchMove(e){
+            if(!e.touches || e.touches.length === 0) return;
+            const t = e.touches[0];
+            scheduleUpdate(t.clientX, t.clientY);
+        }
+
+        function onLeave(){
+            if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+            overlay.style.opacity = '0';
+        }
+
+        // Wire events on the section
+        section.addEventListener('mousemove', onMouseMove, {passive:true});
+        section.addEventListener('touchmove', onTouchMove, {passive:true});
+        section.addEventListener('mouseleave', onLeave);
+        section.addEventListener('touchend', onLeave);
+        section.addEventListener('touchcancel', onLeave);
+
+        // Responsive / resize handling
+        const ro = new ResizeObserver(()=>{
+            // On resize, reset overlay background center to center and hide until next move
+            overlay.style.opacity = '0';
+        });
+        ro.observe(section);
+
+        // Cleanup reference (in case single-page nav unmounts)
+        // attach to section for potential cleanup later
+        section._financialSpotlight = {overlay, ro};
+    }catch(err){
+        console.error('[financialSpotlight] init error', err);
+    }
+}
+
+// Current Projects animated background + interactivity
+function initProjectsBackground(){
+    try{
+        const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const section = document.getElementById('current-projects') || document.querySelector('.current-projects');
+        if(!section) return;
+
+        // create overlay if missing
+        let overlay = section.querySelector('.projects-bg');
+        if(!overlay){
+            overlay = document.createElement('div');
+            overlay.className = 'projects-bg';
+            section.insertBefore(overlay, section.firstChild);
+        }
+
+        // If reduced motion, keep a static subtle overlay
+        if (prefersReduced) {
+            overlay.style.animation = 'none';
+            overlay.style.opacity = '0.92';
+            return;
+        }
+
+        let raf = null;
+        let last = {x: '50%', y: '50%', r: 220};
+
+        function update(){
+            raf = null;
+            overlay.style.setProperty('--cx', typeof last.x === 'number' ? last.x + 'px' : last.x);
+            overlay.style.setProperty('--cy', typeof last.y === 'number' ? last.y + 'px' : last.y);
+            overlay.style.setProperty('--r', last.r + 'px');
+        }
+
+        function schedule(x, y){
+            const rect = section.getBoundingClientRect();
+            const px = Math.round(Math.max(0, Math.min(rect.width, x - rect.left)));
+            const py = Math.round(Math.max(0, Math.min(rect.height, y - rect.top)));
+            const base = Math.max(160, Math.min(rect.width, rect.height));
+            const r = Math.round(Math.max(120, Math.min(420, Math.floor(base * 0.28))));
+            last = { x: px, y: py, r };
+            if (raf) return;
+            raf = requestAnimationFrame(update);
+        }
+
+        function onMouseMove(e){ schedule(e.clientX, e.clientY); }
+        function onTouchMove(e){ if(!e.touches || !e.touches.length) return; schedule(e.touches[0].clientX, e.touches[0].clientY); }
+        function onLeave(){ overlay.style.setProperty('--cx','50%'); overlay.style.setProperty('--cy','50%'); overlay.style.setProperty('--r','220px'); }
+
+        section.addEventListener('mousemove', onMouseMove, { passive: true });
+        section.addEventListener('touchmove', onTouchMove, { passive: true });
+        section.addEventListener('mouseleave', onLeave);
+        section.addEventListener('touchend', onLeave);
+
+        // When a specific project card is hovered, make the overlay slightly lighter and pause the pulse
+        const cards = Array.from(section.querySelectorAll('.financial-card'));
+        cards.forEach(c => {
+            c.addEventListener('mouseenter', () => { overlay.classList.add('focused'); overlay.style.opacity = '0.72'; });
+            c.addEventListener('mouseleave', () => { overlay.classList.remove('focused'); overlay.style.opacity = ''; });
+            // Also on focus for keyboard users
+            c.addEventListener('focus', () => { overlay.classList.add('focused'); overlay.style.opacity = '0.72'; });
+            c.addEventListener('blur', () => { overlay.classList.remove('focused'); overlay.style.opacity = ''; });
+        });
+
+        // responsive: hide pulse on small screens to save battery
+        const mq = window.matchMedia('(max-width:720px)');
+        function handleMq(){ if(mq.matches){ overlay.style.animationPlayState = 'paused'; overlay.style.opacity = '0.92'; } else { overlay.style.animationPlayState = ''; } }
+        mq.addEventListener && mq.addEventListener('change', handleMq);
+        handleMq();
+
+        // store for cleanup if needed
+        section._projectsBg = { overlay };
+    }catch(err){ console.error('[projectsBg] init error', err); }
+}
+
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initTypewriter();
@@ -18,10 +169,99 @@ document.addEventListener('DOMContentLoaded', function() {
     initAIBoxModels();
     initTechCardParallax();
     initSustainabilitySection();
+    initFinancialSpotlight();
+    initProjectsBackground();
     initInteractiveElements();
     initSphereIdleMotion();
     initSmoothScrolling();
 });
+
+    // Make Financial Impacts texts/cards interactive based on mouse proximity and focus
+    function initFinancialInteractions(){
+        try{
+            const section = document.getElementById('financial-impacts') || document.querySelector('.financial-section');
+            if(!section) return;
+            const cards = Array.from(section.querySelectorAll('.financial-card'));
+            if(!cards.length) return;
+
+            // Respect reduced motion preference
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                // wire basic focus/hover class toggles for keyboard users
+                cards.forEach(c => {
+                    c.addEventListener('mouseenter', () => c.classList.add('interactive'));
+                    c.addEventListener('mouseleave', () => c.classList.remove('interactive'));
+                    c.addEventListener('focus', () => c.classList.add('interactive'));
+                    c.addEventListener('blur', () => c.classList.remove('interactive'));
+                });
+                return;
+            }
+
+            let raf = null;
+
+            function applyProximity(mx, my){
+                // compute distance to card centers and set intensity
+                const maxDist = Math.max(220, Math.min(window.innerWidth, 520));
+                cards.forEach(c => {
+                    const r = c.getBoundingClientRect();
+                    const cx = r.left + r.width/2;
+                    const cy = r.top + r.height/2;
+                    const dx = cx - mx;
+                    const dy = cy - my;
+                    const d = Math.sqrt(dx*dx + dy*dy);
+                    const intensity = Math.max(0, 1 - (d / maxDist)); // 0..1
+
+                    // Smooth visual mapping
+                    const ty = -8 * intensity; // translate up to -8px
+                    const scale = 1 + 0.03 * intensity;
+                    const shadowAlpha = 0.06 + 0.14 * intensity;
+
+                    c.style.transform = `translateY(${ty.toFixed(2)}px) scale(${scale.toFixed(3)})`;
+                    c.style.boxShadow = intensity > 0.03 ? `0 ${Math.round(18 + intensity*30)}px ${Math.round(40 + intensity*60)}px rgba(0,160,220,${shadowAlpha.toFixed(3)})` : '';
+                    c.style.filter = `saturate(${(1 + intensity*0.18).toFixed(3)})`;
+
+                    // text emphasis
+                    const h = c.querySelector('h4');
+                    const p = c.querySelector('p');
+                    if(h) h.style.color = intensity > 0.12 ? '#ffffff' : '#9fdcff';
+                    if(p) p.style.color = `rgba(255,255,255,${(0.92 + intensity*0.08).toFixed(2)})`;
+                });
+            }
+
+            function onMove(e){
+                const mx = e.clientX;
+                const my = e.clientY;
+                if (raf) cancelAnimationFrame(raf);
+                raf = requestAnimationFrame(()=>{ applyProximity(mx, my); raf = null; });
+            }
+
+            function onLeave(){
+                // reset styles
+                cards.forEach(c => {
+                    c.style.transform = '';
+                    c.style.boxShadow = '';
+                    c.style.filter = '';
+                    const h = c.querySelector('h4'); if(h) h.style.color = '';
+                    const p = c.querySelector('p'); if(p) p.style.color = '';
+                });
+            }
+
+            section.addEventListener('mousemove', onMove, { passive: true });
+            section.addEventListener('touchmove', (e)=>{ if(e.touches && e.touches[0]) onMove(e.touches[0]); }, { passive: true });
+            section.addEventListener('mouseleave', onLeave);
+            section.addEventListener('touchend', onLeave);
+
+            // keyboard and pointer accessibility: also toggle persistent class on focus/hover
+            cards.forEach(c => {
+                c.addEventListener('mouseenter', () => c.classList.add('interactive'));
+                c.addEventListener('mouseleave', () => c.classList.remove('interactive'));
+                c.addEventListener('focus', () => c.classList.add('interactive'));
+                c.addEventListener('blur', () => c.classList.remove('interactive'));
+            });
+
+            // store for possible cleanup
+            section._financialInteractions = { cards };
+        }catch(err){ console.error('[financialInteractions] init error', err); }
+    }
 
 // Subtle idle motion for benefit spheres (in-place, small offsets)
 function initSphereIdleMotion() {
@@ -68,7 +308,8 @@ function initSphereIdleMotion() {
         window._sphereIdleRaf = requestAnimationFrame(loop);
 
         // cleanup when navigating away or if spheres removed
-        window.addEventListener('beforeunload', () => { try { cancelAnimationFrame(window._sphereIdleRaf); } catch(e){} });
+        
+                window.addEventListener('beforeunload', () => { try { cancelAnimationFrame(window._sphereIdleRaf); } catch(e){} });
     } catch (e) { console.warn('initSphereIdleMotion failed', e); }
 }
 
@@ -938,62 +1179,164 @@ function initTemperatureChart(){
         const el = document.getElementById('tempChart');
         if (!el || typeof Chart === 'undefined') return;
 
+        // If the canvas has no layout size yet (e.g. created while offscreen or before CSS applied), wait until it's measurable.
+        function whenSized(cb){
+            const rect = el.getBoundingClientRect();
+            if (rect.width > 8 && rect.height > 8) return cb();
+            // use ResizeObserver when available
+            if (window.ResizeObserver){
+                const ro = new ResizeObserver(() => {
+                    const r2 = el.getBoundingClientRect();
+                    if (r2.width > 8 && r2.height > 8){ ro.disconnect(); cb(); }
+                });
+                ro.observe(el);
+                // also fallback to load event
+                window.addEventListener('load', function onl(){ window.removeEventListener('load', onl); setTimeout(()=>{ try{ ro.disconnect(); }catch(e){} }, 100); });
+            } else {
+                window.addEventListener('load', function onl(){ window.removeEventListener('load', onl); setTimeout(cb, 80); });
+                // final timeout to avoid never initializing
+                setTimeout(cb, 1200);
+            }
+        }
+
         const labels = [
             'Radiator Eff (W/m²)',
             'Daily Temp Fluct (°C)',
             'Annual Temp Var (°C)'
         ];
 
-        const datasets = [
-            { label: 'Terrestrial', data: [2, 0.001, 0.024], backgroundColor: '#0B7A75' },
-            { label: 'Orbital', data: [100, 5, 10], backgroundColor: '#18C2D5' },
-            { label: 'Moon', data: [1300, 150, 0.1], backgroundColor: '#2E7D32' }
+    const datasets = [
+            // Order: [Radiator Eff, Daily Temp Fluct, Annual Temp Var]
+            // Updated per user: Radiator Eff -> terrestrial 100, orbital 1300, moon no bar (null)
+            // Daily Temp Fluct -> terrestrial 5, orbital 0.001, moon 150
+            // Annual Temp Var -> terrestrial 12, orbital 0.024, moon 0.1
+            { label: 'Terrestrial', data: [100, 5, 12], backgroundColor: '#0B7A75' },
+            // Ensure orbital radiator efficiency is the full 1300 W/m² (not 13)
+            { label: 'Orbital', data: [1300, 0.001, 0.024], backgroundColor: '#18C2D5' },
+            // use null for the missing radiator-eff bar for Moon so Chart.js leaves that slot empty
+            { label: 'Moon', data: [null, 150, 0.1], backgroundColor: '#2E7D32' }
         ];
 
-        const tickValues = [0.001,0.01,0.1,0.5,1,2,5,10,20,50,100,200,1000,2000];
+    // only show these explicit tick marks per user request
+    // include 2000 so orbital radiator-eff values (e.g. 1300) are within the axis domain
+    // include 1000 and larger marks; add 3000 so very large bars are comfortably visible
+    const tickValues = [0.001, 0.01, 0.1, 1, 10, 100, 1000, 2000, 3000];
 
         function formatNumber(n){
             const num = Number(n);
-            // show up to 6 decimal places, strip trailing zeros, avoid scientific notation
-            let s = num.toFixed(6).replace(/\.?(0+)$/,'');
-            // remove trailing dot if present
+            if (!isFinite(num)) return String(n);
+            // avoid scientific notation: use fixed then trim
+            // choose decimal places: up to 6 for small values, 0 for ints
+            const abs = Math.abs(num);
+            let decimals = 0;
+            if (abs > 0 && abs < 0.01) decimals = 6;
+            else if (abs < 0.1) decimals = 5;
+            else if (abs < 1) decimals = 4;
+            else if (abs < 10) decimals = 3;
+            else if (abs < 100) decimals = 2;
+            else if (abs < 1000) decimals = 1;
+            else decimals = 0;
+            let s = num.toFixed(decimals);
+            // strip trailing zeros and optional dot
+            s = s.replace(/\.?(0+)$/,'');
             s = s.replace(/\.$/, '');
             return s;
         }
 
-        const dataLabelPlugin = {
+        // plugin: draw numeric labels at the end of each horizontal bar
+                const dataLabelPlugin = {
             id: 'tempDataLabels',
-            afterDatasetsDraw: function(chart){
+            afterDatasetsDraw(chart){
                 const ctx = chart.ctx;
+                ctx.save();
+                ctx.font = '12px Inter, Arial, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textBaseline = 'middle';
+
                 chart.data.datasets.forEach((dataset, dsIndex) => {
                     const meta = chart.getDatasetMeta(dsIndex);
                     meta.data.forEach((bar, i) => {
-                        const val = dataset.data[i];
+                        // bar.x is the pixel location of the bar end for horizontal bars
                         try{
-                            const pos = bar.tooltipPosition();
-                            const lbl = formatNumber(val);
-                            ctx.save();
-                            ctx.fillStyle = '#ffffff';
-                            ctx.font = '12px Inter, Arial, sans-serif';
+                                    const val = dataset.data[i];
+                                    if (val === null || val === undefined) return; // skip missing values
+                            const x = bar.x || (bar.getProps && bar.getProps(['x']).x) || 0;
+                            const y = bar.y || (bar.getProps && bar.getProps(['y']).y) || 0;
+                            const label = formatNumber(val);
+                            const padding = 8;
+                            // draw label to the right of the bar with a small padding
                             ctx.textAlign = 'left';
-                            ctx.textBaseline = 'middle';
-                            ctx.fillText(lbl, pos.x + 8, pos.y);
-                            ctx.restore();
+                            ctx.fillText(label, x + padding, y);
                         }catch(e){}
                     });
                 });
+
+                ctx.restore();
             }
         };
 
-        const ctx = el.getContext('2d');
-        const chart = new Chart(ctx, {
+        // plugin: draw major gridlines at the provided tickValues (subtle); disable Chart.js x-grid
+        const majorGridPlugin = {
+            id: 'majorLogGrid',
+            beforeDraw(chart){
+                const xScale = chart.scales['x'];
+                if (!xScale) return;
+                const ctx = chart.ctx;
+                ctx.save();
+                // draw white vertical gridlines for strong contrast against the dark card
+                ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+                ctx.lineWidth = 1.25;
+                tickValues.forEach(v => {
+                    // only draw if within scale domain
+                    if (v < xScale.min || v > xScale.max) return;
+                    const px = xScale.getPixelForValue(v);
+                    ctx.beginPath();
+                    ctx.moveTo(px, chart.chartArea.top);
+                    ctx.lineTo(px, chart.chartArea.bottom);
+                    ctx.stroke();
+                });
+                ctx.restore();
+            }
+        };
+
+        function createChart(){
+            try{
+                console.debug('[tempChart] createChart: canvas rect before sizing', el.getBoundingClientRect());
+                // ensure canvas is visible and has a usable height; some layouts collapse height when using height:auto
+                el.style.display = el.style.display || 'block';
+                if (!el.style.width) el.style.width = '100%';
+                const crect = el.getBoundingClientRect();
+                if (crect.height < 40) {
+                    // force a reasonable pixel height so Chart.js doesn't render into a collapsed canvas
+                    el.style.height = '540px';
+                }
+                const ctx = el.getContext('2d');
+                // Normalize dataset values to numbers (preserve nulls) to avoid accidental string/scale bugs
+                const normalizedDatasets = datasets.map(d => ({
+                    label: d.label,
+                    backgroundColor: d.backgroundColor,
+                    data: (d.data || []).map(v => (v === null || v === undefined) ? null : Number(v))
+                }));
+                console.debug('[tempChart] normalizedDatasets', normalizedDatasets);
+                console.debug('[tempChart] tickValues', tickValues, 'xMax', 3000);
+                // clear previous chart if exists
+                try{ const prev = Chart.getChart ? Chart.getChart(el) : null; if (prev) { console.debug('[tempChart] destroying previous chart instance'); prev.destroy(); } } catch(e){ console.warn('[tempChart] error destroying prev chart', e); }
+
+                const chart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: datasets.map(d => ({
+                datasets: normalizedDatasets.map(d => ({
                     label: d.label,
                     data: d.data,
                     backgroundColor: d.backgroundColor,
+                    hoverBackgroundColor: (function(col){
+                        // convert hex to rgba with opacity 0.95
+                        const r = parseInt(col.substr(1,2),16);
+                        const g = parseInt(col.substr(3,2),16);
+                        const b = parseInt(col.substr(5,2),16);
+                        return `rgba(${r},${g},${b},0.95)`;
+                    })(d.backgroundColor),
                     borderRadius: 4,
                     barThickness: 22
                 }))
@@ -1013,6 +1356,7 @@ function initTemperatureChart(){
                                 const cat = ctx.chart.data.labels[ctx.dataIndex] || '';
                                 const m = cat.match(/\(([^)]+)\)/);
                                 const unit = m ? (' ' + m[1]) : '';
+                                if (v === null || v === undefined) return ctx.dataset.label + ': —';
                                 return ctx.dataset.label + ': ' + formatNumber(v) + unit;
                             }
                         },
@@ -1022,39 +1366,45 @@ function initTemperatureChart(){
                     }
                 },
                 scales: {
-                    x: {
+                        x: {
                         type: 'logarithmic',
                         position: 'bottom',
                         min: 0.001,
-                        max: 2000,
+                        // expand max to 3000 so orbital radiator-eff (1300 W/m²) is comfortably visible
+                        max: 3000,
                         ticks: {
-                            callback: function(val){ return formatNumber(Number(val)); },
-                            autoSkip: false
+                            // only show labels at the exact tickValues we defined above (tolerant compare)
+                            // format large values (>=1000) as 'k' style (divided by 1000) per user's request
+                            callback: function(val){
+                                const n = Number(val);
+                                const match = tickValues.some(tv => Math.abs(tv - n) < 1e-12);
+                                if (!match) return '';
+                                // show the full numeric value for ticks (e.g., 1000 -> "1000")
+                                return formatNumber(n);
+                            },
+                            autoSkip: false,
+                            maxTicksLimit: tickValues.length,
+                            color: '#ffffff'
                         },
-                        grid: {
-                            color: 'rgba(255,255,255,0.06)'
-                        }
+                        grid: { display: false }
                     },
                     y: {
                         grid: { display: false },
                         ticks: { color: '#ffffff' }
                     }
                 },
-                datasets: { bar: { categoryPercentage: 0.3, barPercentage: 0.15 } }
+                datasets: { bar: { categoryPercentage: 0.7, barPercentage: 0.85 } }
             },
-            plugins: [dataLabelPlugin]
+            plugins: [dataLabelPlugin, majorGridPlugin]
         });
 
-        // attempt to enforce the desired tick positions (best-effort; Chart.js may override depending on scale internals)
-        try{
-            const xScale = chart.scales['x'];
-            if (xScale && Array.isArray(tickValues)){
-                xScale.ticks = tickValues.map(v => ({ value: v, label: formatNumber(v) }));
-            }
-        }catch(e){}
+            // expose for debugging
+            window._tempStabilityChart = chart;
+            }catch(err){ console.error('[tempChart] createChart error', err); }
+        }
 
-        // expose for debugging
-        window._tempStabilityChart = chart;
+        // Ensure chart is created only once sizes are available
+        whenSized(createChart);
     }catch(e){ console.warn('initTemperatureChart failed', e); }
 }
 
