@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Technologies - AI Orbital Data Centers</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.0/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/splitting@1.0.6/dist/splitting.css">
+    <script src="https://unpkg.com/splitting@1.0.6/dist/splitting.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #000514 0%, #000000 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        /* Navigation */
+        .nav-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(0, 5, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .isu-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000514;
+            font-size: 0.8rem;
+            background-image: url('resources/isu-logo.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 400;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #00d4ff;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #00d4ff;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+        
+        /* Technology Hero */
+        .tech-hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tech-hero-content {
+            max-width: 1000px;
+            padding: 2rem;
+            z-index: 10;
+        }
+        
+        .tech-hero-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #ffd700 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .tech-hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 300;
+            margin-bottom: 3rem;
+            color: #e0e0e0;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        /* Companies Section */
+        .companies-section {
+            padding: 5rem 2rem;
+            background: linear-gradient(180deg, rgba(0, 5, 20, 0.9) 0%, rgba(20, 20, 0, 0.8) 100%);
+        }
+        
+        .companies-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .companies-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 4rem;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .companies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+        
+        .company-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(50px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .company-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .company-card:hover::before {
+            left: 100%;
+        }
+        
+        .company-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 20px 40px rgba(255, 215, 0, 0.2);
+        }
+        
+        .company-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ffd700 0%, #00d4ff 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .company-card:hover .company-logo {
+            transform: scale(1.1);
+        }
+        
+        .company-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #ffd700;
+        }
+        
+        .company-card .company-type {
+            font-size: 0.9rem;
+            color: #00d4ff;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        .company-card p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #e0e0e0;
+            margin-bottom: 1.5rem;
+        }
+        
+        .company-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .company-stat {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .company-stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 0.25rem;
+        }
+        
+        .company-stat-label {
+            font-size: 0.8rem;
+            color: #b0b0b0;
+        }
+        
+        /* Technology Comparison */
+        .comparison-section {
+            padding: 5rem 2rem;
+            background: linear-gradient(180deg, rgba(20, 20, 0, 0.8) 0%, rgba(0, 5, 20, 0.9) 100%);
+        }
+        
+        .comparison-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .comparison-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 4rem;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+        
+        .comparison-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .comparison-card.terrestrial {
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+        
+        .comparison-card.orbital {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+        
+        .comparison-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .comparison-card.terrestrial h3 {
+            color: #ff6b6b;
+        }
+        
+        .comparison-card.orbital h3 {
+            color: #00d4ff;
+        }
+        
+        .comparison-metrics {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .metric-label {
+            font-weight: 500;
+            color: #e0e0e0;
+        }
+        
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+        
+        .terrestrial .metric-value {
+            color: #ff6b6b;
+        }
+        
+        .orbital .metric-value {
+            color: #00d4ff;
+        }
+        
+        /* Implementation Timeline */
+        .timeline-section {
+            padding: 5rem 2rem;
+            background: linear-gradient(180deg, rgba(0, 5, 20, 0.9) 0%, rgba(0, 20, 84, 0.8) 100%);
+        }
+        
+        .timeline-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .timeline-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 4rem;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #ffd700 0%, #00d4ff 100%);
+            border-radius: 2px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 4rem;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: 0;
+            margin-right: 50%;
+            padding-right: 3rem;
+            text-align: right;
+        }
+        
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-left: 50%;
+            margin-right: 0;
+            padding-left: 3rem;
+            text-align: left;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: #ffd700;
+            border: 4px solid #000514;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        
+        .timeline-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 15px 30px rgba(0, 212, 255, 0.2);
+        }
+        
+        .timeline-year {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffd700;
+            margin-bottom: 1rem;
+        }
+        
+        .timeline-title-item {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline-description {
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        /* Call to Action */
+        .cta-section {
+            padding: 5rem 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(0, 20, 84, 0.8) 0%, rgba(0, 5, 20, 0.9) 100%);
+        }
+        
+        .cta-content {
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .cta-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #ffffff;
+        }
+        
+        .cta-description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            margin-bottom: 3rem;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.4);
+        }
+        
+        .cta-button.secondary {
+            background: transparent;
+            border: 2px solid #ffffff;
+            box-shadow: none;
+        }
+        
+        .cta-button.secondary:hover {
+            background: #ffffff;
+            color: #000514;
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .companies-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .timeline::before {
+                left: 2rem;
+            }
+            
+            .timeline-item:nth-child(odd) .timeline-content,
+            .timeline-item:nth-child(even) .timeline-content {
+                margin-left: 4rem;
+                margin-right: 0;
+                padding-left: 2rem;
+                padding-right: 2rem;
+                text-align: left;
+            }
+            
+            .timeline-marker {
+                left: 2rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        /* Animation Classes */
+        .fade-in {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+        
+        .slide-in-left {
+            opacity: 1 !important;
+            transform: translateX(0) !important;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav-container">
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">
+                <div class="isu-logo"></div>
+                AI Orbital Data Centers
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="problem.html">Problem</a></li>
+                <li><a href="solution.html">Solution</a></li>
+                <li><a href="technology.html" class="active">Technology</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- Technology Hero -->
+    <section class="tech-hero">
+        <div class="tech-hero-content">
+            <h1 class="tech-hero-title" data-splitting>Current Technologies</h1>
+            <p class="tech-hero-subtitle">
+                Leading companies and breakthrough technologies making orbital data centers a reality today
+            </p>
+        </div>
+    </section>
+    
+    <!-- Companies Section -->
+    <section class="companies-section">
+        <div class="companies-content">
+            <h2 class="companies-title">Industry Leaders</h2>
+            
+            <div class="companies-grid">
+                <div class="company-card" data-company="starcloud">
+                    <div class="company-logo">⭐</div>
+                    <h3>Starcloud</h3>
+                    <div class="company-type">Orbital AI Computing</div>
+                    <p>Pioneering orbital data centers with NVIDIA H100 GPUs. First commercial satellite launched November 2025, targeting 5-gigawatt capacity with 10x lower carbon emissions than terrestrial facilities.</p>
+                    
+                    <div class="company-stats">
+                        <div class="company-stat">
+                            <div class="company-stat-value">5GW</div>
+                            <div class="company-stat-label">Target Capacity</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">10x</div>
+                            <div class="company-stat-label">Lower Emissions</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">2025</div>
+                            <div class="company-stat-label">First Launch</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">4km²</div>
+                            <div class="company-stat-label">Solar Array</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="company-card" data-company="axiom">
+                    <div class="company-logo">🚀</div>
+                    <h3>Axiom Space</h3>
+                    <div class="company-type">Orbital Infrastructure</div>
+                    <p>Building orbital data center nodes in LEO for secure, scalable cloud computing. Partnered with Red Hat for edge compute prototypes on ISS, launching two ODCs in 2025.</p>
+                    
+                    <div class="company-stats">
+                        <div class="company-stat">
+                            <div class="company-stat-value">2</div>
+                            <div class="company-stat-label">ODCs Launching</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">LEO</div>
+                            <div class="company-stat-label">Orbit</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">AI/ML</div>
+                            <div class="company-stat-label">Focus</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">ISS</div>
+                            <div class="company-stat-label">Prototype Platform</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="company-card" data-company="google">
+                    <div class="company-logo">🔍</div>
+                    <h3>Google Project Suncatcher</h3>
+                    <div class="company-type">Research Initiative</div>
+                    <p>Exploring space-based ML compute systems with solar-powered satellites carrying custom Tensor Processing Units. Two prototype satellites launching in 2027.</p>
+                    
+                    <div class="company-stats">
+                        <div class="company-stat">
+                            <div class="company-stat-value">2027</div>
+                            <div class="company-stat-label">Launch Date</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">TPU</div>
+                            <div class="company-stat-label">Processor Type</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">2</div>
+                            <div class="company-stat-label">Satellites</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">Solar</div>
+                            <div class="company-stat-label">Power Source</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="company-card" data-company="spacex">
+                    <div class="company-logo">🛰️</div>
+                    <h3>SpaceX Starlink</h3>
+                    <div class="company-type">Launch & Infrastructure</div>
+                    <p>Elon Musk announced plans for space-based data centers using Starlink V3 satellites. Starship enables 100GW/year delivery to high Earth orbit within 4-5 years.</p>
+                    
+                    <div class="company-stats">
+                        <div class="company-stat">
+                            <div class="company-stat-value">100GW</div>
+                            <div class="company-stat-label">Annual Capacity</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">4-5</div>
+                            <div class="company-stat-label">Years Timeline</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">V3</div>
+                            <div class="company-stat-label">Satellite Gen</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">Starship</div>
+                            <div class="company-stat-label">Launch Vehicle</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="company-card" data-company="amazon">
+                    <div class="company-logo">📦</div>
+                    <h3>Amazon Kuiper</h3>
+                    <div class="company-type">Satellite Constellation</div>
+                    <p>3,232-laser-linked satellite constellation offering private AWS cloud connections. Jeff Bezos predicts gigawatt data centers in space within 10-20 years.</p>
+                    
+                    <div class="company-stats">
+                        <div class="company-stat">
+                            <div class="company-stat-value">3,232</div>
+                            <div class="company-stat-label">Satellites</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">10-20</div>
+                            <div class="company-stat-label">Years to Gigawatt</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">AWS</div>
+                            <div class="company-stat-label">Cloud Integration</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">Laser</div>
+                            <div class="company-stat-label">Communication</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="company-card" data-company="lonestar">
+                    <div class="company-logo">🌙</div>
+                    <h3>Lonestar Data Holdings</h3>
+                    <div class="company-type">Lunar Data Centers</div>
+                    <p>First company to fly lunar data center payloads. Developing disaster-proof data storage on the Moon with 97% lower operating costs than Earth-based facilities.</p>
+                    
+                    <div class="company-stats">
+                        <div class="company-stat">
+                            <div class="company-stat-value">97%</div>
+                            <div class="company-stat-label">Cost Reduction</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">Lunar</div>
+                            <div class="company-stat-label">Location</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">Disaster-Proof</div>
+                            <div class="company-stat-label">Storage Type</div>
+                        </div>
+                        <div class="company-stat">
+                            <div class="company-stat-value">First</div>
+                            <div class="company-stat-label">Lunar Payload</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Technology Comparison -->
+    <section class="comparison-section">
+        <div class="comparison-content">
+            <h2 class="comparison-title">Terrestrial vs Orbital Comparison</h2>
+            
+            <div class="comparison-grid">
+                <div class="comparison-card terrestrial">
+                    <h3>Terrestrial Data Centers</h3>
+                    <div class="comparison-metrics">
+                        <div class="metric">
+                            <span class="metric-label">Energy Cost</span>
+                            <span class="metric-value">$0.05/kWh</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Cooling Efficiency</span>
+                            <span class="metric-value">30-40% of total power</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Water Usage</span>
+                            <span class="metric-value">163.7B gallons/year (US)</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Carbon Footprint</span>
+                            <span class="metric-value">High emissions</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Physical Security</span>
+                            <span class="metric-value">Vulnerable</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Scalability</span>
+                            <span class="metric-value">Land-constrained</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comparison-card orbital">
+                    <h3>Orbital Data Centers</h3>
+                    <div class="comparison-metrics">
+                        <div class="metric">
+                            <span class="metric-label">Energy Cost</span>
+                            <span class="metric-value">$0.001/kWh</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Cooling Efficiency</span>
+                            <span class="metric-value">Radiative (passive)</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Water Usage</span>
+                            <span class="metric-value">Zero</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Carbon Footprint</span>
+                            <span class="metric-value">10x lower</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Physical Security</span>
+                            <span class="metric-value">Ultimate isolation</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Scalability</span>
+                            <span class="metric-value">Unlimited space</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Implementation Timeline -->
+    <section class="timeline-section">
+        <div class="timeline-content">
+            <h2 class="timeline-title">Implementation Roadmap</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-year">2025</div>
+                        <div class="timeline-title-item">Proof of Concept</div>
+                        <div class="timeline-description">
+                            Starcloud launches first commercial orbital data center with NVIDIA H100 GPU. 
+                            Axiom Space deploys two ODC nodes in LEO. Google begins Project Suncatcher development.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-year">2026-2027</div>
+                        <div class="timeline-title-item">Technology Demonstration</div>
+                        <div class="timeline-description">
+                            Starcloud-2 mission with GPU cluster. Google launches two prototype satellites. 
+                            Commercial viability studies by Thales Alenia Space and ASCEND project.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-year">2028-2030</div>
+                        <div class="timeline-title-item">Scale-Up Phase</div>
+                        <div class="timeline-description">
+                            First 50kW proof-of-concept deployment. Launch costs drop below $200/kg. 
+                            Multiple companies begin commercial operations with micro data centers.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-year">2031-2035</div>
+                        <div class="timeline-title-item">Commercial Deployment</div>
+                        <div class="timeline-description">
+                            Gigawatt-scale orbital data centers operational. Cost parity with terrestrial facilities achieved. 
+                            Major cloud providers offer orbital computing services.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-year">2036-2040</div>
+                        <div class="timeline-title-item">Mass Adoption</div>
+                        <div class="timeline-description">
+                            Most new data centers deployed in space. Lunar and deep space computing infrastructure. 
+                            Orbital data centers become the primary platform for AI workloads.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-year">2040+</div>
+                        <div class="timeline-title-item">Future Vision</div>
+                        <div class="timeline-description">
+                            Interplanetary computing network. Space-based manufacturing of data center components. 
+                            Complete decoupling of digital growth from Earth's environmental constraints.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Call to Action -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2 class="cta-title">The Future is Orbital</h2>
+            <p class="cta-description">
+                The convergence of advancing space technology, AI autonomy, and environmental necessity 
+                creates an unprecedented opportunity to revolutionize computing infrastructure. 
+                Join us in building the sustainable future of data processing.
+            </p>
+            
+            <div class="cta-buttons">
+                <a href="#" class="cta-button">Get Involved</a>
+                <a href="#" class="cta-button secondary">Learn More</a>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        // Technology page specific JavaScript
+        class TechnologyVisualization {
+            constructor() {
+                this.init();
+            }
+            
+            init() {
+                this.setupAnimations();
+                this.setupInteractions();
+                this.setupScrollAnimations();
+                this.setupTimelineAnimations();
+            }
+            
+            setupAnimations() {
+                // Hero animations
+                anime.timeline()
+                    .add({
+                        targets: '.tech-hero-title',
+                        opacity: [0, 1],
+                        translateY: [50, 0],
+                        duration: 1000,
+                        easing: 'easeOutExpo'
+                    })
+                    .add({
+                        targets: '.tech-hero-subtitle',
+                        opacity: [0, 1],
+                        translateY: [30, 0],
+                        duration: 800,
+                        easing: 'easeOutExpo'
+                    }, '-=500');
+            }
+            
+            setupInteractions() {
+                // Company card interactions
+                document.querySelectorAll('.company-card').forEach(card => {
+                    card.addEventListener('mouseenter', () => {
+                        anime({
+                            targets: card,
+                            scale: [1, 1.02],
+                            duration: 300,
+                            easing: 'easeOutQuad'
+                        });
+                        
+                        // Animate company stats
+                        const stats = card.querySelectorAll('.company-stat-value');
+                        anime({
+                            targets: stats,
+                            scale: [1, 1.1, 1],
+                            duration: 600,
+                            delay: anime.stagger(100),
+                            easing: 'easeOutElastic(1, .8)'
+                        });
+                    });
+                    
+                    card.addEventListener('mouseleave', () => {
+                        anime({
+                            targets: card,
+                            scale: [1.02, 1],
+                            duration: 300,
+                            easing: 'easeOutQuad'
+                        });
+                    });
+                });
+                
+                // Comparison card interactions
+                document.querySelectorAll('.comparison-card').forEach(card => {
+                    card.addEventListener('mouseenter', () => {
+                        anime({
+                            targets: card,
+                            scale: [1, 1.02],
+                            duration: 300,
+                            easing: 'easeOutQuad'
+                        });
+                    });
+                    
+                    card.addEventListener('mouseleave', () => {
+                        anime({
+                            targets: card,
+                            scale: [1.02, 1],
+                            duration: 300,
+                            easing: 'easeOutQuad'
+                        });
+                    });
+                });
+                
+                // Timeline item interactions
+                document.querySelectorAll('.timeline-content').forEach(item => {
+                    item.addEventListener('mouseenter', () => {
+                        const marker = item.parentElement.querySelector('.timeline-marker');
+                        anime({
+                            targets: marker,
+                            scale: [1, 1.3],
+                            duration: 300,
+                            easing: 'easeOutBack'
+                        });
+                    });
+                    
+                    item.addEventListener('mouseleave', () => {
+                        const marker = item.parentElement.querySelector('.timeline-marker');
+                        anime({
+                            targets: marker,
+                            scale: [1.3, 1],
+                            duration: 300,
+                            easing: 'easeOutBack'
+                        });
+                    });
+                });
+            }
+            
+            setupScrollAnimations() {
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+                
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('fade-in');
+                        }
+                    });
+                }, observerOptions);
+                
+                // Observe all animated elements
+                document.querySelectorAll('.companies-title, .company-card, .comparison-title, .comparison-card, .timeline-title, .timeline-item, .cta-content').forEach(el => {
+                    observer.observe(el);
+                });
+            }
+            
+            setupTimelineAnimations() {
+                // Animate timeline items on scroll
+                const timelineObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const marker = entry.target.querySelector('.timeline-marker');
+                            const content = entry.target.querySelector('.timeline-content');
+                            
+                            // Animate marker
+                            anime({
+                                targets: marker,
+                                scale: [0, 1],
+                                duration: 500,
+                                easing: 'easeOutBack'
+                            });
+                            
+                            // Animate content
+                            anime({
+                                targets: content,
+                                translateX: [entry.target.classList.contains('timeline-item') && 
+                                           Array.from(entry.target.parentElement.children).indexOf(entry.target) % 2 === 0 ? 50 : -50, 0],
+                                opacity: [0, 1],
+                                duration: 800,
+                                delay: 200,
+                                easing: 'easeOutQuad'
+                            });
+                        }
+                    });
+                }, { threshold: 0.3 });
+                
+                document.querySelectorAll('.timeline-item').forEach(item => {
+                    timelineObserver.observe(item);
+                });
+            }
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new TechnologyVisualization();
+        });
+    </script>
+</body>
+</html>

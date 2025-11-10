@@ -1,175 +1,1550 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI for Space Engineering &amp; Autonomous Systems | SpaceAI Poster Session</title>
-  <style>
-    :root {
-      --isu-blue: rgba(0, 20, 84, 0.88);
-      --accent: rgba(10, 60, 134, 0.85);
-      --white: #ffffff;
-      --text: #e8ecff;
-      --background-image: url('../../pexels-shashank-brahmavar-737732917-18507019.jpg');
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Orbital Data Centers: The Future of Sustainable Computing</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.birds.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Core Styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --isu-blue: rgb(0, 20, 84);
+            --isu-blue-light: rgb(25, 50, 120);
+            --space-black: #000000;
+            --space-dark: #0a0a0a;
+            --space-gray: #1a1a1a;
+            --neon-blue: #00d4ff;
+            --neon-green: #00ff88;
+            --neon-orange: #ff6b35;
+            --white: #ffffff;
+            --gray-light: #f5f5f5;
+            --gray-medium: #888888;
+        }
+        
+        body {
+            font-family: 'Orbitron', 'Inter', sans-serif;
+            background: var(--space-black);
+            color: var(--white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        /* ISU Logo - Fixed Position */
+        .isu-logo {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            width: 140px; /* larger container */
+            height: 140px; /* larger container */
+            z-index: 1100;
+            background: var(--isu-blue);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 50px rgba(0, 20, 84, 0.45);
+            transition: transform 160ms cubic-bezier(.2,.9,.2,1), box-shadow 160ms ease;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
 
-    * {
-      box-sizing: border-box;
-    }
+        .isu-logo img {
+            width: 100px; /* larger image */
+            height: 100px; /* larger image */
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 6px 18px rgba(0,0,0,0.45));
+        }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Calibri', 'Arial', sans-serif;
-      color: var(--text);
-      background-image: var(--background-image);
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      padding: 2rem;
-    }
+        .isu-logo:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 18px 70px rgba(0, 20, 84, 0.55); }
+        
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: var(--neon-blue);
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--neon-blue);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 1000px;
+            /* give a bit more horizontal padding so large titles don't touch the edges */
+            padding: 0 56px;
+        }
 
-    .poster-shell {
-      background: linear-gradient(145deg, var(--isu-blue), var(--accent));
-      width: min(900px, 100%);
-      padding: clamp(2rem, 4vw, 3rem);
-      border-radius: 28px;
-      box-shadow: 0 30px 60px rgba(0, 8, 32, 0.55);
-      text-align: center;
-      backdrop-filter: blur(6px);
-    }
+        .hero-title {
+            font-size: clamp(48px, 8vw, 120px);
+            font-weight: 800;
+            /* ensure adequate line-height so glyph descenders are not clipped */
+            line-height: 1;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--white) 0%, var(--neon-blue) 50%, var(--neon-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+            display: inline-block; /* prevent clipping and allow padding */
+            padding: 6px 8px; /* small padding to avoid left/bottom cut-off */
+            box-decoration-break: clone;
+        }
+        
+        .hero-subtitle {
+            font-size: clamp(18px, 3vw, 28px);
+            font-weight: 300;
+            margin-bottom: 40px;
+            color: var(--gray-light);
+            opacity: 0.9;
+        }
+        
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 50px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease forwards;
+        }
+        
+        .stat-item:nth-child(2) { animation-delay: 0.3s; }
+        .stat-item:nth-child(3) { animation-delay: 0.6s; }
+        
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--neon-blue);
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-medium);
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Abstract Section */
+        .abstract-section {
+            padding: 120px 0;
+            background: linear-gradient(180deg, var(--space-black) 0%, var(--space-dark) 100%);
+            position: relative;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+        
+        .section-title {
+            font-size: clamp(32px, 5vw, 64px);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 60px;
+            color: var(--white);
+        }
+        
+        .abstract-content {
+            /* scaled up ~1.5x from previous 18px -> 27px for stronger legibility */
+            font-size: 27px;
+            line-height: 1.7;
+            color: var(--gray-light);
+            text-align: justify;
+            max-width: 900px;
+            margin: 0 auto;
+        }
 
-    .poster-shell img {
-      width: clamp(140px, 28vw, 220px);
-      height: auto;
-      margin-bottom: 1.5rem;
-      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.4));
-    }
+        /* Hover-highlighted terms in the abstract: create a subtle 3D glow effect
+           when hovering the whole abstract area while keeping the other text readable */
+        .abstract-content {
+            perspective: 900px; /* enables translateZ for children */
+            transition: color 220ms ease, transform 420ms cubic-bezier(.2,.9,.2,1);
+            transform-style: preserve-3d;
+        }
 
-    h1 {
-      margin: 0 0 0.75rem;
-      font-size: clamp(2rem, 4vw, 2.8rem);
-      letter-spacing: 0.04em;
-    }
+        .abstract-content .glow-term {
+            display: inline-block;
+            color: inherit;
+            opacity: 0.98;
+            /* use CSS variables so JS can drive per-term parallax without clobbering the hover transform */
+            transform: translateZ(var(--tz, 0)) translateX(var(--tx, 0)) translateY(var(--ty, 0)) scale(var(--s, 1));
+            transition: text-shadow 360ms ease, color 360ms ease, filter 360ms ease, transform 360ms cubic-bezier(.2,.9,.2,1);
+            /* each glow-term can set --i to stagger appearance */
+            transition-delay: calc(var(--i, 0) * 60ms);
+            will-change: transform, text-shadow, filter;
+            text-decoration: none;
+        }
 
-    .subtitle {
-      margin: 0 0 1.75rem;
-      font-size: 1.05rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
+        /* dim the surrounding text slightly on hover, keep abstract readable */
+        .abstract-content:hover { color: rgba(234,244,255,0.75); }
+        .abstract-content:hover .glow-term { color: #eafcff; opacity: 1; }
 
-    .status-banner {
-      margin: 1.75rem 0 2rem;
-      padding: clamp(1rem, 2.5vw, 1.35rem) clamp(1.35rem, 3vw, 1.85rem);
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-      font-size: 1.05rem;
-      letter-spacing: 0.01em;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
-    }
+        /* the glowing 3D effect when parent is hovered */
+        .abstract-content:hover .glow-term {
+            /* set target variables on hover so the CSS animation also works without JS */
+            --tz: 28px;
+            --ty: -6px;
+            --s: 1.06;
+            text-shadow: 0 6px 18px rgba(0,212,255,0.14), 0 12px 40px rgba(0,212,255,0.10), 0 0 28px rgba(0,255,136,0.06);
+            filter: drop-shadow(0 8px 28px rgba(0,212,255,0.12));
+        }
 
-    .status-banner span {
-      font-size: 1.6rem;
-    }
+        /* extra emphasis for strongest keywords */
+        .abstract-content:hover .glow-term.strong {
+            --tz: 36px;
+            --ty: -8px;
+            --s: 1.09;
+            text-shadow: 0 8px 26px rgba(0,212,255,0.22), 0 18px 56px rgba(0,212,255,0.14), 0 0 46px rgba(0,255,136,0.08);
+            filter: drop-shadow(0 12px 44px rgba(0,212,255,0.18));
+        }
+        
+        .highlight {
+            color: var(--neon-blue);
+            font-weight: 600;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .highlight:hover {
+            color: var(--neon-green);
+            text-shadow: 0 0 10px rgb(105, 127, 218);
+        }
+        
+        /* Current Data Centers Section — futuristic blue/dark space background */
+        .current-datacenters {
+            padding: 120px 0;
+            position: relative;
+            overflow: hidden;
+            z-index: 0;
+            /* base layered gradient (deep space -> blue rim -> faint cyan) */
+            background: linear-gradient(180deg, rgba(2,8,30,0.96) 0%, rgba(1,28,68,0.96) 55%, rgba(0,34,86,0.86) 100%);
+        }
 
-    section {
-      text-align: left;
-      background: rgba(255, 255, 255, 0.08);
-      padding: clamp(1.5rem, 3vw, 2rem);
-      border-radius: 20px;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-      margin-bottom: 2rem;
-    }
+        /* Nebula / glow layer behind content */
+        .current-datacenters::before {
+            content: '';
+            position: absolute;
+            left: -10%;
+            top: -14%;
+            width: 120%;
+            height: 140%;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 18% 22%, rgba(0,212,255,0.06) 0%, transparent 12%),
+                radial-gradient(circle at 82% 78%, rgba(0,96,188,0.06) 0%, transparent 16%),
+                radial-gradient(circle at 50% 40%, rgba(45,70,160,0.04) 0%, transparent 28%);
+            filter: blur(28px) saturate(120%);
+            transform: translateZ(0) scale(1.02);
+            opacity: 1;
+            mix-blend-mode: screen;
+        }
 
-    section h2 {
-      margin-top: 0;
-      font-size: 1.35rem;
-      color: var(--white);
-      letter-spacing: 0.02em;
-    }
+        /* Starfield overlay (subtle small stars + a few larger specks) */
+        .current-datacenters::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            /* two layered radial patterns to create depth and clusters */
+            background-image:
+                radial-gradient(white 0.6px, transparent 0.8px),
+                radial-gradient(white 0.9px, transparent 1.1px);
+            background-position: 10% 20%, 70% 80%;
+            background-size: 260px 260px, 420px 420px;
+            opacity: 0.12;
+            mix-blend-mode: screen;
+            transform: translateZ(0);
+        }
 
-    section p {
-      margin: 0 0 1.25rem;
-      font-size: 1.05rem;
-    }
+        /* Ensure the inner container sits above the decorative layers */
+        .current-datacenters > .container {
+            position: relative;
+            z-index: 2;
+        }
 
-    ul {
-      margin: 0;
-      padding-left: 1.2rem;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 0.35rem 1.25rem;
-      list-style: square;
-    }
+        /* subtle animated shimmer across the section for life */
+        @keyframes cd-shimmer {
+            0% { transform: translateX(-8%); opacity: 0.05; }
+            50% { transform: translateX(8%); opacity: 0.12; }
+            100% { transform: translateX(-8%); opacity: 0.05; }
+        }
 
-    a.cta {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.35rem;
-      text-decoration: none;
-      color: var(--isu-blue);
-      background: var(--white);
-      padding: 0.75rem 1.75rem;
-      border-radius: 999px;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
+        .current-datacenters::before {
+            animation: cd-shimmer 12s ease-in-out infinite;
+        }
 
-    a.cta:hover,
-    a.cta:focus-visible {
-      transform: translateY(-3px);
-      box-shadow: 0 16px 32px rgba(0, 20, 84, 0.32);
-    }
+        /* reduce motion: disable shimmer and heavy blur */
+        @media (prefers-reduced-motion: reduce) {
+            .current-datacenters::before { animation: none; filter: blur(10px); }
+            .current-datacenters::after { opacity: 0.08; }
+        }
+        
+        .datacenter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+        
+        .datacenter-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            /* collapsed card height showing icon + title + small graph area */
+            max-height: 140px;
+            transition: max-height 420ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms ease, transform 220ms ease;
+        }
 
-    @media (max-width: 600px) {
-      ul {
-        grid-template-columns: 1fr;
-        padding-left: 1.1rem;
-      }
+        /* expand on hover or focus-within to reveal description and graph */
+        .datacenter-card:hover,
+        .datacenter-card:focus-within {
+            transform: translateY(-6px);
+            box-shadow: 0 28px 60px rgba(0, 212, 255, 0.16);
+            border-color: var(--neon-blue);
+            max-height: 520px; /* enough space to show description + graph */
+        }
+        
+        .datacenter-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .datacenter-card:hover::before {
+            left: 100%;
+        }
+        
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 20px;
+            font-size: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-      section {
-        padding: 1.25rem;
-      }
-    }
-  </style>
+        /* Emoji animations */
+        .emoji {
+            display: inline-block;
+            transform-origin: 50% 50%;
+            will-change: transform, filter, opacity;
+        }
+
+        /* water drop - small bob + drop effect */
+        @keyframes drop-bob {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            40% { transform: translateY(8px) scale(0.98); }
+            60% { transform: translateY(10px) scale(0.96); filter: drop-shadow(0 8px 18px rgba(0,150,200,0.06)); }
+            100% { transform: translateY(0) scale(1); }
+        }
+
+        /* slightly faster and more pronounced bob for better visibility */
+        .emoji.drop { animation: drop-bob 1800ms ease-in-out infinite; }
+
+        /* lightning - quick pulsing flash */
+        @keyframes lightning-pulse {
+            0% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)); transform: rotate(0deg) translateY(0) scale(1); }
+            30% { filter: drop-shadow(0 0 28px rgba(255,230,120,0.16)); transform: rotate(-10deg) translateY(-3px) scale(1.02); }
+            50% { filter: drop-shadow(0 0 42px rgba(255,245,180,0.28)); transform: rotate(12deg) translateY(-4px) scale(1.05); }
+            80% { filter: drop-shadow(0 0 20px rgba(255,230,120,0.12)); transform: rotate(-4deg) translateY(-2px) scale(1.01); }
+            100% { filter: drop-shadow(0 0 0 rgba(255,255,255,0)); transform: rotate(0deg) translateY(0) scale(1); }
+        }
+        /* faster, punchier lightning pulse */
+        .emoji.lightning { animation: lightning-pulse 1400ms ease-in-out infinite; }
+
+        /* leaf - slow float + rotate */
+        @keyframes leaf-float {
+            0% { transform: translateY(0) rotate(0) translateX(0); }
+            30% { transform: translateY(-6px) rotate(-6deg) translateX(-3px); }
+            55% { transform: translateY(-14px) rotate(-12deg) translateX(4px); }
+            100% { transform: translateY(0) rotate(0) translateX(0); }
+        }
+        /* slightly quicker float but larger amplitude so motion is more noticeable */
+        .emoji.leaf { animation: leaf-float 2600ms ease-in-out infinite; }
+        
+        .card-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--white);
+        }
+        
+        .card-description {
+            font-size: 16px;
+            /* make revealed description fully white for maximum contrast */
+            color: var(--white);
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 360ms ease, transform 360ms ease;
+            max-height: 0;
+            overflow: hidden;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* Graph placeholder inside card (hidden until expanded) */
+        /* Graph placeholders removed per request - hide element entirely */
+        .card-graph { display: none !important; }
+
+        /* Reveal description and graph when card is expanded */
+        .datacenter-card:hover .card-description,
+        .datacenter-card:focus-within .card-description {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 400px;
+        }
+
+        .datacenter-card:hover .card-graph,
+        .datacenter-card:focus-within .card-graph {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        /* Interactive Charts */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 40px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .chart-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+            color: var(--white);
+        }
+        
+        /* Orbital Solution Section */
+        .orbital-solution {
+            /* doubled vertical space to emphasize the Technical Benefits area */
+            padding: 240px 0;
+            background: linear-gradient(180deg, var(--space-dark) 0%, var(--space-black) 100%);
+            position: relative;
+        }
+        
+        .orbital-visualization {
+            position: relative;
+            /* make the visualization area twice as tall so spheres have room */
+            height: 1200px;
+            margin: 120px 0;
+            border-radius: 20px;
+            overflow: hidden;
+            background: radial-gradient(circle at center, rgba(0, 20, 84, 0.3) 0%, transparent 70%);
+            /* stretch slightly beyond the centered container to make the section visually wider */
+            width: calc(100% + 480px);
+            margin-left: -240px;
+            margin-right: -240px;
+            max-width: none;
+        }
+
+        /* Keep mobile/smaller viewports reasonable */
+        @media (max-width: 980px) {
+            .orbital-visualization { height: auto; margin: 40px 0; width: 100%; margin-left: 0; margin-right: 0; }
+            .orbital-solution { padding: 120px 0; }
+        }
+        
+        .earth-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+        }
+        
+        .earth {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: url('./resources/earth-3d.jpg') center/cover;
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.5);
+            animation: rotate 30s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .orbit {
+            position: absolute;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .orbit-leo {
+            width: 300px;
+            height: 300px;
+            animation: orbit-rotate 20s linear infinite;
+        }
+        
+        .orbit-meo {
+            width: 400px;
+            height: 400px;
+            animation: orbit-rotate 30s linear infinite reverse;
+        }
+        
+        .orbit-geo {
+            width: 500px;
+            height: 500px;
+            animation: orbit-rotate 40s linear infinite;
+        }
+        
+        @keyframes orbit-rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .satellite-marker {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-blue);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .satellite-marker:hover {
+            transform: scale(1.5);
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        /* Orbit labels overlay */
+        .orbit-label {
+            position: absolute;
+            color: var(--neon-blue);
+            font-weight: 800;
+            background: rgba(2,10,30,0.6);
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,212,255,0.08);
+            box-shadow: 0 6px 20px rgba(0,212,255,0.06);
+            z-index: 3;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+            transform: translate(-50%, -50%);
+        }
+
+        .orbit-label-leo { left: 50%; top: 28%; font-size: 14px; }
+        .orbit-label-meo { left: 50%; top: 50%; font-size: 14px; }
+        .orbit-label-geo { left: 50%; top: 72%; font-size: 14px; }
+
+        /* Orbit description popups (appear on zoom) */
+        .orbit-desc {
+            position: absolute;
+            width: min(360px, 80%);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(2,10,30,0.92);
+            border: 1px solid rgba(0,212,255,0.06);
+            color: #eaf4ff;
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 18px 60px rgba(0,10,30,0.6);
+            z-index: 3;
+            font-size: 13px;
+            line-height: 1.4;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 220ms ease, transform 220ms ease;
+        }
+
+        .orbit-desc.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(-6px); }
+
+        .orbit-desc.leo { top: 34%; }
+        .orbit-desc.meo { top: 56%; }
+        .orbit-desc.geo { top: 78%; }
+
+        /* Datacenter wrap animation: slow floating and subtle tilt */
+        .datacenter-wrap {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            pointer-events: none;
+            will-change: transform, opacity;
+            animation: floatSlow 8s ease-in-out infinite;
+        }
+        .datacenter-img {
+            width: 62%;
+            max-width: 760px;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            object-fit: cover;
+            display: block;
+            opacity: 1;
+            transition: opacity 420ms ease, transform 360ms cubic-bezier(.2,.9,.2,1);
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes floatSlow {
+            0% { transform: translate(-50%, -50%) rotate(-0.4deg) translateY(0); }
+            50% { transform: translate(-50%, -50%) rotate(0.6deg) translateY(-8px); }
+            100% { transform: translate(-50%, -50%) rotate(-0.4deg) translateY(0); }
+        }
+
+        /* Benefit spheres styling inside Technical Benefits: spread across full section and larger circles */
+        .benefit-spheres {
+            position: absolute;
+            inset: 0;
+            z-index: 3; /* above orbital canvas and background */
+            pointer-events: none; /* let clicks pass to canvas, spheres themselves are focusable */
+        }
+
+        .benefit-sphere {
+            position: absolute;
+            width: 520px; /* increased size */
+            height: 520px; /* increased size */
+            min-width: 320px;
+            min-height: 320px;
+            border-radius: 50%;
+            padding: 28px;
+            box-sizing: border-box;
+            background: radial-gradient(circle at 30% 30%, rgba(0,212,255,0.14), rgba(0,96,188,0.12) 35%, rgba(2,8,30,0.6) 70%);
+            box-shadow: 0 30px 90px rgba(0, 40, 90, 0.55), inset 0 -10px 28px rgba(0,0,0,0.45);
+            color: #eaf4ff;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+            justify-content: center;
+            text-align: left;
+            transform-origin: center;
+            /* compose transforms using CSS variables so JS can add subtle idle motion without clobbering hover styles */
+            transform: translate(-50%, -50%) translateX(var(--idle-x, 0px)) translateY(var(--idle-y, 0px)) rotate(var(--idle-rot, 0deg)) scale(var(--idle-scale, 1));
+            transition: transform 360ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms ease, filter 260ms ease;
+            cursor: default;
+            border: 1px solid rgba(0,212,255,0.06);
+            pointer-events: auto; /* enable hover/focus interactions on the spheres */
+            position: absolute;
+            overflow: hidden; /* contain hover visuals */
+        }
+
+        /* Background visual layer for futuristic hover effect */
+        .benefit-sphere::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            z-index: 0; /* behind text */
+            pointer-events: none;
+            background-image: radial-gradient(circle at 30% 30%, rgba(0,220,255,0.12), transparent 30%),
+                              conic-gradient(from 200deg at 50% 50%, rgba(0,200,255,0.06), rgba(0,120,200,0.06), rgba(0,200,255,0.06));
+            background-blend-mode: screen;
+            opacity: 0;
+            transform: scale(0.96);
+            transition: opacity 320ms ease, transform 420ms cubic-bezier(.2,.9,.2,1), filter 320ms ease;
+            filter: blur(4px) saturate(120%);
+        }
+
+        /* subtle holographic lines overlay */
+        .benefit-sphere::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            z-index: 1; /* above bg layer but below text */
+            pointer-events: none;
+            background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 12px),
+                              repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 12px);
+            mix-blend-mode: overlay;
+            opacity: 0;
+            transition: opacity 420ms ease;
+        }
+
+    /* Positions across the section (spread out and non-overlapping) */
+    /* Nudge spheres slightly apart to avoid overlap while keeping them central */
+    .benefit-sphere:nth-child(1) { left: 26%; top: 28%; transform: translate(-50%, -50%); }
+    .benefit-sphere:nth-child(2) { left: 74%; top: 26%; transform: translate(-50%, -50%); }
+    .benefit-sphere:nth-child(3) { left: 30%; top: 72%; transform: translate(-50%, -50%); }
+    .benefit-sphere:nth-child(4) { left: 70%; top: 76%; transform: translate(-50%, -50%); }
+
+        .benefit-sphere:focus,
+        .benefit-sphere:hover {
+            /* pause float animation so hover transform applies cleanly */
+            animation-play-state: paused;
+            /* keep idle offsets while nudging upward and scaling on hover */
+            transform: translate(-50%, -50%) translateX(var(--idle-x, 0px)) translateY(calc(var(--idle-y, 0px) - 12px)) rotate(var(--idle-rot, 0deg)) scale(calc(var(--idle-scale, 1) * 1.12));
+            box-shadow: 0 56px 140px rgba(0,60,140,0.62);
+            outline: none;
+            filter: saturate(130%);
+            transition: transform 360ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms ease, filter 260ms ease;
+            /* reveal futuristic background visuals */
+        }
+
+        .benefit-sphere:focus::before,
+        .benefit-sphere:hover::before {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(2px) saturate(150%);
+            animation: bgDrift 10s linear infinite;
+        }
+
+        .benefit-sphere:focus::after,
+        .benefit-sphere:hover::after {
+            opacity: 0.18;
+        }
+
+        @keyframes bgDrift {
+            0% { background-position: 0% 0%, 0% 0%; }
+            50% { background-position: 30% 20%, 50% 50%; }
+            100% { background-position: 0% 0%, 0% 0%; }
+        }
+
+        .benefit-sphere h4 {
+            font-size: 24px; /* larger heading */
+            margin: 0 0 10px 0;
+            color: #dff8ff;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+
+        .benefit-sphere p {
+            margin: 0;
+            font-size: 16px; /* larger body copy */
+            color: rgba(234,244,255,0.98);
+            line-height: 1.5;
+            max-height: 14rem;
+            overflow: auto;
+            padding-right: 8px;
+        }
+
+        /* Button placed at the bottom of a benefit sphere */
+        .benefit-sphere .sphere-btn {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, var(--neon-blue), #0095d6);
+            color: #00121a;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,212,255,0.14);
+            z-index: 6;
+            transition: transform 180ms ease, box-shadow 160ms ease, opacity 180ms ease;
+        }
+
+        .benefit-sphere .sphere-btn:hover {
+            transform: translateX(-50%) translateY(-4px);
+            box-shadow: 0 18px 44px rgba(0,212,255,0.22);
+        }
+
+        /* gentle float animation for spheres to feel alive */
+        @keyframes sphereFloat {
+            0% { transform: translate(-50%, -50%) translateY(0) rotate(-0.4deg); }
+            50% { transform: translate(-50%, -50%) translateY(-10px) rotate(0.6deg); }
+            100% { transform: translate(-50%, -50%) translateY(0) rotate(-0.4deg); }
+        }
+
+        .benefit-sphere { animation: sphereFloat 12s ease-in-out infinite; }
+
+        /* staggered variations so spheres don't move in unison */
+        .benefit-sphere:nth-child(1) { animation-delay: 0s; }
+        .benefit-sphere:nth-child(2) { animation-delay: 1.6s; }
+        .benefit-sphere:nth-child(3) { animation-delay: 3.2s; }
+        .benefit-sphere:nth-child(4) { animation-delay: 4.8s; }
+
+        /* responsive: stack vertically on small screens and scale down sizes */
+        @media (max-width: 980px) {
+            .benefit-sphere { position: static; width: 96%; height: auto; border-radius: 16px; padding: 18px; animation: none; }
+            .benefit-spheres { display: flex; flex-direction: column; gap: 18px; align-items: center; justify-content: center; padding: 28px 0; }
+            .benefit-sphere h4 { font-size: 20px; }
+            .benefit-sphere p { font-size: 15px; max-height: none; }
+        }
+        
+        /* Technology Section */
+        .technology-section {
+            padding: 120px 0;
+            background: var(--space-black);
+        }
+
+        /* AI Integration background canvas */
+        .ai-integration-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none; /* overlay visuals only; interactions handled by section */
+            overflow: hidden;
+        }
+
+        .ai-integration-bg canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* ensure tech-grid content sits above the canvas */
+        .technology-section .container, .technology-section .tech-grid { position: relative; z-index: 2; }
+        
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+        
+        .tech-card {
+            background: linear-gradient(135deg, rgba(0, 20, 84, 0.2) 0%, rgba(0, 212, 255, 0.1) 100%);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tech-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 212, 255, 0.2);
+        }
+        
+        .tech-logo {
+            width: 80px;
+            height: 80px;
+            background: var(--isu-blue);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--white);
+        }
+        
+        /* AI Role Section */
+        .ai-section {
+            padding: 120px 0;
+            background: linear-gradient(135deg, var(--isu-blue) 0%, var(--space-black) 100%);
+            text-align: center;
+        }
+        
+        .ai-highlight {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: var(--white);
+        }
+        
+        .ai-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+        }
+        
+        .ai-feature {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 60px 0;
+            background: var(--space-black);
+            text-align: center;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .footer-content {
+            color: var(--gray-medium);
+            font-size: 14px;
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 1s ease forwards;
+        }
+        
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-stats {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .nav-links {
+                gap: 20px;
+            }
+            
+            .container {
+                padding: 0 20px;
+            }
+
+            /* keep abstract readable on small screens by reducing the scale back */
+            .abstract-content {
+                font-size: 18px;
+                line-height: 1.6;
+            }
+            
+            .datacenter-grid,
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Scroll Animations */
+        .section {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+
+        /* Fade/slide behavior for sections: visible => fade in; leaving => fade out */
+        .section {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 600ms cubic-bezier(.2,.9,.2,1), transform 600ms cubic-bezier(.2,.9,.2,1);
+        }
+
+        .section .section-title,
+        .section .abstract-content {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity 560ms ease, transform 560ms ease;
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* "Getting in" enter effect for the solution section: animated light-blue gradient */
+        #solution {
+            position: relative;
+            overflow: visible;
+        }
+
+        #solution::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0; /* sits behind section content */
+            pointer-events: none;
+            background: linear-gradient(120deg, rgba(2,18,40,0.86) 0%, rgba(0,61,138,0.94) 40%, rgba(0,212,255,0.06) 100%);
+            background-size: 200% 200%;
+            opacity: 0;
+            transition: opacity 420ms ease, transform 420ms ease;
+            filter: blur(16px) saturate(120%);
+            transform: translateZ(0) scale(1.02);
+            mix-blend-mode: screen;
+        }
+
+        /* When the section enters the viewport add a subtle animation */
+        #solution.in::before {
+            opacity: 1;
+            animation: gradientShift 8s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .section.visible .section-title,
+        .section.visible .abstract-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Data Stream Animation */
+        .data-stream {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, var(--neon-blue), transparent);
+            animation: dataFlow 2s linear infinite;
+        }
+        
+        @keyframes dataFlow {
+            0% { transform: translateY(-100px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(600px); opacity: 0; }
+        }
+
+        /* Starfield background canvas styling */
+        #starfield {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            display: block;
+            pointer-events: none; /* allow clicks through */
+            background: radial-gradient(ellipse at 20% 10%, rgba(20,28,60,0.35) 0%, transparent 40%), radial-gradient(ellipse at 80% 80%, rgba(10,8,30,0.25) 0%, transparent 40%);
+        }
+
+        /* Ensure main content sits above the starfield */
+        main { position: relative; z-index: 2; }
+
+            /* Info popup styles (large, animated, attention-grabbing) */
+            .info-popup-container {
+                position: fixed;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 2200;
+                pointer-events: auto;
+            }
+
+            .info-popup {
+                width: min(900px, 90%);
+                background: linear-gradient(180deg, rgba(2,10,30,0.96), rgba(8,16,40,0.98));
+                border: 1px solid rgba(0,212,255,0.14);
+                border-radius: 18px;
+                padding: 28px;
+                box-shadow: 0 30px 80px rgba(0,10,30,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+                color: #eaf4ff;
+                transform: translateY(8px) scale(0.96);
+                opacity: 0;
+                transition: transform 320ms cubic-bezier(.2,.9,.2,1), opacity 260ms ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .info-popup.show {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+
+            .info-popup.hide {
+                transform: translateY(8px) scale(0.94);
+                opacity: 0;
+            }
+
+            .info-popup-inner { max-height: 70vh; overflow:auto; padding-right:8px; }
+
+            .info-popup h4 { color: #9fdcff; margin-bottom: 12px; }
+            .info-popup ul { list-style: none; padding-left: 18px; }
+            .info-popup li { margin-bottom: 10px; color: #d6eaff; }
+
+            .info-close {
+                position: absolute;
+                right: 12px;
+                top: 12px;
+                background: transparent;
+                border: 0;
+                color: #9fdcff;
+                font-weight: 700;
+                padding: 6px 10px;
+                cursor: pointer;
+                border-radius: 8px;
+            }
+
+            .info-popup .info-badge {
+                display:inline-block;padding:6px 10px;border-radius:999px;background:linear-gradient(90deg,#ffb84d,#9aa3ff);color:#07101a;font-weight:700;margin-bottom:12px;
+            }
+    </style>
+<base target="_blank">
 </head>
 <body>
-  <main class="poster-shell">
-    <img src="../../ISU-Logo-patch-300px.png" alt="International Space University mission patch">
-    <h1>AI for Space Engineering &amp; Autonomous Systems</h1>
-    <p class="subtitle">International Space University • SpaceAI Poster Session</p>
+    <!-- Starfield background canvas (covers whole viewport) -->
+    <canvas id="starfield" aria-hidden="true"></canvas>
 
-    <div class="status-banner">
-      <span aria-hidden="true">🚀</span>
-      <p>Mission Control reports the autonomous systems payload is in final checks—awaiting the go for launch as the team builds out this poster.</p>
+    <!-- ISU Logo -->
+    <div class="isu-logo">
+        <img src="./Logo ISU white.png" alt="ISU logo showing a white rounded square badge with uppercase letters ISU and a simplified orbital ring around a central dot representing space and education; displayed as a static site branding element in the page header; transcribed text ISU; tone formal and authoritative">
     </div>
-
-    <section>
-      <h2>Project Overview</h2>
-      <p>Autonomous spacecraft, robotics and mission control. Investigate AI approaches for guidance, navigation and control, autonomous rendezvous and docking, anomaly detection, adaptive power management or robotic exploration. Highlight case studies such as Mars rovers, OSIRIS-REx or autonomous satellite swarms.</p>
-      <h2>Team Members</h2>
-      <ul>
-        <li>Ruchira Hanumant Huchgol</li>
-        <li>Bailey Thomas Mendel</li>
-        <li>David Razo</li>
-        <li>Venu Satish Jangam</li>
-        <li>Aastha Nareshkumar Bhatt</li>
-        <li>Nina Velimirović</li>
-        <li>Kenneth Ichiro McFarland</li>
-      </ul>
+    
+    <!-- Navigation removed per request; only ISU logo kept -->
+    
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <canvas class="hero-canvas" id="heroCanvas"></canvas>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span id="typed-title"></span>
+            </h1>
+            <p class="hero-subtitle">
+                Clouds Beyond the Atmosphere. AI-orchestrated orbital data centers—sun-powered, space-cooled.
+            </p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number">10x</span>
+                    <span class="stat-label">Carbon Reduction</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">Zero</span>
+                    <span class="stat-label">Water Usage</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">25ms</span>
+                    <span class="stat-label">Latency LEO</span>
+                </div>
+            </div>
+        </div>
     </section>
+    
+    <!-- Abstract Section -->
+    <section id="problem" class="abstract-section section">
+        <div class="container">
+            <h2 class="section-title">The Challenge</h2>
+            <div class="abstract-content">
+                <p>
+                    <span class="glow-term strong" style="--i:0">The cloud is not weightless; it is materially intensive</span>. U.S. data centers collectively withdraw <span class="glow-term" style="--i:1">≈1.7 billion liters/day</span> (with single hyperscale sites averaging <span class="glow-term" style="--i:2">≈1.7 million L/day</span>), and thermal management typically accounts for <span class="glow-term" style="--i:3">~40% of electricity use</span>. Meanwhile, European payment systems route on the order of <span class="glow-term strong" style="--i:4">€3 trillion/day</span> through this infrastructure. We therefore examine an off-planet architecture—<span class="glow-term strong" style="--i:5">AI-orchestrated orbital data centers</span>, powered by <span class="glow-term" style="--i:6">continuous solar</span> and <span class="glow-term" style="--i:7">cooled via radiative heat rejection</span>—to decouple compute growth from terrestrial constraints.
+                </p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Current Data Centers Challenges -->
+    <section class="current-datacenters section">
+        <div class="container">
+            <h2 class="section-title">Current Data Center Challenges</h2>
+            
+            <div class="datacenter-grid">
+                <div class="datacenter-card" data-type="water" tabindex="0">
+                    <div class="card-icon"><span class="emoji drop" aria-hidden="true">💧</span></div>
+                    <h3 class="card-title">Water Consumption</h3>
+                    <div class="card-graph"></div>
+                    <p class="card-description">
+                        U.S. data centers collectively withdraw ≈1.7 billion liters/day; single hyperscale sites average ≈1.7 million L/day. Thermal management typically accounts for ~40% of electricity use.
+                    </p>
+                </div>
+                
+                <div class="datacenter-card" data-type="energy" tabindex="0">
+                    <div class="card-icon"><span class="emoji lightning" aria-hidden="true">⚡</span></div>
+                    <h3 class="card-title">Energy Usage</h3>
+                    <div class="card-graph"></div>
+                    <p class="card-description">
+                        183 TWh consumed in 2024 (≈4% of total U.S. electricity). Cooling and infrastructure operations often represent ~40% of site energy draw.
+                    </p>
+                </div>
+                
+                <div class="datacenter-card" data-type="carbon" tabindex="0">
+                    <div class="card-icon"><span class="emoji leaf" aria-hidden="true">🌱</span></div>
+                    <h3 class="card-title">Carbon Emissions</h3>
+                    <div class="card-graph"></div>
+                    <p class="card-description">
+                        105 million metric tons CO2 in 2024 (≈300% growth since 2018). Carbon intensity averages ~548 gCO2e/kWh across measured sites.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- CAPEX Breakdown (donut) inserted per user request: medium-sized Chart.js doughnut -->
+            <div class="chart-container" style="max-width:720px; margin:36px auto;">
+                <h3 class="chart-title">CAPEX Breakdown of terrestrial datacenters</h3>
+                <div style="height:320px;">
+                    <canvas id="costChart" aria-label="CAPEX breakdown donut chart" role="img" style="width:100%;height:100%;display:block;"></canvas>
+                </div>
+                <p style="text-align:center;margin-top:12px;color:var(--gray-medium);font-size:13px;">CAPEX allocation (Electrical, Thermal, Shell, Network) — percentages of total capital expenditure.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Technical Benefits Section -->
+    <section id="solution" class="Technical Benefits section">
+        <div class="container">
+            <h2 class="section-title"> Technical Benefits </h2>
+            
+            <div class="orbital-visualization">
+                <!-- Dedicated canvas for a small 3D orbital viewer -->
+                <canvas id="orbitalCanvas" style="width:100%;height:100%;display:block;opacity:0;transition:opacity 420ms ease;"></canvas>
 
-    <a class="cta" href="../../index.html">Return to SpaceAI Home</a>
-  </main>
+                <!-- Orbit labels removed per request -->
+
+                <!-- Informational spheres: key technical benefits (Low Latency, Bandwidth Conservation, Open Access, Resilience) -->
+                <div class="benefit-spheres" aria-hidden="false">
+                    <div class="benefit-sphere" tabindex="0" role="article" aria-labelledby="b1-title">
+                        <h4 id="b1-title">Low Latency</h4>
+                        <p>
+                            Placing compute in LEO keeps inference a few hundred–few thousand km from the sensor, yielding ~25–88 ms round-trip latency and ~50% faster free-space propagation than fiber—far below GEO. This shrinks the interval from data acquisition to user insight, enabling near-real-time edge analytics for constellations and cislunar operations.
+                        </p>
+                        <button class="sphere-btn" aria-label="Low Latency action">Click me!</button>
+                    </div>
+
+                    <div class="benefit-sphere" tabindex="0" role="article" aria-labelledby="b2-title">
+                        <h4 id="b2-title">Bandwidth Conservation</h4>
+                        <p>
+                            Orbital edge systems pre-process data on-board (detection, compression, summarization), downlinking only salient products so terabyte-scale raw streams become kilobyte-scale telemetry. Federated learning exchanges model updates rather than datasets, further reducing downlink load and Earth-side storage.
+                        </p>
+                    </div>
+
+                    <div class="benefit-sphere" tabindex="0" role="article" aria-labelledby="b3-title">
+                        <h4 id="b3-title">Open Access</h4>
+                        <p>
+                            An orbital cloud system exposes a network of compute/storage nodes reachable from ground stations and partner networks, decoupling access from local land, power, and water constraints. Workloads can be placed at—and retrieved from—the most efficient node via inter-satellite links.
+                        </p>
+                    </div>
+
+                    <div class="benefit-sphere" tabindex="0" role="article" aria-labelledby="b4-title">
+                        <h4 id="b4-title">Resilience</h4>
+                        <p>
+                            Constellation architectures provide intrinsic redundancy: N+3–N+5 replication, ECC/TMR for radiation upsets, and autonomous failover that restores service in seconds rather than minutes. Mesh topologies and predictive routing sustain continuity despite single-satellite faults or regional ground outages.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fallback (for non-3D) decorative data streams -->
+                <div class="data-stream" style="left: 10%; animation-delay: 0s;"></div>
+                <div class="data-stream" style="left: 30%; animation-delay: 0.5s;"></div>
+                <div class="data-stream" style="left: 50%; animation-delay: 1s;"></div>
+                <div class="data-stream" style="left: 70%; animation-delay: 1.5s;"></div>
+                <div class="data-stream" style="left: 90%; animation-delay: 2s;"></div>
+            </div>
+            
+            <!-- Environmental Benefits Comparison removed -->
+        </div>
+    </section>
+    
+    <!-- Technology Section -->
+    <section id="technology" class="technology-section section">
+        <div class="container">
+            <h2 class="section-title">AI Integration</h2>
+            
+            <!-- AI Integration interactive background -->
+            <div class="ai-integration-bg" aria-hidden="true">
+                <canvas id="aiIntegrationCanvas"></canvas>
+            </div>
+
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-logo">SC</div>
+                    <h3>Starcloud</h3>
+                    <p>Launching NVIDIA H100 GPU into orbit with 100x more powerful compute than any previous space-based operation.</p>
+                </div>
+                
+                <div class="tech-card">
+                    <div class="tech-logo">AS</div>
+                    <h3>Axiom Space</h3>
+                    <p>AxDCU-1 prototype testing orbital data center capabilities for cloud computing and AI/ML on ISS.</p>
+                </div>
+                
+                <div class="tech-card">
+                    <div class="tech-logo">LS</div>
+                    <h3>Lonestar</h3>
+                    <p>First lunar data center payload successfully operated aboard Intuitive Machines' Athena Lunar Lander.</p>
+                </div>
+                
+                <div class="tech-card">
+                    <div class="tech-logo">G</div>
+                    <h3>Google</h3>
+                    <p>Project Suncatcher exploring solar-powered satellite constellations for AI data centers in space.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- AI Role Section -->
+    <section id="ai" class="ai-section section">
+        <div class="container">
+            <h2 class="section-title">The Critical Role of AI</h2>
+            
+            <div class="ai-highlight">
+                <span class="highlight">AI autonomy is essential for orbital data center operations</span>
+            </div>
+            
+            <div class="ai-features">
+                <div class="ai-feature">
+                    <h3>🤖 Autonomous Maintenance</h3>
+                    <p>AI systems monitor and repair satellite components without human intervention, reducing operational costs and response times.</p>
+                </div>
+                
+                <div class="ai-feature">
+                    <h3>🌡️ Thermal Control</h3>
+                    <p>Intelligent thermal management systems optimize radiative cooling and prevent overheating in the space environment.</p>
+                </div>
+                
+                <div class="ai-feature">
+                    <h3>📊 Workload Orchestration</h3>
+                    <p>Dynamic resource allocation and task scheduling across satellite constellations for optimal performance.</p>
+                </div>
+                
+                <div class="ai-feature">
+                    <h3>🔒 Cybersecurity</h3>
+                    <p>AI-powered security systems protect against space-based threats and ensure data integrity in hostile environments.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 AI Orbital Data Centers Research. Advancing sustainable computing through space-based infrastructure.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Core JavaScript -->
+    <script src="main.js"></script>
+    <!-- Fallback/init helper: ensure CAPEX donut renders even if Chart.js initialization timing or resize prevented it -->
+    <script>
+    window.addEventListener('load', function() {
+        try {
+            const el = document.getElementById('costChart');
+            if (!el) return;
+
+            // If Chart.js is present and there's no existing chart attached, create one.
+            if (typeof Chart !== 'undefined') {
+                // Chart.getChart returns an instance if one exists (v3+); guard for older builds.
+                let existing = null;
+                try { existing = Chart.getChart ? Chart.getChart(el) : null; } catch(e) { existing = null; }
+                if (!existing) {
+                    new Chart(el, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Electrical (35%)', 'Thermal (35%)', 'Shell (15%)', 'Network (15%)'],
+                            datasets: [{
+                                data: [35, 35, 15, 15],
+                                backgroundColor: ['#00d4ff','#00ff88','#ff6b35','#ff35a6'],
+                                hoverOffset: 8,
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '55%',
+                            plugins: {
+                                legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12 } },
+                                tooltip: { backgroundColor: 'rgba(0,20,84,0.9)', titleColor: '#fff', bodyColor: '#fff' }
+                            }
+                        }
+                    });
+                }
+            } else {
+                console.warn('Chart.js not available to initialize costChart.');
+            }
+        } catch(err) {
+            // fail silently but log for debugging
+            console.error('Failed to initialize CAPEX donut chart:', err);
+        }
+    });
+    </script>
+    <script>
+    // Parallax for the abstract: subtle parent rotation + per-term parallax
+    (function(){
+        const abstract = document.querySelector('.abstract-content');
+        if (!abstract) return;
+        const terms = Array.from(abstract.querySelectorAll('.glow-term'));
+        let raf = null;
+
+        function onMove(e){
+            const r = abstract.getBoundingClientRect();
+            const cx = r.left + r.width/2;
+            const cy = r.top + r.height/2;
+            const dx = (e.clientX - cx) / r.width; // -0.5 .. 0.5
+            const dy = (e.clientY - cy) / r.height;
+
+            // parent rotation (subtle)
+            const rx = (-dy * 6).toFixed(2);
+            const ry = (dx * 10).toFixed(2);
+            abstract.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+
+            // per-term parallax: push terms forward proportionally to closeness to cursor
+            terms.forEach((t) => {
+                const tr = t.getBoundingClientRect();
+                const tcx = tr.left + tr.width/2;
+                const tcy = tr.top + tr.height/2;
+                const ddx = e.clientX - tcx;
+                const ddy = e.clientY - tcy;
+                const dist = Math.sqrt(ddx*ddx + ddy*ddy);
+                const max = Math.max(220, Math.min(window.innerWidth, 420));
+                const factor = Math.max(0, 1 - dist / max);
+                const baseZ = t.classList.contains('strong') ? 26 : 18;
+                const tz = Math.round(baseZ * factor);
+                const tx = (-ddx * 0.02 * factor).toFixed(2);
+                const ty = (-ddy * 0.02 * factor).toFixed(2);
+                const s = (1 + 0.06 * factor).toFixed(3);
+                t.style.setProperty('--tz', tz + 'px');
+                t.style.setProperty('--tx', tx + 'px');
+                t.style.setProperty('--ty', ty + 'px');
+                t.style.setProperty('--s', s);
+            });
+
+            if (raf) cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(()=>{});
+        }
+
+        function onLeave(){
+            abstract.style.transform = '';
+            terms.forEach(t => {
+                t.style.setProperty('--tz','0px');
+                t.style.setProperty('--tx','0px');
+                t.style.setProperty('--ty','0px');
+                t.style.setProperty('--s','1');
+            });
+        }
+
+        abstract.addEventListener('mousemove', onMove);
+        abstract.addEventListener('mouseleave', onLeave);
+        // touch support: apply a subtle parallax on touchmove
+        abstract.addEventListener('touchmove', function(e){ if(e.touches && e.touches[0]) onMove(e.touches[0]); }, { passive: true });
+        abstract.addEventListener('touchend', onLeave);
+    })();
+    </script>
+    <script>
+    // Section enter observer: when #solution scrolls into view, add .in to trigger the blue gradient effect
+    (function(){
+        try {
+            const target = document.getElementById('solution');
+            if (!target) return;
+
+            const observer = new IntersectionObserver((entries)=>{
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.intersectionRatio > 0.15) {
+                        entry.target.classList.add('in');
+                    } else {
+                        // keep the effect after first reveal; comment out removal to allow repeated toggles
+                        // entry.target.classList.remove('in');
+                    }
+                });
+            }, { root: null, rootMargin: '0px', threshold: [0.15] });
+
+            observer.observe(target);
+        } catch (e) {
+            console.warn('Section enter observer failed', e);
+        }
+    })();
+    </script>
 </body>
 </html>
