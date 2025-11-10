@@ -13,6 +13,21 @@
   --muted: rgba(242,245,251,0.75);
 }
 
+/* Ensure the deepest back layer is solid black so videos and transparent layers
+   blend into true black. Use strong specificity and !important to override
+   any incidental background gradients or images while developing. */
+html, body, :root{
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+/* Also ensure video elements and their containers have a black background so
+   any transparent frames still show black behind them. */
+.hero-video, .hero-video video, video{
+  background-color: #000000 !important;
+}
+
+
 /* Page shell and print sizing */
 html,body{
   height: 100%;
