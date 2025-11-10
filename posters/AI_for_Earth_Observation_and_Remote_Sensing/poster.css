@@ -25,6 +25,7 @@ html,body{
 
 /* Hero video styles (top and bottom) */
 .hero-video{ width:100%; display:block; overflow:hidden; }
+.hero-video.top{ position: relative; }
 .hero-video video{ width:100%; height:auto; display:block; opacity:1; transition: opacity 700ms ease; }
 .hero-video video.mirrored{ transform: scaleY(-1); }
 .hero-video video.fade-out{ opacity:0; }
@@ -79,7 +80,8 @@ html,body{
 /* Header */
 .poster-header{
   position: absolute;
-  left: 0; right: 0; top: 8px;
+  left: 0; right: 0; top: 50%;
+  transform: translateY(-50%);
   display: flex; flex-direction: column; align-items:center; gap:6px;
   padding: 6px 20px; z-index: 80; pointer-events: none;
 }

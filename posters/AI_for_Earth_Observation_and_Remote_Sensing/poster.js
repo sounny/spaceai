@@ -235,6 +235,24 @@ document.addEventListener('DOMContentLoaded', () => {
       if (ev.target === dividerEl) return;
       setCompareFromClientX(ev.clientX);
     });
+
+    // Also allow starting a drag from anywhere inside the compare container
+    // (helps on devices where the visible handle may be small or missed).
+    compareContainer.addEventListener('pointerdown', (ev) => {
+      // let native range control handle its own pointer events
+      if (ev.target && ev.target.tagName === 'INPUT') return;
+      ev.preventDefault();
+      compareDragging = true;
+      compareContainer.classList.add('dragging');
+      if (dividerEl) dividerEl.classList.add('dragging');
+      try{ compareContainer.setPointerCapture(ev.pointerId); } catch(e){}
+      setCompareFromClientX(ev.clientX);
+    });
+
+    // ensure we stop drag if pointer is released on the container as well
+    compareContainer.addEventListener('pointerup', (ev)=>{
+      stopCompareDrag(ev);
+    });
   }
 
   // Timeline: position milestone cubes along the SVG curve and update on scroll/resize
