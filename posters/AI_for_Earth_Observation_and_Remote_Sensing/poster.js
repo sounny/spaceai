@@ -233,4 +233,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // also reposition when images/videos load that can change layout
   window.addEventListener('load', schedulePosition);
+
+  // Page scroll indicator (right-edge tiny white square)
+  const pageIndicator = document.getElementById('page-scroll-indicator');
+  function updatePageIndicator(){
+    if (!pageIndicator) return;
+    const doc = document.documentElement;
+    const scrollTop = window.scrollY || doc.scrollTop;
+    const scrollHeight = Math.max(doc.scrollHeight, document.body.scrollHeight);
+    const clientH = window.innerHeight || doc.clientHeight;
+    const maxScroll = Math.max(0, scrollHeight - clientH);
+    const progress = maxScroll > 0 ? (scrollTop / maxScroll) : 0;
+    const indH = pageIndicator.offsetHeight || 12;
+    const y = Math.round(progress * (clientH - indH));
+    // position relative to viewport
+    pageIndicator.style.top = `${y}px`;
+    const val = Math.round(progress * 100);
+    pageIndicator.setAttribute('aria-valuenow', String(val));
+  }
+
+  // initial update and handlers
+  updatePageIndicator();
+  window.addEventListener('scroll', updatePageIndicator, {passive:true});
+  window.addEventListener('resize', updatePageIndicator);
+
+  // Make the indicator clickable/draggable to control scroll position
+  if (pageIndicator){
+    let isDragging = false;
+    function clientYToProgress(clientY){
+      const indH = pageIndicator.offsetHeight || 12;
+      const available = window.innerHeight - indH;
+      const y = Math.max(0, Math.min(available, clientY));
+      return available > 0 ? (y / available) : 0;
+    }
+
+    function setScrollFromProgress(progress){
+      const doc = document.documentElement;
+      const scrollHeight = Math.max(doc.scrollHeight, document.body.scrollHeight);
+      const clientH = window.innerHeight || doc.clientHeight;
+      const maxScroll = Math.max(0, scrollHeight - clientH);
+      const top = Math.round(progress * maxScroll);
+      window.scrollTo({ top, left: 0, behavior: 'auto' });
+      // Update indicator position/aria after programmatic scroll
+      updatePageIndicator();
+    }
+
+    pageIndicator.addEventListener('pointerdown', (ev)=>{
+      ev.preventDefault();
+      isDragging = true;
+      pageIndicator.classList.add('dragging');
+      pageIndicator.setPointerCapture(ev.pointerId);
+      // Immediately respond to where the user clicked
+      const rect = pageIndicator.getBoundingClientRect();
+      const progress = clientYToProgress(ev.clientY - (rect.height/2));
+      setScrollFromProgress(progress);
+    });
+
+    pageIndicator.addEventListener('pointermove', (ev)=>{
+      if (!isDragging) return;
+      ev.preventDefault();
+      const progress = clientYToProgress(ev.clientY);
+      setScrollFromProgress(progress);
+    });
+
+    function endDrag(ev){
+      if (!isDragging) return;
+      isDragging = false;
+      pageIndicator.classList.remove('dragging');
+      try{ pageIndicator.releasePointerCapture(ev.pointerId); } catch(e){}
+      updatePageIndicator();
+    }
+
+    pageIndicator.addEventListener('pointerup', endDrag);
+    pageIndicator.addEventListener('pointercancel', endDrag);
+    // allow keyboard arrow/page keys to nudge the scroll when indicator focused
+    pageIndicator.addEventListener('keydown', (ev)=>{
+      if (ev.key === 'ArrowDown' || ev.key === 'PageDown') { ev.preventDefault(); window.scrollBy({ top: window.innerHeight * 0.15, behavior: 'smooth' }); }
+      if (ev.key === 'ArrowUp' || ev.key === 'PageUp') { ev.preventDefault(); window.scrollBy({ top: -window.innerHeight * 0.15, behavior: 'smooth' }); }
+      if (ev.key === 'Home') { ev.preventDefault(); window.scrollTo({ top:0, behavior:'smooth'}); }
+      if (ev.key === 'End') { ev.preventDefault(); window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth'}); }
+    });
+  }
 });

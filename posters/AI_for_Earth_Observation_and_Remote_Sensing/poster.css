@@ -354,3 +354,24 @@ details.collapsible .panel-body{ padding: 14px 18px 18px 18px; }
 
 /* Responsive */
 @media (max-width:980px){ .content-grid{ grid-template-columns: 1fr; } .visual-area{ height:360px; } }
+
+/* Right-edge tiny scroll indicator */
+#page-scroll-indicator{
+  position: fixed;
+  right: 14px; /* slightly offset from the very edge */
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-radius: 2px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  z-index: 9999;
+  transform: translateY(0);
+  transition: transform 120ms linear;
+  pointer-events: auto;
+  touch-action: none; /* allow dragging on touch devices */
+  user-select: none;
+  cursor: grab;
+}
+
+#page-scroll-indicator:focus{ outline: 3px solid rgba(11,144,255,0.18); outline-offset: 4px; }
+#page-scroll-indicator.dragging{ cursor: grabbing; }
