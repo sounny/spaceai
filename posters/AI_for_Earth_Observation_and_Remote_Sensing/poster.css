@@ -196,25 +196,23 @@ html,body{
   border: 1px solid rgba(0,0,0,0.08);
   transform-style: preserve-3d;
 }
-.timeline .cube::after{
-  content: attr(data-label);
+.timeline .cube:focus{ outline: 3px solid rgba(11,144,255,0.18); outline-offset:6px; }
+
+/* Permanent label next to each cube */
+.timeline .cube .cube-label{
   position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%) translateY(6px);
-  background: rgba(2,6,23,0.95);
-  color: #fff;
-  padding:6px 8px;
-  border-radius:6px;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
   font-size:13px;
   white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 180ms ease, transform 180ms ease;
-  z-index: 40;
+  background: rgba(2,6,23,0.0);
+  padding-left:6px;
+  pointer-events: none; /* labels are decorative */
+  z-index: 45;
+  opacity: 0.95;
 }
-.timeline .cube:focus::after, .timeline .cube:hover::after{ opacity:1; transform: translateX(-50%) translateY(0); }
-.timeline .cube:focus{ outline: 3px solid rgba(11,144,255,0.18); outline-offset:6px; }
 
 /* Add a subtle 3D face illusion using pseudo-elements */
 .timeline .cube::before,
