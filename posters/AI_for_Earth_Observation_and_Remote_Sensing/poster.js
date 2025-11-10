@@ -174,6 +174,69 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCompare(compareRange.value);
   }
 
+  // Divider dragging and click-to-move behavior for image compare
+  const compareContainer = document.querySelector('.image-compare');
+  const dividerEl = document.getElementById('compare-divider');
+  let compareDragging = false;
+
+  function setCompareFromClientX(clientX){
+    if (!compareContainer) return;
+    const rect = compareContainer.getBoundingClientRect();
+    let x = clientX - rect.left;
+    x = Math.max(0, Math.min(rect.width, x));
+    const pct = (x / rect.width) * 100;
+    if (compareRange) {
+      compareRange.value = Math.round(pct);
+      // fire input handlers
+      updateCompare(compareRange.value);
+    } else {
+      updateCompare(pct);
+    }
+    // update aria on divider as well
+    if (dividerEl) dividerEl.setAttribute('aria-valuenow', String(Math.round(pct)));
+  }
+
+  if (dividerEl && compareContainer){
+    // make divider accessible as a slider-like control
+    dividerEl.setAttribute('role', 'slider');
+    dividerEl.setAttribute('aria-orientation', 'horizontal');
+    dividerEl.setAttribute('aria-valuemin', '0');
+    dividerEl.setAttribute('aria-valuemax', '100');
+
+    dividerEl.addEventListener('pointerdown', (ev)=>{
+      ev.preventDefault();
+      compareDragging = true;
+      compareContainer.classList.add('dragging');
+      dividerEl.classList.add('dragging');
+      try{ dividerEl.setPointerCapture(ev.pointerId); } catch(e){}
+      setCompareFromClientX(ev.clientX);
+    });
+
+    window.addEventListener('pointermove', (ev)=>{
+      if (!compareDragging) return;
+      ev.preventDefault();
+      setCompareFromClientX(ev.clientX);
+    }, {passive:false});
+
+    function stopCompareDrag(ev){
+      if (!compareDragging) return;
+      compareDragging = false;
+      compareContainer.classList.remove('dragging');
+      dividerEl.classList.remove('dragging');
+      try{ if (ev && ev.pointerId) dividerEl.releasePointerCapture(ev.pointerId); } catch(e){}
+    }
+
+    window.addEventListener('pointerup', stopCompareDrag);
+    window.addEventListener('pointercancel', stopCompareDrag);
+
+    // allow clicking on the compare container to jump the divider
+    compareContainer.addEventListener('click', (ev)=>{
+      // ignore clicks on the divider itself (pointerdown handles drag start)
+      if (ev.target === dividerEl) return;
+      setCompareFromClientX(ev.clientX);
+    });
+  }
+
   // Timeline: position milestone cubes along the SVG curve and update on scroll/resize
   const timelineWrap = document.querySelector('.timeline-wrap');
   const timeline = document.querySelector('.timeline');
