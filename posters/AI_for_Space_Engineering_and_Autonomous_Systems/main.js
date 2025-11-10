@@ -13,7 +13,11 @@ document.addEventListener('DOMContentLoaded', function() {
     init3DEarth();
     initOrbitalViewer();
     initCharts();
+    initTemperatureChart();
     initAIIntegrationBackground();
+    initAIBoxModels();
+    initTechCardParallax();
+    initSustainabilitySection();
     initInteractiveElements();
     initSphereIdleMotion();
     initSmoothScrolling();
@@ -928,6 +932,132 @@ function initCharts() {
     }
 }
 
+// Temperature Stability & Cooling Performance chart
+function initTemperatureChart(){
+    try{
+        const el = document.getElementById('tempChart');
+        if (!el || typeof Chart === 'undefined') return;
+
+        const labels = [
+            'Radiator Eff (W/m²)',
+            'Daily Temp Fluct (°C)',
+            'Annual Temp Var (°C)'
+        ];
+
+        const datasets = [
+            { label: 'Terrestrial', data: [2, 0.001, 0.024], backgroundColor: '#0B7A75' },
+            { label: 'Orbital', data: [100, 5, 10], backgroundColor: '#18C2D5' },
+            { label: 'Moon', data: [1300, 150, 0.1], backgroundColor: '#2E7D32' }
+        ];
+
+        const tickValues = [0.001,0.01,0.1,0.5,1,2,5,10,20,50,100,200,1000,2000];
+
+        function formatNumber(n){
+            const num = Number(n);
+            // show up to 6 decimal places, strip trailing zeros, avoid scientific notation
+            let s = num.toFixed(6).replace(/\.?(0+)$/,'');
+            // remove trailing dot if present
+            s = s.replace(/\.$/, '');
+            return s;
+        }
+
+        const dataLabelPlugin = {
+            id: 'tempDataLabels',
+            afterDatasetsDraw: function(chart){
+                const ctx = chart.ctx;
+                chart.data.datasets.forEach((dataset, dsIndex) => {
+                    const meta = chart.getDatasetMeta(dsIndex);
+                    meta.data.forEach((bar, i) => {
+                        const val = dataset.data[i];
+                        try{
+                            const pos = bar.tooltipPosition();
+                            const lbl = formatNumber(val);
+                            ctx.save();
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = '12px Inter, Arial, sans-serif';
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(lbl, pos.x + 8, pos.y);
+                            ctx.restore();
+                        }catch(e){}
+                    });
+                });
+            }
+        };
+
+        const ctx = el.getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: datasets.map(d => ({
+                    label: d.label,
+                    data: d.data,
+                    backgroundColor: d.backgroundColor,
+                    borderRadius: 4,
+                    barThickness: 22
+                }))
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', align: 'start', labels: { color: '#ffffff' } },
+                    tooltip: {
+                        mode: 'nearest',
+                        intersect: true,
+                        callbacks: {
+                            label: function(ctx){
+                                const v = ctx.raw;
+                                const cat = ctx.chart.data.labels[ctx.dataIndex] || '';
+                                const m = cat.match(/\(([^)]+)\)/);
+                                const unit = m ? (' ' + m[1]) : '';
+                                return ctx.dataset.label + ': ' + formatNumber(v) + unit;
+                            }
+                        },
+                        backgroundColor: 'rgba(0,20,84,0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff'
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'logarithmic',
+                        position: 'bottom',
+                        min: 0.001,
+                        max: 2000,
+                        ticks: {
+                            callback: function(val){ return formatNumber(Number(val)); },
+                            autoSkip: false
+                        },
+                        grid: {
+                            color: 'rgba(255,255,255,0.06)'
+                        }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#ffffff' }
+                    }
+                },
+                datasets: { bar: { categoryPercentage: 0.3, barPercentage: 0.15 } }
+            },
+            plugins: [dataLabelPlugin]
+        });
+
+        // attempt to enforce the desired tick positions (best-effort; Chart.js may override depending on scale internals)
+        try{
+            const xScale = chart.scales['x'];
+            if (xScale && Array.isArray(tickValues)){
+                xScale.ticks = tickValues.map(v => ({ value: v, label: formatNumber(v) }));
+            }
+        }catch(e){}
+
+        // expose for debugging
+        window._tempStabilityChart = chart;
+    }catch(e){ console.warn('initTemperatureChart failed', e); }
+}
+
 // Interactive elements
 function initInteractiveElements() {
     // Data center cards hover effects
@@ -1410,6 +1540,259 @@ document.head.appendChild(styleSheet);
         });
     });
 })();
+
+// Small 3D models for AI Integration boxes (minimal, performant, respects prefers-reduced-motion)
+function initAIBoxModels() {
+    try {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            // render a single frame for each canvas (no animation)
+            ['ai-box-routing','ai-box-distributed','ai-box-fault'].forEach(id => {
+                const canvas = document.getElementById(id);
+                if (!canvas) return;
+                try {
+                    const scene = new THREE.Scene();
+                    const cam = new THREE.PerspectiveCamera(45, canvas.clientWidth / Math.max(120, canvas.clientHeight), 0.1, 1000);
+                    cam.position.set(0, 0.6, 2.6);
+                    const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+                    renderer.setPixelRatio(window.devicePixelRatio || 1);
+                    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+                    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+                    const dir = new THREE.DirectionalLight(0xffffff, 0.8); dir.position.set(5,3,5); scene.add(dir);
+                    // simple placeholder geometry depending on id
+                    let mesh;
+                    if (id === 'ai-box-routing') {
+                        mesh = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.08, 16, 64), new THREE.MeshStandardMaterial({ color: 0x00d4ff, metalness: 0.2, roughness: 0.35 }));
+                        mesh.rotation.x = Math.PI * 0.5;
+                    } else if (id === 'ai-box-distributed') {
+                        mesh = new THREE.Group();
+                        const nmat = new THREE.MeshStandardMaterial({ color: 0x00ff88, metalness:0.2, roughness:0.4 });
+                        const nodes = [new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), nmat), new THREE.Mesh(new THREE.SphereGeometry(0.10, 12, 12), nmat), new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), nmat)];
+                        nodes[0].position.set(-0.36, 0, 0); nodes[1].position.set(0.18, 0.18, 0); nodes[2].position.set(0.18, -0.18, 0);
+                        mesh.add(...nodes);
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints([nodes[0].position, nodes[1].position, nodes[2].position]);
+                        mesh.add(new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0x88ffd8, linewidth: 1 })));
+                    } else {
+                        // fault recognition: box + small rotating torus to imply repair
+                        const g = new THREE.Group();
+                        const box = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.28,0.18), new THREE.MeshStandardMaterial({ color: 0xff6b35, metalness:0.3, roughness:0.35 }));
+                        const tor = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.04, 10, 40), new THREE.MeshStandardMaterial({ color:0xffd8b6, metalness:0.1, roughness:0.45 }));
+                        tor.rotation.x = Math.PI/2; tor.position.set(0, 0.02, 0.1);
+                        g.add(box); g.add(tor); mesh = g;
+                    }
+                    scene.add(mesh);
+                    renderer.render(scene, cam);
+                    // dispose quickly
+                    try { renderer.dispose && renderer.dispose(); } catch(e){}
+                } catch(e) { console.warn('aiBox reduced-motion render failed for', id, e); }
+            });
+            return;
+        }
+
+        // active animation mode: create lightweight scenes per canvas
+        window._aiBoxModels = window._aiBoxModels || [];
+        const configs = [
+            { id: 'ai-box-routing' },
+            { id: 'ai-box-distributed' },
+            { id: 'ai-box-fault' }
+        ];
+
+        configs.forEach(cfg => {
+            const canvas = document.getElementById(cfg.id);
+            if (!canvas) return;
+            try {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / Math.max(120, canvas.clientHeight), 0.1, 1000);
+                camera.position.set(0, 0.6, 2.6);
+                const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+                renderer.setPixelRatio(window.devicePixelRatio || 1);
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+                scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+                const dir = new THREE.DirectionalLight(0xffffff, 0.8); dir.position.set(5,3,5); scene.add(dir);
+
+                let group = new THREE.Group();
+                scene.add(group);
+
+                if (cfg.id === 'ai-box-routing') {
+                    const tor = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.08, 12, 64), new THREE.MeshStandardMaterial({ color: 0x00d4ff, metalness:0.2, roughness:0.4 }));
+                    tor.rotation.x = Math.PI/2; group.add(tor);
+                    const pulseMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive:0x00ffcc, emissiveIntensity:0.6, metalness:0.1, roughness:0.45 });
+                    const orb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 10), pulseMat); orb.position.set(0.45, 0, 0); group.add(orb);
+                    // store for animation
+                    cfg._anim = (t)=>{ orb.position.x = Math.cos(t*1.6) * 0.45; orb.position.z = Math.sin(t*1.6) * 0.18; group.rotation.z = t * 0.08; };
+                } else if (cfg.id === 'ai-box-distributed') {
+                    const nodeMat = new THREE.MeshStandardMaterial({ color: 0x00ff88, metalness:0.15, roughness:0.45 });
+                    const n1 = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), nodeMat);
+                    const n2 = new THREE.Mesh(new THREE.SphereGeometry(0.10, 10, 10), nodeMat);
+                    const n3 = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 10), nodeMat);
+                    n1.position.set(-0.36, 0, 0); n2.position.set(0.18, 0.18, 0); n3.position.set(0.18, -0.18, 0);
+                    group.add(n1, n2, n3);
+                    const geo = new THREE.BufferGeometry().setFromPoints([n1.position, n2.position, n3.position, n1.position]);
+                    const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x88ffd8 }));
+                    group.add(line);
+                    cfg._anim = (t)=>{ group.rotation.y = Math.sin(t*0.6) * 0.22; };
+                } else {
+                    const box = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.28,0.18), new THREE.MeshStandardMaterial({ color: 0xff6b35, metalness:0.25, roughness:0.38 }));
+                    const tor = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.04, 10, 40), new THREE.MeshStandardMaterial({ color:0xffd8b6, metalness:0.08, roughness:0.5 }));
+                    tor.rotation.x = Math.PI/2; tor.position.set(0, 0.02, 0.12);
+                    group.add(box); group.add(tor);
+                    cfg._anim = (t)=>{ tor.rotation.z = t * 1.6; box.rotation.y = Math.sin(t*0.4) * 0.12; };
+                }
+
+                // resize handler
+                function resize() {
+                    const w = canvas.clientWidth || 120;
+                    const h = canvas.clientHeight || 120;
+                    camera.aspect = w / Math.max(120, h);
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(w, h, false);
+                }
+                window.addEventListener('resize', resize);
+
+                let start = performance.now();
+                let rafId = null;
+                function animate() {
+                    const now = performance.now();
+                    const t = (now - start) / 1000;
+                    try {
+                        if (cfg._anim) cfg._anim(t);
+                        group.rotation.x += 0.002;
+                        renderer.render(scene, camera);
+                    } catch (e) {}
+                    rafId = requestAnimationFrame(animate);
+                }
+                // initial draw + start loop
+                resize();
+                renderer.render(scene, camera);
+                rafId = requestAnimationFrame(animate);
+
+                // push to global for potential cleanup
+                window._aiBoxModels.push({ id: cfg.id, canvas, scene, camera, renderer, rafId, resizeHandler: resize });
+            } catch (e) {
+                console.warn('initAIBoxModels: failed to init', cfg.id, e);
+            }
+        });
+
+        // cleanup on page unload
+        window.addEventListener('beforeunload', function(){
+            try {
+                (window._aiBoxModels || []).forEach(m => {
+                    try { cancelAnimationFrame(m.rafId); } catch(e){}
+                    try { window.removeEventListener('resize', m.resizeHandler); } catch(e){}
+                    try { m.renderer && m.renderer.dispose && m.renderer.dispose(); } catch(e){}
+                });
+            } catch(e){}
+        });
+    } catch (e) {
+        console.warn('initAIBoxModels failed', e);
+    }
+}
+
+// Parallax-on-scroll for tech cards and AI boxes inside the Technology section
+function initTechCardParallax(){
+    try{
+        // respect reduced motion
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const section = document.querySelector('.technology-section');
+        if (!section) return;
+        const cards = Array.from(section.querySelectorAll('.tech-card, .ai-box-card'));
+        if (!cards.length) return;
+
+        // Provide per-card defaults and allow overrides via data attributes:
+        // data-parallax-speed (multiplier 0..1+), data-parallax-strength (px max), data-parallax-ease (0..1)
+        cards.forEach((c, i)=>{
+            const defaultSpeed = 0.20 + (i % 4) * 0.06; // varied pace per card
+            const defaultStrength = 60; // px max translate (stronger than before)
+            const defaultEase = 0.12 + ((i % 3) * 0.04); // smoothing per card
+            if (!c.dataset.parallaxSpeed) c.dataset.parallaxSpeed = String(defaultSpeed);
+            if (!c.dataset.parallaxStrength) c.dataset.parallaxStrength = String(defaultStrength);
+            if (!c.dataset.parallaxEase) c.dataset.parallaxEase = String(defaultEase);
+            // keep an internal current value for smooth lerp
+            c._parallaxCurrentY = 0;
+        });
+
+        let ticking = false;
+        function onScroll(){ if (!ticking){ ticking = true; window.requestAnimationFrame(()=>{ update(); ticking=false; }); } }
+
+        function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+        function update(){
+            const rect = section.getBoundingClientRect();
+            const vh = window.innerHeight || document.documentElement.clientHeight;
+            // normalized center offset: -1..1 where 0 = section centered in viewport
+            const centerOffset = (rect.top + rect.height/2) - (vh/2);
+            const max = (vh/2 + rect.height/2) || 1;
+            const n = clamp(centerOffset / max, -1, 1);
+
+            cards.forEach((c)=>{
+                const speed = parseFloat(c.dataset.parallaxSpeed || '0.2');
+                const strength = parseFloat(c.dataset.parallaxStrength || '60');
+                const ease = parseFloat(c.dataset.parallaxEase || '0.14');
+                // target Y opposing scroll (gives depth) scaled by speed & strength
+                const targetY = -n * speed * strength;
+                // smooth toward target (lerp)
+                c._parallaxCurrentY = (c._parallaxCurrentY || 0) + (targetY - (c._parallaxCurrentY || 0)) * ease;
+                try { c.style.setProperty('--parallax-y', `${c._parallaxCurrentY.toFixed(2)}px`); } catch(e){}
+            });
+        }
+
+        // initial update & listeners
+        update();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+
+        // cleanup when unloading
+        window.addEventListener('beforeunload', ()=>{
+            try{ window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); }catch(e){}
+        });
+    }catch(e){ console.warn('initTechCardParallax failed', e); }
+}
+
+// Init interactive tilt/move for Sustainability cubes
+function initSustainabilitySection(){
+    try{
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const cubes = Array.from(document.querySelectorAll('.sustain-cube'));
+        if (!cubes.length) return;
+
+        cubes.forEach(c => {
+            let rafId = null;
+            function onPointerMove(e){
+                const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+                const clientY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+                const r = c.getBoundingClientRect();
+                const x = (clientX - r.left) / Math.max(1, r.width);
+                const y = (clientY - r.top) / Math.max(1, r.height);
+                const rx = ( (y - 0.5) * -14 );
+                const ry = ( (x - 0.5) * 14 );
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(()=>{
+                    try{
+                        c.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+                        c.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+                        c.style.setProperty('--tz', '18px');
+                    }catch(e){}
+                });
+            }
+            function onEnter(){ c.classList.add('hover'); }
+            function onLeave(){ c.classList.remove('hover'); c.style.setProperty('--rx','0deg'); c.style.setProperty('--ry','0deg'); c.style.setProperty('--tz','0px'); }
+
+            c.addEventListener('pointerenter', onEnter);
+            c.addEventListener('pointermove', onPointerMove, { passive: true });
+            c.addEventListener('pointerleave', onLeave);
+            c.addEventListener('focus', onEnter);
+            c.addEventListener('blur', onLeave);
+
+            // keyboard affordances
+            c.addEventListener('keydown', function(ev){
+                if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); c.classList.toggle('hover'); }
+                if (ev.key === 'ArrowLeft') c.style.setProperty('--ry','10deg');
+                if (ev.key === 'ArrowRight') c.style.setProperty('--ry','-10deg');
+                if (ev.key === 'ArrowUp') c.style.setProperty('--rx','8deg');
+                if (ev.key === 'ArrowDown') c.style.setProperty('--rx','-8deg');
+            });
+        });
+    }catch(e){ console.warn('initSustainabilitySection failed', e); }
+}
 
 // AI Integration background: interactive node network for the Technology/AI Integration section
 (function(){
