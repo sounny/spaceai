@@ -41,11 +41,13 @@
       <div class="section-box"><h2>Methodology</h2><div class="section-body">PLACEHOLDER</div></div>
       <div class="section-box" id="evi-comparison"><h2>EVI vs. Classification</h2>
         <div class="section-body">
-          <div class="image-compare">
-            <div class="img img-b" style="background:linear-gradient(135deg,#f6d365,#fda085)">Classification (placeholder)</div>
-            <div class="img img-a" style="background:linear-gradient(135deg,#8ec5ff,#6a82fb)">EVI (placeholder)</div>
-            <div class="divider" id="compare-divider" aria-hidden="true"></div>
-            <input type="range" min="0" max="100" value="50" id="compare-range">
+          <div class="image-compare" aria-label="EVI versus classification comparison">
+            <!-- Background/base map (optional) -->
+            <!-- Replace these image paths with the provided assets in posters/.../assets/ -->
+            <img class="img img-b" src="./assets/Rwanda_EVIClass_2024_Q4_OctDec.png" alt="Classification map (Rwanda)" />
+            <img class="img img-a" src="./assets/Rwanda_EVI_2024_Q4_OctDec_transparent.png" alt="EVI index overlay (Rwanda)" />
+            <div class="divider" id="compare-divider" aria-hidden="false" role="slider" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>
+            <input type="range" min="0" max="100" value="50" id="compare-range" aria-label="Compare EVI versus classification">
           </div>
         </div>
       </div>

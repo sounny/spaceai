@@ -156,9 +156,10 @@ html,body{
 .section-box .section-body{ min-height:120px; display:flex; align-items:center; justify-content:center; color:var(--muted); }
 
 .image-compare{ position:relative; height:320px; display:flex; align-items:center; justify-content:center; }
-.image-compare .img{ position:absolute; inset:0; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#021124; font-weight:800; }
-.image-compare .img-b{ clip-path: inset(0 0 0 0); }
-.image-compare .img-a{ clip-path: inset(0 50% 0 0); }
+.image-compare{ position:relative; height:320px; display:flex; align-items:center; justify-content:center; background-size:cover; background-position:center; background-image: url("./assets/Rwanda Background.png"); }
+.image-compare .img{ position:absolute; inset:0; border-radius:6px; display:block; width:100%; height:100%; object-fit:cover; }
+.image-compare .img-b{ clip-path: inset(0 0 0 0); z-index:30; }
+.image-compare .img-a{ clip-path: inset(0 50% 0 0); z-index:40; }
 .image-compare .img-b{ z-index:30; }
 .image-compare .img-a{ z-index:40; }
 .image-compare input[type="range"]{
