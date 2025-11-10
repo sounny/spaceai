@@ -171,6 +171,7 @@ html,body{
 .section-box{ background: transparent; border: 2px solid rgba(255,255,255,0.95); padding:18px; border-radius:8px; color:var(--text-light); }
 .section-box h2{ margin:0 0 12px 0; font-size:24px; }
 .section-box .section-body{ min-height:120px; display:flex; align-items:center; justify-content:center; color:var(--muted); }
+.section-box#way-forward-box{ border: none; background: transparent; }
 .section-box#way-forward-box .section-body{ min-height: auto; display: block; }
 
 .image-compare{ position:relative; height:320px; display:flex; align-items:center; justify-content:center; }
