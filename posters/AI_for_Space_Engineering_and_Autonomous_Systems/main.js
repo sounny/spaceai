@@ -1,5 +1,7 @@
 // Global variables
 let scene, camera, renderer, earth, earthClouds;
+// Toggle: when true attempt to replace sphere with world.obj; keep false to use textured sphere
+const USE_OBJ_MODEL = false;
 let satellites = [];
 // reusable vector for projecting satellite positions to screen coords
 let _satProj = new THREE.Vector3();
@@ -1253,75 +1255,55 @@ function init3DEarth() {
         try{ material.map = createEarthTexture(2048,1024); material.needsUpdate = true; }catch(err){}
     }
 
-    // Attempt to load a higher-detail OBJ model (with MTL) from the world folder and replace the sphere.
-    // This will provide more geometric detail if the file is available.
-    try {
-        if (typeof THREE.OBJLoader !== 'undefined') {
-            const objPath = './world/world.obj';
-            const mtlPath = './world/world.mtl';
-            const mtlLoader = new THREE.MTLLoader();
-            mtlLoader.setPath('./world/');
-            mtlLoader.load('world.mtl', (materials) => {
-                materials.preload();
-                const objLoader = new THREE.OBJLoader();
-                objLoader.setMaterials(materials);
-                objLoader.setPath('./world/');
-                objLoader.load('world.obj', (obj) => {
-                    try {
-                        // Normalize scale: compute bounding box and scale to roughly radius=2
-                        const bbox = new THREE.Box3().setFromObject(obj);
-                        const size = bbox.getSize(new THREE.Vector3());
-                        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-                        const scaleFactor = (2.0 * 1.02) / maxDim;
-                        obj.scale.setScalar(scaleFactor);
-                        // center the model
-                        const center = bbox.getCenter(new THREE.Vector3());
-                        obj.position.sub(center.multiplyScalar(scaleFactor));
-
-                        // Apply PBR-like materials to any meshes that don't have materials
-                        obj.traverse((c) => {
-                            if (c.isMesh) {
-                                // If the mesh already has a material from MTL, prefer it; otherwise clone our standard material
-                                if (!c.material || c.material.name === '') {
-                                    c.material = material.clone();
-                                    c.material.needsUpdate = true;
-                                } else {
-                                    // ensure material is standard-friendly
-                                    try { c.material.needsUpdate = true; } catch(e){}
-                                }
-                                c.castShadow = false;
-                                c.receiveShadow = true;
-                            }
-                        });
-
-                        // Replace sphere with OBJ model
-                        scene.remove(earth);
-                        earth = obj;
-                        scene.add(earth);
-                    } catch (err) { console.warn('Failed to integrate OBJ model', err); }
-                }, undefined, (err) => { console.warn('OBJ load error', err); });
-            }, undefined, (err) => {
-                // MTL failed, try loading OBJ without materials
-                const objLoader = new THREE.OBJLoader();
-                objLoader.setPath('./world/');
-                objLoader.load('world.obj', (obj) => {
-                    try {
-                        const bbox = new THREE.Box3().setFromObject(obj);
-                        const size = bbox.getSize(new THREE.Vector3());
-                        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-                        const scaleFactor = (2.0 * 1.02) / maxDim;
-                        obj.scale.setScalar(scaleFactor);
-                        const center = bbox.getCenter(new THREE.Vector3());
-                        obj.position.sub(center.multiplyScalar(scaleFactor));
-                        obj.traverse((c) => { if (c.isMesh) { c.material = material.clone(); c.material.needsUpdate = true; c.castShadow = false; c.receiveShadow = true; } });
-                        scene.remove(earth);
-                        earth = obj;
-                        scene.add(earth);
-                    } catch (err) { console.warn('Failed to integrate OBJ model (no MTL)', err); }
-                }, undefined, (err) => { console.warn('OBJ load error (no MTL)', err); });
-            });
-        }
-    } catch (err) { console.warn('Detailed OBJ load attempt failed', err); }
+    // Optionally load a higher-detail OBJ model (with MTL) from the world folder and replace the sphere.
+    // Disabled by default to ensure the textured sphere is used as the authoritative Earth representation.
+    if (USE_OBJ_MODEL) {
+        try {
+            if (typeof THREE.OBJLoader !== 'undefined') {
+                const mtlLoader = new THREE.MTLLoader();
+                mtlLoader.setPath('./world/');
+                mtlLoader.load('world.mtl', (materials) => {
+                    materials.preload();
+                    const objLoader = new THREE.OBJLoader();
+                    objLoader.setMaterials(materials);
+                    objLoader.setPath('./world/');
+                    objLoader.load('world.obj', (obj) => {
+                        try {
+                            const bbox = new THREE.Box3().setFromObject(obj);
+                            const size = bbox.getSize(new THREE.Vector3());
+                            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+                            const scaleFactor = (2.0 * 1.02) / maxDim;
+                            obj.scale.setScalar(scaleFactor);
+                            const center = bbox.getCenter(new THREE.Vector3());
+                            obj.position.sub(center.multiplyScalar(scaleFactor));
+                            obj.traverse((c) => { if (c.isMesh) { if (!c.material || c.material.name === '') { c.material = material.clone(); c.material.needsUpdate = true; } c.castShadow = false; c.receiveShadow = true; } });
+                            scene.remove(earth);
+                            earth = obj;
+                            scene.add(earth);
+                        } catch (err) { console.warn('Failed to integrate OBJ model', err); }
+                    }, undefined, (err) => { console.warn('OBJ load error', err); });
+                }, undefined, (err) => {
+                    const objLoader = new THREE.OBJLoader();
+                    objLoader.setPath('./world/');
+                    objLoader.load('world.obj', (obj) => {
+                        try {
+                            const bbox = new THREE.Box3().setFromObject(obj);
+                            const size = bbox.getSize(new THREE.Vector3());
+                            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+                            const scaleFactor = (2.0 * 1.02) / maxDim;
+                            obj.scale.setScalar(scaleFactor);
+                            const center = bbox.getCenter(new THREE.Vector3());
+                            obj.position.sub(center.multiplyScalar(scaleFactor));
+                            obj.traverse((c) => { if (c.isMesh) { c.material = material.clone(); c.material.needsUpdate = true; c.castShadow = false; c.receiveShadow = true; } });
+                            scene.remove(earth);
+                            earth = obj;
+                            scene.add(earth);
+                        } catch (err) { console.warn('Failed to integrate OBJ model (no MTL)', err); }
+                    }, undefined, (err) => { console.warn('OBJ load error (no MTL)', err); });
+                });
+            }
+        } catch (err) { console.warn('Detailed OBJ load attempt failed', err); }
+    }
 
     // subtle atmosphere halo to make Earth read better against the starfield
     try {
