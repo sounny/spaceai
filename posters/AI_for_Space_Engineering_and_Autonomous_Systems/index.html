@@ -1428,6 +1428,128 @@
             .current-projects .financial-grid { position: relative; z-index: 2; }
             .current-projects .financial-card { transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease; }
             .current-projects .financial-card:hover { transform: translateY(-6px); box-shadow: 0 28px 80px rgba(0,0,0,0.6); }
+            /* Financial Impacts cost table styling */
+            .financial-costs { margin-top: 28px; max-width: 980px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(2,8,18,0.16)); border-radius: 12px; padding: 18px; border: 1px solid rgba(255,255,255,0.04); font-size:15px; }
+            .financial-costs .legend { color: #dff8ff; font-weight:700; margin-bottom: 12px; font-size:16px; }
+            .financial-costs table { width: 100%; border-collapse: collapse; color: #eaf4ff; font-size:15px; }
+            /* use orbital blue for table dividers to tie visually to the orbital chart color */
+            .financial-costs th, .financial-costs td { padding: 12px 14px; text-align: left; border-bottom: 1px solid rgba(24,194,213,0.12); }
+            .financial-costs th { color: #9fdcff; font-weight:700; font-size:14px; border-bottom: 2px solid rgba(24,194,213,0.18); }
+            .financial-costs td.numeric { text-align: right; font-family: 'JetBrains Mono', monospace; font-size:16px; font-weight:700; transition: transform 180ms cubic-bezier(.2,.9,.2,1), color 140ms ease; cursor: pointer; }
+            .financial-costs td.numeric:hover, .financial-costs td.numeric:focus { transform: translateY(-6px); color: #ffffff; outline: none; }
+
+            /* Summary row beneath the financial table (two-column) */
+            .financial-summary { display:flex; gap:20px; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid rgba(24,194,213,0.08); }
+            .financial-summary .left, .financial-summary .center, .financial-summary .right { display:flex; flex-direction:column; gap:6px; flex:1; }
+            .financial-summary .center { text-align:center; }
+            .financial-summary .right { text-align:right; }
+            .financial-summary .label { color: rgba(234,244,255,0.78); font-size:14px; font-weight:700; }
+            .financial-summary .value { font-family: 'JetBrains Mono', monospace; font-weight:900; font-size:20px; color:#ffffff; }
+            .financial-summary .secondary { color: rgba(234,244,255,0.72); font-size:13px; }
+
+            @media (max-width: 640px) {
+                .financial-summary { flex-direction:column; align-items:flex-start; gap:10px; }
+                .financial-summary .center, .financial-summary .right { text-align:left; }
+            }
+            /* Tooltip for numeric copy interactions */
+            .num-tooltip {
+                position: fixed;
+                pointer-events: none;
+                background: rgba(0,20,40,0.95);
+                color: #ffffff;
+                padding: 8px 10px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 700;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+                transform: translate(-50%, -100%);
+                transition: opacity 180ms ease, transform 160ms ease;
+                opacity: 0;
+                z-index: 4000;
+                white-space: nowrap;
+            }
+            /* Visually-hidden live region for screen reader confirmations */
+            .sr-live { position: absolute !important; left: -9999px !important; width: 1px !important; height: 1px !important; overflow: hidden !important; }
+
+            /* Glossary term highlight: bold + subtle pop-out on hover/focus */
+            .term-highlight {
+                font-weight: 800;
+                display: inline-block;
+                transition: transform 180ms cubic-bezier(.2,.9,.2,1), text-shadow 180ms ease;
+                will-change: transform, text-shadow;
+                cursor: pointer;
+                color: #ffffff;
+                border-bottom: 1px dashed rgba(255,255,255,0.06);
+                padding-bottom: 1px;
+            }
+            .term-highlight:focus { outline: none; }
+            .term-highlight:hover,
+            .term-highlight:focus {
+                transform: translateZ(12px) translateY(-4px) scale(1.04);
+                text-shadow: 0 12px 30px rgba(0,212,255,0.12);
+            }
+
+            .terms-left ul { margin-top:10px; }
+            .terms-left li { margin-top:8px; }
+            /* Popups for glossary terms and image — bigger, futuristic glass style */
+            .term-popup,
+            .definitions-popup {
+                position: absolute;
+                top: -8px;
+                left: 50%;
+                transform: translate(-50%, -6px) scale(1);
+                min-width: 420px;
+                max-width: 960px;
+                background: linear-gradient(180deg, rgba(4,12,28,0.96), rgba(2,18,40,0.94));
+                border-radius: 14px;
+                padding: 20px 22px;
+                box-shadow: 0 30px 90px rgba(0,12,30,0.75), 0 6px 30px rgba(0,212,255,0.06) inset;
+                color: #f6feff;
+                z-index: 4800;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 240ms ease, transform 240ms cubic-bezier(.2,.9,.2,1);
+                backdrop-filter: blur(10px) saturate(140%);
+                will-change: transform, opacity;
+                border: 1px solid rgba(0,220,255,0.08);
+            }
+            /* inner text styles — bigger, higher contrast */
+            .term-popup .term-popup-inner,
+            .definitions-popup .definitions-popup-inner { font-size: 18px; line-height: 1.5; font-weight: 600; color: #f8ffff; }
+            .term-popup .term-popup-inner p, .definitions-popup .definitions-popup-inner p { margin: 0; }
+            .term-popup.show, .definitions-popup.show { opacity: 1; transform: translate(-50%, -50%) scale(1.02); pointer-events: auto; }
+            /* position tweaks for left/right anchored popups (if present) */
+            #term-pop-right { left: calc(100% - 18px); transform: translate(-100%, -6px) scale(1); min-width: 360px; }
+            #term-pop-left { left: 18px; transform: translate(0, -6px) scale(1); }
+            /* definitions image-specific popup: center above image and larger */
+            /* center the popup inside the image */
+            .definitions-popup { min-width: 560px; max-width: 920px; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1); padding: 22px 26px; border-radius:16px; }
+
+            /* Neon gradient border accent via pseudo-element */
+            .definitions-popup::before,
+            .term-popup::before {
+                content: '';
+                position: absolute;
+                inset: -2px;
+                border-radius: 16px;
+                background: linear-gradient(90deg, rgba(0,212,255,0.35), rgba(0,255,136,0.25), rgba(255,177,77,0.22), rgba(154,163,255,0.28));
+                filter: blur(14px);
+                opacity: 0.55;
+                z-index: -1;
+            }
+            /* subtle animated shimmer for the neon accent */
+            @keyframes popupAccent {
+                0% { transform: translateX(-10%); }
+                50% { transform: translateX(10%); }
+                100% { transform: translateX(-10%); }
+            }
+            .definitions-popup::before { animation: popupAccent 8s linear infinite; }
+
+            /* Respect reduced motion by removing transitions/animations */
+            @media (prefers-reduced-motion: reduce) {
+                .term-popup, .definitions-popup, .term-highlight { transition: none !important; transform: none !important; }
+                .definitions-popup::before, .term-popup::before { animation: none !important; filter: blur(6px); }
+            }
     </style>
 <base target="_blank">
 </head>
@@ -1466,6 +1588,7 @@
                     <span class="stat-label">Latency LEO</span>
                 </div>
             </div>
+            <!-- Launch cost table removed from hero and relocated to Financial Impacts per layout request -->
         </div>
     </section>
     
@@ -1481,6 +1604,30 @@
         </div>
     </section>
     
+    <!-- Terms to define: small split section placed before Current Data Center Challenges -->
+    <section class="terms-define section" aria-labelledby="terms-title">
+        <div class="container">
+            <div class="terms-split" style="display:flex;gap:0;align-items:center;justify-content:center;flex-wrap:wrap;flex-direction:column;">
+                <div style="width:100%;text-align:center;">
+                    <h3 id="terms-title" style="margin:0;color:#ffffff;font-size:32px;line-height:1.05;">Terms to define</h3>
+                    <p style="color:#ffffff;margin-top:10px;font-size:18px;">Quick glossary for key technical terms used in this poster.</p>
+                </div>
+                <div class="definitions-wrap" style="position:relative;width:100%;display:flex;align-items:center;justify-content:center;margin-top:18px;">
+                    <img id="definitions-image" class="definitions-image" src="Definitions.png" alt="Definitions" tabindex="0" style="max-width:100%;width:920px;height:auto;border-radius:10px;box-shadow:0 18px 48px rgba(0,0,0,0.6); will-change: transform;" />
+                    <!-- Centered image popup that shows the glossary when hovering/focusing the image -->
+                    <div id="definitions-popup" class="definitions-popup" aria-hidden="true" role="dialog" aria-label="Definitions popup">
+                        <div class="definitions-popup-inner">
+                            <ul style="margin:0;padding-left:20px;">
+                                <li style="margin-bottom:10px;">“Edge” computing — describes data processing <strong>on board</strong>. Only relevant insights are downlinked to ground stations.</li>
+                                <li>Orbital “Network” — describes a <strong>distributed network</strong> based on a <strong>constellation of small satellites</strong>. Each satellite is a node in the network.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Current Data Centers Challenges -->
     <section class="current-datacenters section">
         <div class="container">
@@ -1589,6 +1736,7 @@
             <!-- AI Integration interactive background -->
             <div class="ai-integration-bg" aria-hidden="true">
                 <canvas id="aiIntegrationCanvas"></canvas>
+                <div id="falling-datacenters"></div>
             </div>
 
             <div class="tech-grid">
@@ -1743,6 +1891,86 @@
                 <div class="financial-card" tabindex="0">
                     <h4>Funding & Partnerships</h4>
                     <p>Public-private partnerships, launch co-financing, and shared infrastructure models can lower barriers to entry and spread risk across stakeholders.</p>
+                </div>
+            </div>
+            <!-- Financial costs table: Datacenter Creation Cost in USD (medium sized plant) -->
+            <div class="financial-costs" aria-labelledby="financial-costs-legend">
+                <div id="financial-costs-legend" class="legend">Datacenter Creation Cost in USD — Utilizing a medium sized plant (5000 server racks)</div>
+                <div style="overflow:auto;">
+                    <table role="table" aria-label="Datacenter creation cost table">
+                        <thead>
+                            <tr>
+                                <th>Building Cost (Translated to Space Center Cost)</th>
+                                <th>Factory development costs</th>
+                                <th>Storage</th>
+                                <th>Server development cost</th>
+                                <th>Networking</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="numeric" tabindex="0">$12</td>
+                                <td class="numeric" tabindex="0">$12</td>
+                                <td class="numeric" tabindex="0">$200</td>
+                                <td class="numeric" tabindex="0">$500</td>
+                                <td class="numeric" tabindex="0">$120</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- Financial summary (two-column) -->
+                    <div class="financial-summary" role="group" aria-label="Financial summary">
+                        <div class="left">
+                            <div class="label">Initial Total Cost</div>
+                            <div class="value">$844</div>
+                        </div>
+                        <div class="center">
+                            <div class="label">Space Grade Hardware Premium</div>
+                            <div style="display:flex;gap:12px;align-items:baseline;justify-content:center;">
+                                <div class="value">25%</div>
+                                <div class="secondary">→ <span class="value">$1,055</span></div>
+                            </div>
+                        </div>
+                        <div class="right">
+                            <div class="label">Extra Testing Cost</div>
+                            <div style="display:flex;gap:12px;align-items:baseline;justify-content:flex-end;">
+                                <div class="value">25%</div>
+                                <div class="secondary">→ <span class="value">$1,318.75</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Cost of Launch mini-table (Low / High) inserted directly under the financial summary -->
+                    <div class="financial-costs launch-costs" aria-labelledby="launch-costs-legend" style="margin-top:12px;">
+                        <div id="launch-costs-legend" class="legend">Cost of Launch for this plant</div>
+                        <div style="overflow:auto;">
+                            <table role="table" aria-label="Cost of launch table">
+                                <thead>
+                                    <tr>
+                                        <th>Low</th>
+                                        <th>High</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="numeric" tabindex="0">$61,104</td>
+                                        <td class="numeric" tabindex="0">$63,840</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Prominent projection totals: main takeaway, larger and high-contrast -->
+                    <div class="financial-totals" role="note" aria-label="Key projection totals" style="display:flex;gap:28px;justify-content:center;margin-top:18px;align-items:baseline;">
+                        <div class="total" style="text-align:center;">
+                            <div class="label" style="font-size:13px;font-weight:700;color:rgba(255,209,102,0.95);">Total Data Center Cost (mm)</div>
+                            <div class="amount value numeric" tabindex="0" style="font-size:28px;font-weight:800;margin-top:6px;color:rgba(255,209,102,1);">$1,318.75</div>
+                        </div>
+
+                        <div class="total" style="text-align:center;">
+                            <div class="label" style="font-size:13px;font-weight:700;color:rgba(255,209,102,0.95);">Total Project Cost (mm)</div>
+                            <div class="amount value numeric" tabindex="0" style="font-size:28px;font-weight:800;margin-top:6px;color:rgba(255,209,102,1);">$65,158.75</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

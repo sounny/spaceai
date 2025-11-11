@@ -172,6 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initFinancialSpotlight();
     initProjectsBackground();
     initInteractiveElements();
+    initFinancialNumberInteractions();
     initSphereIdleMotion();
     initSmoothScrolling();
 });
@@ -262,6 +263,103 @@ document.addEventListener('DOMContentLoaded', function() {
             section._financialInteractions = { cards };
         }catch(err){ console.error('[financialInteractions] init error', err); }
     }
+
+// Make numeric financial values interactive: hover/focus tooltip, keyboard support, click/Enter to copy, accessible confirmation
+function initFinancialNumberInteractions(){
+    try{
+        const section = document.querySelector('.financial-section') || document.getElementById('financial-impacts');
+        if(!section) return;
+
+    // select any element in the financial section with class "numeric" (table cells and our prominent totals)
+    const numericCells = Array.from(section.querySelectorAll('.numeric'));
+    // keep selecting summary values specifically as well (older markup)
+    const summaryValues = Array.from(section.querySelectorAll('.financial-summary .value'));
+        if(!numericCells.length && !summaryValues.length) return;
+
+        // Create tooltip element (single shared) and hidden live region
+        let tooltip = document.querySelector('.num-tooltip');
+        if (!tooltip) { tooltip = document.createElement('div'); tooltip.className = 'num-tooltip'; document.body.appendChild(tooltip); }
+        let live = document.querySelector('.sr-live');
+        if (!live) { live = document.createElement('div'); live.className = 'sr-live'; live.setAttribute('aria-live','polite'); document.body.appendChild(live); }
+
+        function showTooltip(target, text){
+            try{
+                const r = target.getBoundingClientRect();
+                tooltip.textContent = text;
+                const left = Math.round(r.left + (r.width/2));
+                const top = Math.round(r.top - 8);
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+                tooltip.style.opacity = '1';
+                tooltip.style.transform = 'translate(-50%, -100%)';
+                clearTimeout(tooltip._hide);
+                tooltip._hide = setTimeout(()=>{ tooltip.style.opacity = '0'; }, 1600);
+            }catch(e){}
+        }
+
+        function hideTooltip(){ if(tooltip) { tooltip.style.opacity = '0'; } }
+
+        function copyText(text){
+            if (!text) return Promise.resolve(false);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text).then(()=>true).catch(()=>false);
+            }
+            // fallback
+            return new Promise((resolve)=>{
+                try{
+                    const ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); resolve(true);
+                }catch(e){ resolve(false); }
+            });
+        }
+
+        function activateElement(el){
+            // prefer a stable data-copy attribute if present (so animated text doesn't affect copied value)
+            const stable = el.getAttribute('data-copy') || el.dataset.copy || el.textContent.trim();
+            copyText(stable).then(ok => {
+                if(ok){
+                    live.textContent = stable + ' copied to clipboard';
+                    showTooltip(el, 'Copied: ' + stable);
+                } else {
+                    live.textContent = 'Copy failed';
+                    showTooltip(el, 'Copy failed');
+                }
+            });
+        }
+
+        function makeInteractive(el){
+            if(!el) return;
+            if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex','0');
+            el.setAttribute('role','button');
+            // set a helpful aria-label (preserve existing if present)
+            const baseLabel = el.getAttribute('aria-label') || '';
+            const label = baseLabel + ' Value ' + el.textContent.trim() + '. Press Enter or Space to copy.';
+            el.setAttribute('aria-label', label.trim());
+
+            el.addEventListener('click', (ev) => { ev.preventDefault(); activateElement(el); });
+            el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); activateElement(el); } });
+            el.addEventListener('focus', ()=> showTooltip(el, 'Press Enter to copy: ' + el.textContent.trim()));
+            el.addEventListener('blur', ()=> hideTooltip());
+            el.addEventListener('mouseenter', ()=> showTooltip(el, 'Click to copy: ' + el.textContent.trim()));
+            el.addEventListener('mouseleave', ()=> hideTooltip());
+        }
+
+        numericCells.forEach(el => {
+            makeInteractive(el);
+            // store stable copy value (final formatted text) so animations can update visible text
+            try { el.dataset.copy = el.textContent.trim(); } catch(e){}
+        });
+        summaryValues.forEach(el => {
+            makeInteractive(el);
+            try { el.dataset.copy = el.textContent.trim(); } catch(e){}
+        });
+
+        // Animate prominent totals if present
+        requestAnimationFrame(() => {
+            try { animateFinancialTotals(); } catch(e){}
+        });
+
+    }catch(err){ console.warn('[financialNumbers] init failed', err); }
+}
 
 // Subtle idle motion for benefit spheres (in-place, small offsets)
 function initSphereIdleMotion() {
@@ -1450,6 +1548,56 @@ function initInteractiveElements() {
     });
 }
 
+// Animate the prominent financial totals with a count-up while keeping a stable copy value
+function animateFinancialTotals(){
+    const els = Array.from(document.querySelectorAll('.financial-totals .amount'));
+    if (!els.length) return;
+    // Respect reduced motion
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+        els.forEach(el => el.classList.remove('pulsing'));
+        return;
+    }
+
+    els.forEach(el => el.classList.add('pulsing'));
+
+    const duration = 900; // ms
+    const start = performance.now();
+
+    // parse a numeric target from data-copy or textContent (strip $ and commas)
+    const targets = els.map(el => {
+        const stable = el.getAttribute('data-copy') || el.dataset.copy || el.textContent.trim();
+        // remove anything except digits, dot, minus
+        const num = Number((stable || '').replace(/[^0-9.\-]/g,''));
+        return isFinite(num) ? num : 0;
+    });
+
+    function fmt(n){
+        // format with thousands separators and two decimals when needed
+        const abs = Math.abs(n);
+        if (Math.round(n) === n) return '$' + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return '$' + n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+
+    function step(now){
+        const t = Math.min(1, (now - start) / duration);
+        // easeOutCubic
+        const ease = 1 - Math.pow(1 - t, 3);
+        els.forEach((el, i) => {
+            const val = Math.round(targets[i] * ease * 100) / 100;
+            el.textContent = fmt(val);
+            // keep stable copy attribute at final target
+            try { el.dataset.copy = fmt(targets[i]); } catch(e){}
+        });
+        if (t < 1) requestAnimationFrame(step);
+        else {
+            // ensure final values set exactly
+            els.forEach((el, i) => { el.textContent = fmt(targets[i]); try { el.dataset.copy = fmt(targets[i]); } catch(e){} });
+        }
+    }
+
+    requestAnimationFrame(step);
+}
+
 // Show detailed information for data center cards
 function showDetailedInfo(type) {
     let info = '';
@@ -1765,6 +1913,74 @@ const additionalStyles = `
     
     .orbit-details strong {
         color: #00ff88;
+    }
+    /* Financial table alignment and highlighted totals */
+    .financial-costs .legend { text-align: center; }
+    .financial-costs table th,
+    .financial-costs table td {
+        text-align: center;
+        padding: 8px 10px;
+        white-space: nowrap;
+    }
+    .financial-summary { display:flex; gap:18px; justify-content:space-between; align-items:center; }
+    .financial-summary .left,
+    .financial-summary .center,
+    .financial-summary .right { text-align:center; }
+    .financial-totals { display:flex; gap:28px; justify-content:center; margin-top:12px; align-items:baseline; }
+    .financial-totals .label { font-size:15px; font-weight:800; color: #ffd166; letter-spacing:0.2px; }
+    .financial-totals .amount { font-size:36px; font-weight:900; color: #ffd166; }
+    /* subtle pulse animation for the amounts */
+    @keyframes totalsPulse {
+        0% { transform: translateY(0) scale(1); filter: drop-shadow(0 6px 12px rgba(0,0,0,0.45)); }
+        50% { transform: translateY(-6px) scale(1.02); filter: drop-shadow(0 12px 20px rgba(0,0,0,0.55)); }
+        100% { transform: translateY(0) scale(1); filter: drop-shadow(0 6px 12px rgba(0,0,0,0.45)); }
+    }
+    .financial-totals .amount.pulsing { animation: totalsPulse 2200ms ease-in-out infinite; }
+    /* Ensure numeric table cells get a pointer cursor to indicate interactivity */
+    .financial-costs td.numeric, .financial-summary .value, .financial-totals .amount { cursor: pointer; }
+    /* Falling datacenters overlay in AI Integration */
+    #falling-datacenters {
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2; /* above canvas */
+        overflow: visible;
+    }
+    .datacenter-fall {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #00d4ff 70%, #0a0a0a 100%);
+        box-shadow: 0 8px 24px rgba(0,212,255,0.18);
+        border-radius: 14px;
+        opacity: 0.88;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #fff;
+        font-size: 15px;
+        border: 2px solid #00ff88;
+        animation: fall-datacenter 1.8s linear forwards;
+        will-change: transform, opacity;
+        /* Enforce a 1:1 aspect ratio so elements render as squares even if CSS/transform quirks occur */
+        aspect-ratio: 1 / 1;
+        box-sizing: border-box;
+    }
+    @keyframes fall-datacenter {
+        0% {
+            transform: translateY(-40px) scale(0.85) rotate(-12deg);
+            opacity: 0;
+        }
+        12% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(110vh) scale(1.12) rotate(8deg);
+            opacity: 0.37;
+        }
     }
 `;
 
@@ -2133,12 +2349,13 @@ function initSustainabilitySection(){
             c.addEventListener('blur', onLeave);
 
             // keyboard affordances
+            // Note: do NOT toggle hover on Enter/Space — interaction should be hover-based.
+            // Keep arrow keys to nudge the visual tilt for keyboard users.
             c.addEventListener('keydown', function(ev){
-                if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); c.classList.toggle('hover'); }
-                if (ev.key === 'ArrowLeft') c.style.setProperty('--ry','10deg');
-                if (ev.key === 'ArrowRight') c.style.setProperty('--ry','-10deg');
-                if (ev.key === 'ArrowUp') c.style.setProperty('--rx','8deg');
-                if (ev.key === 'ArrowDown') c.style.setProperty('--rx','-8deg');
+                if (ev.key === 'ArrowLeft') { ev.preventDefault(); c.style.setProperty('--ry','10deg'); }
+                if (ev.key === 'ArrowRight') { ev.preventDefault(); c.style.setProperty('--ry','-10deg'); }
+                if (ev.key === 'ArrowUp') { ev.preventDefault(); c.style.setProperty('--rx','8deg'); }
+                if (ev.key === 'ArrowDown') { ev.preventDefault(); c.style.setProperty('--rx','-8deg'); }
             });
         });
     }catch(e){ console.warn('initSustainabilitySection failed', e); }
@@ -2615,3 +2832,171 @@ function initSustainabilitySection(){
         // also attach global close function
         window.closeEarthModal = closeEarthModal;
     }
+
+    // Falling datacenters: spawn small `.datacenter-fall` nodes into #falling-datacenters
+    (function(){
+        // Respect reduced motion
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        document.addEventListener('DOMContentLoaded', function(){
+            const container = document.getElementById('falling-datacenters');
+            if (!container) return;
+
+            let intervalId = null;
+            let io = null;
+
+            function spawnOne(){
+                try{
+                    const el = document.createElement('div');
+                    el.className = 'datacenter-fall';
+                    // random horizontal start
+                    el.style.left = (Math.random() * 92 + 4) + '%';
+                    // vary size a bit
+                    const size = 36 + Math.floor(Math.random() * 38); // 36..74
+                    el.style.width = size + 'px';
+                    el.style.height = size + 'px';
+                    el.style.borderRadius = (8 + Math.floor(Math.random()*12)) + 'px';
+                    // random tiny label (optional) — keep empty for now
+                    // el.textContent = 'DC';
+                    // staggered animation timing
+                    el.style.animationDuration = (5 + Math.random() * 6).toFixed(2) + 's';
+                    el.style.animationDelay = (Math.random() * 1.25).toFixed(2) + 's';
+                    container.appendChild(el);
+                    // remove after animation ends
+                    const onEnd = function(){ try{ el.removeEventListener('animationend', onEnd); }catch(e){}; try{ if (el.parentNode) el.parentNode.removeChild(el); }catch(e){} };
+                    el.addEventListener('animationend', onEnd);
+                    // safety: remove after a hard timeout in case animationend didn't fire
+                    setTimeout(()=>{ if (el.parentNode) el.parentNode.removeChild(el); }, 14000);
+                }catch(e){ /* non-fatal */ }
+            }
+
+            function startSpawning(){ if (intervalId) return; intervalId = setInterval(spawnOne, 650); }
+            function stopSpawning(){ if (!intervalId) return; clearInterval(intervalId); intervalId = null; }
+
+            // Start only when the container is visible (intersection observer)
+            if ('IntersectionObserver' in window){
+                io = new IntersectionObserver((entries)=>{
+                    entries.forEach(en => {
+                        if (en.isIntersecting) startSpawning(); else stopSpawning();
+                    });
+                }, { threshold: 0.08 });
+                io.observe(container);
+            } else {
+                // fallback: start spawning once page loads and container in viewport
+                if (container.getBoundingClientRect().top < window.innerHeight) startSpawning();
+                window.addEventListener('scroll', function onS(){ if (container.getBoundingClientRect().top < window.innerHeight){ startSpawning(); window.removeEventListener('scroll', onS); } }, { passive: true });
+            }
+
+            // cleanup when navigating away
+            window.addEventListener('beforeunload', function(){ try{ if (io) io.disconnect(); stopSpawning(); }catch(e){} });
+        });
+    })();
+
+// Floating Definitions image: subtle bob + pointer-based parallax for #definitions-image
+(function(){
+    function init(){
+        try{
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            const img = document.getElementById('definitions-image');
+            if (!img) return;
+
+            let rafId = null;
+            let tx = 0, ty = 0, px = 0, py = 0;
+            let start = performance.now();
+
+            function onPointer(e){
+                const rect = img.getBoundingClientRect();
+                const cx = rect.left + rect.width/2;
+                const cy = rect.top + rect.height/2;
+                const mx = (e.touches && e.touches[0]) ? e.touches[0].clientX : (e.clientX || cx);
+                const my = (e.touches && e.touches[0]) ? e.touches[0].clientY : (e.clientY || cy);
+                // small normalized offsets based on element size
+                tx = (mx - cx) / Math.max(120, rect.width) * 12; // px
+                ty = (my - cy) / Math.max(80, rect.height) * 8;  // px
+            }
+
+            function animate(now){
+                const t = (now - start) / 1000;
+                // base bobbing motion
+                const bobY = Math.sin(t * 1.15) * 6; // px
+                const bobX = Math.sin(t * 0.6) * 2.5; // px
+                // smooth toward pointer target
+                px += (tx - px) * 0.08;
+                py += (ty - py) * 0.08;
+                const rot = Math.sin(t * 0.9) * 1.5 + (px * 0.02);
+                img.style.transform = `translate3d(${(bobX + px).toFixed(2)}px, ${(bobY + py).toFixed(2)}px, 0) rotate(${rot.toFixed(2)}deg)`;
+                rafId = requestAnimationFrame(animate);
+            }
+
+            document.addEventListener('mousemove', onPointer, { passive:true });
+            document.addEventListener('touchmove', onPointer, { passive:true });
+            rafId = requestAnimationFrame(animate);
+
+            window.addEventListener('beforeunload', function(){ try{ cancelAnimationFrame(rafId); }catch(e){} });
+        }catch(e){ console.warn('definitions image init failed', e); }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+// Glossary popups: show futuristic dialog on hover/focus for left/right columns and image
+(function(){
+    function initTermPopups(){
+        try{
+            const left = document.querySelector('.terms-left');
+            const right = document.querySelector('.terms-right');
+            const img = document.getElementById('definitions-image');
+            const popLeft = document.getElementById('term-pop-left');
+            const popRight = document.getElementById('term-pop-right');
+            const defPop = document.getElementById('definitions-popup');
+            if (!left && !right && !img) return;
+
+            const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            function show(el){ if(!el) return; el.classList.add('show'); el.setAttribute('aria-hidden','false'); }
+            function hide(el){ if(!el) return; el.classList.remove('show'); el.setAttribute('aria-hidden','true'); }
+
+            if (left){
+                left.addEventListener('mouseenter', ()=> show(popLeft), {passive:true});
+                left.addEventListener('mouseleave', ()=> hide(popLeft));
+                left.addEventListener('focusin', ()=> show(popLeft));
+                left.addEventListener('focusout', ()=> hide(popLeft));
+                left.addEventListener('touchstart', (e)=>{ show(popLeft); e.stopPropagation(); }, {passive:true});
+            }
+
+            if (right){
+                right.addEventListener('mouseenter', ()=> show(popRight), {passive:true});
+                right.addEventListener('mouseleave', ()=> hide(popRight));
+                right.addEventListener('focusin', ()=> show(popRight));
+                right.addEventListener('focusout', ()=> hide(popRight));
+                right.addEventListener('touchstart', (e)=>{ show(popRight); e.stopPropagation(); }, {passive:true});
+            }
+
+            if (img){
+                img.addEventListener('mouseenter', ()=> show(defPop), {passive:true});
+                img.addEventListener('mouseleave', ()=> hide(defPop));
+                img.addEventListener('focus', ()=> show(defPop));
+                img.addEventListener('blur', ()=> hide(defPop));
+                img.addEventListener('click', ()=>{ if(defPop) defPop.classList.toggle('show'); });
+                img.addEventListener('touchstart', (e)=>{ if(defPop){ defPop.classList.toggle('show'); } e.stopPropagation(); }, {passive:true});
+            }
+
+            // Hide when clicking outside
+            document.addEventListener('click', function(e){
+                try{
+                    if (left && !left.contains(e.target)) hide(popLeft);
+                    if (right && !right.contains(e.target)) hide(popRight);
+                    if (img && e.target !== img && defPop && !defPop.contains(e.target)) hide(defPop);
+                }catch(e){}
+            }, {passive:true});
+
+            // Auto-hide after short timeout for touch users
+            let autoHideTimer = null;
+            function scheduleAutoHide(){ clearTimeout(autoHideTimer); autoHideTimer = setTimeout(()=>{ hide(popLeft); hide(popRight); hide(defPop); }, 3200); }
+            ['mouseenter','focusin','touchstart'].forEach(evt => { if(left) left.addEventListener(evt, scheduleAutoHide); if(right) right.addEventListener(evt, scheduleAutoHide); if(img) img.addEventListener(evt, scheduleAutoHide); });
+
+            if (prefersReduced){ [popLeft, popRight, defPop].forEach(p => { if(p) p.style.transition = 'none'; }); }
+        }catch(e){ console.warn('initTermPopups failed', e); }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTermPopups); else initTermPopups();
+})();
