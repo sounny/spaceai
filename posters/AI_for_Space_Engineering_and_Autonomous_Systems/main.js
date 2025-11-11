@@ -1194,12 +1194,14 @@ function init3DEarth() {
     renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
+    // Use sRGB output for more accurate colors with PBR materials
+    if (THREE && THREE.Color) renderer.outputEncoding = THREE.sRGBEncoding;
 
     // Create Earth geometry
     const geometry = new THREE.SphereGeometry(2, 64, 64);
 
-    // Start with a neutral Phong material and then attempt to load high-resolution textures
-    const material = new THREE.MeshPhongMaterial({ color: 0x2233ff, shininess: 12, specular: 0x222222, emissive: 0x020408 });
+    // Start with a neutral PBR material (MeshStandard) and then load high-resolution textures
+    const material = new THREE.MeshStandardMaterial({ color: 0x2233ff, roughness: 0.6, metalness: 0.05, emissive: 0x020408, envMapIntensity: 1.0 });
     earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
 
@@ -1208,22 +1210,43 @@ function init3DEarth() {
         const loader = new THREE.TextureLoader();
         const base = './world/';
 
-        // Diffuse / color map
-        loader.load(base + 'world5400x2700.jpg', (tex) => { material.map = tex; material.map.anisotropy = renderer.capabilities.getMaxAnisotropy(); material.needsUpdate = true; });
+        // PMREM generator for creating an environment map suitable for PBR
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        pmremGenerator.compileEquirectangularShader();
+
+        // Diffuse / color (equirectangular) map — also used to create an environment
+        loader.load(base + 'world5400x2700.jpg', (tex) => {
+            try{
+                tex.encoding = THREE.sRGBEncoding;
+                // create environment from equirectangular map
+                tex.mapping = THREE.EquirectangularReflectionMapping;
+                const envMap = pmremGenerator.fromEquirectangular(tex).texture;
+                scene.environment = envMap;
+                material.envMap = envMap;
+                material.map = tex;
+                material.needsUpdate = true;
+            }catch(err){ console.warn('Failed to create envMap from equirectangular texture', err); }
+        });
 
         // Bump / normal map (improves small-scale shading)
-        loader.load(base + 'Bump2.jpg', (bump) => { material.bumpMap = bump; material.bumpScale = 0.08; material.needsUpdate = true; });
+        loader.load(base + 'Bump2.jpg', (bump) => { try{ bump.encoding = THREE.LinearEncoding; material.bumpMap = bump; material.bumpScale = 0.08; material.needsUpdate = true; }catch(e){} });
 
-        // Emissive / city lights (used at night) — set as emissiveMap so lights glow on dark side
-        loader.load(base + 'earth_lights.jpg', (lights) => { material.emissiveMap = lights; material.emissive = new THREE.Color(0x222233); material.emissiveIntensity = 0.8; material.needsUpdate = true; });
+        // Emissive / city lights (used at night)
+        loader.load(base + 'earth_lights.jpg', (lights) => { try{ lights.encoding = THREE.sRGBEncoding; material.emissiveMap = lights; material.emissive = new THREE.Color(0x222233); material.emissiveIntensity = 0.9; material.needsUpdate = true; }catch(e){} });
 
         // Clouds: create a slightly larger sphere with transparent cloud texture
         loader.load(base + 'cloud_combined_2048.jpg', (cloudTex) => {
-            const cloudGeo = new THREE.SphereGeometry(2.03, 64, 64);
-            const cloudMat = new THREE.MeshLambertMaterial({ map: cloudTex, transparent: true, opacity: 0.88, depthWrite: false });
-            earthClouds = new THREE.Mesh(cloudGeo, cloudMat);
-            scene.add(earthClouds);
+            try{
+                cloudTex.encoding = THREE.sRGBEncoding;
+                const cloudGeo = new THREE.SphereGeometry(2.03, 64, 64);
+                const cloudMat = new THREE.MeshLambertMaterial({ map: cloudTex, transparent: true, opacity: 0.9, depthWrite: false });
+                earthClouds = new THREE.Mesh(cloudGeo, cloudMat);
+                scene.add(earthClouds);
+            }catch(e){}
         });
+
+        // Dispose PMREM generator when idle
+        setTimeout(()=>{ try{ pmremGenerator.dispose(); }catch(e){} }, 1500);
 
     }catch(e){
         // If anything fails, fallback to the stylized canvas texture generator
