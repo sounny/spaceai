@@ -83,6 +83,189 @@ function initFinancialSpotlight(){
     }
 }
 
+// Financial cards: flip/scale on click, keyboard accessible
+function initFinancialCardInteractions(){
+    try{
+        const container = document.querySelector('.financial-cards-grid');
+        if(!container) return;
+        let active = null;
+        const cards = Array.from(container.querySelectorAll('.financial-card'));
+        const closeActive = () => {
+            if(!active) return;
+            active.classList.remove('active');
+            active.setAttribute('aria-expanded','false');
+            const back = active.querySelector('.card-back');
+            if(back) back.setAttribute('aria-hidden','true');
+            active = null;
+        };
+
+        function activate(card){
+            if(active && active !== card) closeActive();
+            card.classList.add('active');
+            card.setAttribute('aria-expanded','true');
+            const back = card.querySelector('.card-back');
+            if(back) back.setAttribute('aria-hidden','false');
+            active = card;
+            // move focus to the back content for screen readers
+            if(back && typeof back.focus === 'function') back.focus({preventScroll:true});
+        }
+        function toggle(card){
+            if(card.classList.contains('active')){
+                card.classList.remove('active');
+                card.setAttribute('aria-expanded','false');
+                const back = card.querySelector('.card-back');
+                if(back) back.setAttribute('aria-hidden','true');
+                if(active === card) active = null;
+            } else {
+                activate(card);
+            }
+        }
+
+        cards.forEach(card => {
+            // ensure roles/aria
+            card.setAttribute('role','button');
+            card.setAttribute('tabindex','0');
+            card.setAttribute('aria-expanded','false');
+            const back = card.querySelector('.card-back');
+            if(back) back.setAttribute('aria-hidden','true');
+
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggle(card);
+            });
+            card.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(card); }
+                if(e.key === 'Escape') { closeActive(); }
+            });
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if(!container.contains(e.target)) closeActive();
+        });
+
+        // Close on escape at document level
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape') closeActive();
+        });
+    }catch(err){
+        console.error('initFinancialCardInteractions error', err);
+    }
+}
+
+// Run the card interactions once DOM is ready
+if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initFinancialCardInteractions);
+} else {
+    initFinancialCardInteractions();
+}
+
+    // Initialize the "Including Launch" cost doughnut here so it runs with other charts
+    (function createIncludingLaunchChart(){
+        try{
+            const el = document.getElementById('costChartIncluding');
+            if (!el || typeof Chart === 'undefined') return;
+
+            // destroy previous instance if present
+            try{ const prev = Chart.getChart ? Chart.getChart(el) : null; if (prev) prev.destroy(); } catch(e){}
+
+            const ctx = el.getContext('2d');
+            const labels = [
+                'Launch Cost','Extra Testing Cost','Space Grade Hardware Premium','Networking','Server development cost','Storage','Factory development costs','Building Cost (Translated to Space Center Cost)'
+            ];
+            const values = [47880, 263.75, 211, 120, 500, 200, 12, 12];
+            const colors = ['#ff6b35','#ff9a66','#ffd166','#00d4ff','#00ff88','#7adcff','#b19cd9','#ff6bcb'];
+            const total = values.reduce((a,b)=>a+b,0);
+            const nf = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
+
+            const centerPlugin = {
+                id: 'centerText_costIncluding_initCharts',
+                afterDraw: function(/* chart */){
+                    return; // noop: center text intentionally disabled
+                }
+            };
+            // Register plugin (noop) to avoid duplicate registration errors
+            try{ Chart.register(centerPlugin); }catch(e){}
+
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, hoverOffset: 12, borderWidth: 0 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, padding: 12 } },
+                        tooltip: {
+                            callbacks: {
+                                    label: function(ctx){
+                                        const v = ctx.raw;
+                                        const lbl = ctx.label || '';
+                                        const pct = (total && total > 0) ? (v / total * 100) : 0;
+                                        return lbl + ': ' + nf.format(v) + ' (' + pct.toFixed(2) + '%)';
+                                    },
+                                footer: function(){ return 'Total: ' + nf.format(total); }
+                            },
+                            backgroundColor: 'rgba(0,20,84,0.92)', titleColor: '#ffffff', bodyColor: '#ffffff', footerColor: '#ffffff', displayColors: true
+                        }
+                    }
+                }
+            });
+            window._costChartIncluding = chart;
+        }catch(err){ console.error('[createIncludingLaunchChart] failed', err); }
+    })();
+
+    // Create the "Excluding Launch" cost doughnut (right-side) — same style as the left chart
+    (function createExcludingLaunchChart(){
+        try{
+            const el = document.getElementById('costChartExcluding');
+            if (!el || typeof Chart === 'undefined') return;
+
+            try{ const prev = Chart.getChart ? Chart.getChart(el) : null; if (prev) prev.destroy(); } catch(e){}
+
+            const ctx = el.getContext('2d');
+            // Order matches the left chart but omits 'Launch Cost' so slices align visually
+            const labels = [
+                'Extra Testing Cost',
+                'Space Grade Hardware Premium',
+                'Networking',
+                'Server development cost',
+                'Storage',
+                'Factory development costs',
+                'Building Cost (Translated to Space Center Cost)'
+            ];
+            const values = [263.75, 211, 120, 500, 200, 12, 12];
+            // use the same palette as the left chart (skipping the Launch color)
+            const colors = ['#ff9a66','#ffd166','#00d4ff','#00ff88','#7adcff','#b19cd9','#ff6bcb'];
+            const total = values.reduce((a,b)=>a+b,0);
+            const nf = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
+
+            const centerPlugin = { id: 'centerText_costExcluding_init', afterDraw: function(/*chart*/){ return; } };
+            try{ Chart.register(centerPlugin); }catch(e){}
+
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, hoverOffset: 12, borderWidth: 0 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, padding: 12 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx){ const v = ctx.raw; const lbl = ctx.label || ''; const pct = (total && total>0) ? (v/total*100) : 0; return lbl + ': ' + nf.format(v) + ' (' + pct.toFixed(2) + '%)'; },
+                                footer: function(){ return 'Total: ' + nf.format(total); }
+                            },
+                            backgroundColor: 'rgba(0,20,84,0.92)', titleColor: '#ffffff', bodyColor: '#ffffff', footerColor: '#ffffff', displayColors: true
+                        }
+                    }
+                }
+            });
+            window._costChartExcluding = chart;
+        }catch(err){ console.error('[createExcludingLaunchChart] failed', err); }
+    })();
+
 // Current Projects animated background + interactivity
 function initProjectsBackground(){
     try{
@@ -467,8 +650,79 @@ function initOrbitalViewer() {
                     console.warn('Failed to create texture from datacenter image (onload):', e);
                 }
             });
+    
+            // Cost chart: "Including Launch" (interactive doughnut)
+            function initCostChartIncluding(){
+                try{
+                    const el = document.getElementById('costChartIncluding');
+                    if(!el || typeof Chart === 'undefined') return;
+
+                    // destroy previous instance if present
+                    try{ const prev = Chart.getChart ? Chart.getChart(el) : null; if(prev) prev.destroy(); } catch(e){}
+
+                    const ctx = el.getContext('2d');
+                    const labels = [
+                        'Launch Cost',
+                        'Extra Testing Cost',
+                        'Space Grade Hardware Premium',
+                        'Networking',
+                        'Server development cost',
+                        'Storage',
+                        'Factory development costs',
+                        'Building Cost (Translated to Space Center Cost)'
+                    ];
+                    const values = [47880, 263.75, 211, 120, 500, 200, 12, 12];
+                    const colors = ['#ff6b35','#ff9a66','#ffd166','#00d4ff','#00ff88','#7adcff','#b19cd9','#ff6bcb'];
+                    const total = values.reduce((a,b)=>a+b,0);
+                    const nf = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+
+                    // center text plugin (disabled) — removed center total per user request
+                    const centerPlugin = {
+                        id: 'centerTextPlugin_costIncluding',
+                        afterDraw: function(/* chart */){
+                            return; // intentionally noop to avoid drawing center text
+                        }
+                    };
+                    try{ Chart.register(centerPlugin); }catch(e){}
+
+                    const chart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, hoverOffset: 12, borderWidth: 0 }] },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '60%',
+                            plugins: {
+                                legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, padding: 12 } },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx){
+                                            const v = ctx.raw;
+                                            const lbl = ctx.label || '';
+                                            const pct = (total && total > 0) ? (v / total * 100) : 0;
+                                            return lbl + ': ' + nf.format(v) + ' (' + pct.toFixed(2) + '%)';
+                                        },
+                                        footer: function(){ return 'Total: ' + nf.format(total); }
+                                    },
+                                    backgroundColor: 'rgba(0,20,84,0.92)',
+                                    titleColor: '#ffffff',
+                                    bodyColor: '#ffffff',
+                                    footerColor: '#ffffff',
+                                    displayColors: true
+                                }
+                            }
+                        }
+                    });
+
+                    // expose for debugging
+                    window._costChartIncluding = chart;
+                }catch(err){ console.error('[costChartIncluding] init failed', err); }
+            }
         }
     }
+
+    // Call cost chart initializer (ensure it runs regardless of datacenter image load state)
+    try{ initCostChartIncluding(); }catch(e){ console.warn('[costChartIncluding] deferred init failed', e); }
 
     // Ambient + rim light
     orbitalScene.add(new THREE.AmbientLight(0xffffff, 0.35));
@@ -1152,52 +1406,7 @@ function animate() {
 
 // Initialize charts
 function initCharts() {
-    // Cost Structure Chart
-    const costCtx = document.getElementById('costChart');
-        if (costCtx) {
-        new Chart(costCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Electrical (35%)', 'Thermal (35%)', 'Shell (15%)', 'Network (15%)'],
-                datasets: [{
-                    data: [35, 35, 15, 15],
-                    backgroundColor: [
-                        '#00d4ff',
-                        '#00ff88',
-                        '#ff6b35',
-                        '#ff35a6'
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                                color: '#ffffff',
-                                padding: 12,
-                                boxWidth: 10,
-                                usePointStyle: true,
-                                font: {
-                                    size: 12
-                                }
-                            }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 20, 84, 0.9)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#ffffff',
-                        borderColor: '#00d4ff',
-                        borderWidth: 1
-                    }
-                }
-            }
-        });
-    }
+    // Cost Structure Chart removed per user request
 
     // Benefits Comparison Chart
     const benefitsCtx = document.getElementById('benefitsChart');

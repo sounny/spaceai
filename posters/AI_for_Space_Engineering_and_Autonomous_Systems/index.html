@@ -1250,6 +1250,29 @@
             opacity: 1;
         }
 
+        /* Compact grid of medium-sized cards used in Financial Impacts */
+    /* Layout cards in a 2x2 grid on wide screens, stack on small screens */
+    .financial-cards-grid { display:grid; grid-template-columns:repeat(2,minmax(320px,1fr)); gap:22px; justify-items:center; align-items:start; margin:18px auto 0; position:relative; z-index:6; max-width:980px; }
+        /* Increase card size so back text fits comfortably */
+        .financial-cards-grid .financial-card { width:100%; min-width:320px; max-width:520px; padding:26px; align-items:flex-start; text-align:left; cursor:pointer; border-radius:12px; }
+            .financial-cards-grid .financial-card h4 { font-size:20px; color:var(--neon-blue); margin-bottom:10px; }
+        /* hide front inline paragraphs but allow back content to show via override */
+        .financial-cards-grid .financial-card p { display:none; }
+        @media (max-width:980px) {
+            .financial-cards-grid { grid-template-columns:repeat(1,1fr); padding:0 18px; }
+            .financial-cards-grid .financial-card { max-width:100%; }
+        }
+    /* Override: show back-side paragraph content inside flipped cards */
+    .financial-cards-grid .financial-card .card-back p { display:block !important; max-height:640px; overflow:auto; font-size:18px; line-height:1.7; }
+    .financial-cards-grid .financial-card .card-back { display:flex; align-items:flex-start; justify-content:flex-start; padding:18px; box-sizing:border-box; }
+    .financial-cards-grid .financial-card .card-inner { min-height:220px; }
+        .financial-cards-grid .financial-card:hover, .financial-cards-grid .financial-card:focus {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 34px 80px rgba(0,160,220,0.16);
+            background: linear-gradient(180deg, rgba(0,212,255,0.06), rgba(0,212,255,0.02));
+        }
+        .financial-cards-grid .financial-card:hover h4, .financial-cards-grid .financial-card:focus h4 { color:#ffffff; }
+
         /* Issues to Address section styles */
         .issues-section { padding: 84px 0; background: linear-gradient(180deg, rgba(2,6,18,0.96), rgba(4,12,26,0.98)); }
         .issues-grid { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items:start; margin-top: 20px; }
@@ -1551,6 +1574,29 @@
                 .definitions-popup::before, .term-popup::before { animation: none !important; filter: blur(6px); }
             }
     </style>
+        <style>
+            /* Financial card flip and scale animation */
+            /* Grid: two columns where possible; larger gaps to avoid overlap when cards expand */
+            .financial-cards-grid { display:grid; grid-template-columns:repeat(2,minmax(320px,1fr)); gap:36px; margin-top:18px; justify-items:center; align-items:start; max-width:980px; margin-left:auto; margin-right:auto; }
+            .financial-card { background:linear-gradient(180deg,#0f1724, #071028); color:#e6eef8; border-radius:12px; padding:22px; min-height:220px; display:block; cursor:pointer; box-shadow:0 6px 18px rgba(2,6,23,0.6); transition:transform 420ms cubic-bezier(.2,.9,.2,1), box-shadow 300ms; outline:none; position:relative; width:100%; }
+            .financial-card:focus { box-shadow:0 10px 26px rgba(2,6,23,0.75), 0 0 0 4px rgba(66,153,225,0.12); }
+            .financial-card .card-inner { position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform 560ms cubic-bezier(.18,.9,.32,1); }
+            .financial-card .card-front, .financial-card .card-back { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:12px; backface-visibility:hidden; border-radius:8px; }
+            .financial-card .card-front h4 { margin:0; font-size:22px; line-height:1.05; }
+            .financial-card .card-back { transform:rotateY(180deg); background:linear-gradient(180deg,#061426, #092036); color:#dceffb; text-align:left; padding:20px; font-size:18px; line-height:1.7; overflow:auto; }
+            .financial-card.active { z-index:60; }
+            /* reduce scale to limit visual overlap; when active we'll switch the back into the flow so the card grows instead of overflowing */
+            .financial-card.active .card-inner { transform:rotateY(180deg) scale(1.03); transform-origin:center center; }
+            /* subtle neon edge when active */
+            .financial-card.active { box-shadow:0 18px 40px rgba(3,9,30,0.8), 0 0 24px rgba(66,153,225,0.06); }
+            /* ensure back content is focusable */
+            .financial-card .card-back:focus { outline: 3px solid rgba(66,153,225,0.14); }
+            /* When a card is active, hide the absolute front and allow the back to be in-flow so the card expands and pushes others (prevents overlap) */
+            .financial-card.active .card-front { display:none; }
+            .financial-card.active .card-back { position:relative; transform:rotateY(180deg); backface-visibility:visible; }
+            .financial-card .card-front { position:relative; }
+            @media (max-width:980px) { .financial-cards-grid { grid-template-columns: 1fr; padding:0 18px; } }
+        </style>
 <base target="_blank">
 </head>
 <body>
@@ -1588,6 +1634,7 @@
                     <span class="stat-label">Latency LEO</span>
                 </div>
             </div>
+            <!-- Explanatory caption removed from hero (moved to Financial Impacts) -->
             <!-- Launch cost table removed from hero and relocated to Financial Impacts per layout request -->
         </div>
     </section>
@@ -1613,7 +1660,7 @@
                     <p style="color:#ffffff;margin-top:10px;font-size:18px;">Quick glossary for key technical terms used in this poster.</p>
                 </div>
                 <div class="definitions-wrap" style="position:relative;width:100%;display:flex;align-items:center;justify-content:center;margin-top:18px;">
-                    <img id="definitions-image" class="definitions-image" src="Definitions.png" alt="Definitions" tabindex="0" style="max-width:100%;width:920px;height:auto;border-radius:10px;box-shadow:0 18px 48px rgba(0,0,0,0.6); will-change: transform;" />
+                    <img id="definitions-image" class="definitions-image" src="Definitions.png" alt="Definitions" tabindex="0" style="max-width:100%;width:644px;height:auto;border-radius:10px;box-shadow:0 18px 48px rgba(0,0,0,0.6); will-change: transform;" />
                     <!-- Centered image popup that shows the glossary when hovering/focusing the image -->
                     <div id="definitions-popup" class="definitions-popup" aria-hidden="true" role="dialog" aria-label="Definitions popup">
                         <div class="definitions-popup-inner">
@@ -1625,6 +1672,7 @@
                     </div>
                 </div>
             </div>
+            <!-- caption intentionally removed from here -->
         </div>
     </section>
 
@@ -1662,14 +1710,7 @@
                 </div>
             </div>
             
-            <!-- CAPEX Breakdown (donut) inserted per user request: medium-sized Chart.js doughnut -->
-            <div class="chart-container" style="max-width:720px; margin:36px auto;">
-                <h3 class="chart-title">CAPEX Breakdown of terrestrial datacenters</h3>
-                <div style="height:320px;">
-                    <canvas id="costChart" aria-label="CAPEX breakdown donut chart" role="img" style="width:100%;height:100%;display:block;"></canvas>
-                </div>
-                <p style="text-align:center;margin-top:12px;color:var(--gray-medium);font-size:13px;">CAPEX allocation (Electrical, Thermal, Shell, Network) — percentages of total capital expenditure.</p>
-            </div>
+            <!-- CAPEX Breakdown removed per user request -->
         </div>
     </section>
     
@@ -1872,107 +1913,73 @@
         <div class="container">
             <h2 class="section-title">Financial Impacts</h2>
 
-            <div class="financial-grid" role="region" aria-labelledby="financial-impacts-title">
-                <div class="financial-card" tabindex="0">
-                    <h4>Cost Comparison</h4>
-                    <p>Compare lifecycle costs: terrestrial CapEx and OpEx (power, water, cooling) versus orbital upfront launch and manufacturing expenses amortized over expected operational lifetime.</p>
-                </div>
-
-                <div class="financial-card" tabindex="0">
-                    <h4>OpEx vs CapEx</h4>
-                    <p>Orbital systems shift cost profile toward higher CapEx and lower ongoing OpEx (reduced water, grid power, and local infrastructure), changing payback horizons and financing models.</p>
-                </div>
-
-                <div class="financial-card" tabindex="0">
-                    <h4>ROI & Payback</h4>
-                    <p>Modeling total cost of ownership and expected revenue uplift from reduced environmental penalties, higher availability, and new service tiers informs ROI and payback timelines for operators and investors.</p>
-                </div>
-
-                <div class="financial-card" tabindex="0">
-                    <h4>Funding & Partnerships</h4>
-                    <p>Public-private partnerships, launch co-financing, and shared infrastructure models can lower barriers to entry and spread risk across stakeholders.</p>
-                </div>
-            </div>
-            <!-- Financial costs table: Datacenter Creation Cost in USD (medium sized plant) -->
-            <div class="financial-costs" aria-labelledby="financial-costs-legend">
-                <div id="financial-costs-legend" class="legend">Datacenter Creation Cost in USD — Utilizing a medium sized plant (5000 server racks)</div>
-                <div style="overflow:auto;">
-                    <table role="table" aria-label="Datacenter creation cost table">
-                        <thead>
-                            <tr>
-                                <th>Building Cost (Translated to Space Center Cost)</th>
-                                <th>Factory development costs</th>
-                                <th>Storage</th>
-                                <th>Server development cost</th>
-                                <th>Networking</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="numeric" tabindex="0">$12</td>
-                                <td class="numeric" tabindex="0">$12</td>
-                                <td class="numeric" tabindex="0">$200</td>
-                                <td class="numeric" tabindex="0">$500</td>
-                                <td class="numeric" tabindex="0">$120</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <!-- Financial summary (two-column) -->
-                    <div class="financial-summary" role="group" aria-label="Financial summary">
-                        <div class="left">
-                            <div class="label">Initial Total Cost</div>
-                            <div class="value">$844</div>
-                        </div>
-                        <div class="center">
-                            <div class="label">Space Grade Hardware Premium</div>
-                            <div style="display:flex;gap:12px;align-items:baseline;justify-content:center;">
-                                <div class="value">25%</div>
-                                <div class="secondary">→ <span class="value">$1,055</span></div>
-                            </div>
-                        </div>
-                        <div class="right">
-                            <div class="label">Extra Testing Cost</div>
-                            <div style="display:flex;gap:12px;align-items:baseline;justify-content:flex-end;">
-                                <div class="value">25%</div>
-                                <div class="secondary">→ <span class="value">$1,318.75</span></div>
-                            </div>
-                        </div>
+            <!-- Financial charts placeholders: two pie/donut charts side-by-side -->
+            <div class="financial-charts" role="region" aria-labelledby="financial-impacts-title" style="display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:flex-start;">
+                <div class="chart-card" role="img" aria-label="Total Cost (Including Launch) pie chart" style="flex:1 1 480px;max-width:780px;background:rgba(255,255,255,0.03);border-radius:10px;padding:18px;box-sizing:border-box;">
+                    <h4 style="font-size:20px;margin:0 0 12px;color:#ffffff;">Total Cost (USD 49.198 billion) Including Launch</h4>
+                    <div class="chart-placeholder" style="height:390px;display:flex;align-items:center;justify-content:center;">
+                        <canvas id="costChartIncluding" aria-label="Pie chart: Total Cost including launch" role="img" style="max-width:100%;height:330px;width:330px;"></canvas>
                     </div>
-                    <!-- Cost of Launch mini-table (Low / High) inserted directly under the financial summary -->
-                    <div class="financial-costs launch-costs" aria-labelledby="launch-costs-legend" style="margin-top:12px;">
-                        <div id="launch-costs-legend" class="legend">Cost of Launch for this plant</div>
-                        <div style="overflow:auto;">
-                            <table role="table" aria-label="Cost of launch table">
-                                <thead>
-                                    <tr>
-                                        <th>Low</th>
-                                        <th>High</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="numeric" tabindex="0">$61,104</td>
-                                        <td class="numeric" tabindex="0">$63,840</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                </div>
 
-                    <!-- Prominent projection totals: main takeaway, larger and high-contrast -->
-                    <div class="financial-totals" role="note" aria-label="Key projection totals" style="display:flex;gap:28px;justify-content:center;margin-top:18px;align-items:baseline;">
-                        <div class="total" style="text-align:center;">
-                            <div class="label" style="font-size:13px;font-weight:700;color:rgba(255,209,102,0.95);">Total Data Center Cost (mm)</div>
-                            <div class="amount value numeric" tabindex="0" style="font-size:28px;font-weight:800;margin-top:6px;color:rgba(255,209,102,1);">$1,318.75</div>
-                        </div>
-
-                        <div class="total" style="text-align:center;">
-                            <div class="label" style="font-size:13px;font-weight:700;color:rgba(255,209,102,0.95);">Total Project Cost (mm)</div>
-                            <div class="amount value numeric" tabindex="0" style="font-size:28px;font-weight:800;margin-top:6px;color:rgba(255,209,102,1);">$65,158.75</div>
-                        </div>
+                <div class="chart-card" role="img" aria-label="Total Cost (Excluding Launch) pie chart" style="flex:1 1 480px;max-width:780px;background:rgba(255,255,255,0.03);border-radius:10px;padding:18px;box-sizing:border-box;">
+                    <h4 style="font-size:20px;margin:0 0 12px;color:#ffffff;">Total Cost (USD 1.318 billion) Excluding Launch</h4>
+                    <div class="chart-placeholder" style="height:390px;display:flex;align-items:center;justify-content:center;">
+                        <canvas id="costChartExcluding" aria-label="Pie chart: Total Cost excluding launch" role="img" style="max-width:100%;height:330px;width:330px;"></canvas>
                     </div>
                 </div>
             </div>
+             <!-- Explanatory caption under charts -->
+                    <div class="financial-charts-caption" role="note" aria-live="polite" id="financial-charts-caption" style="max-width:980px;margin:18px auto 0;color:#ffffff;font-size:18px;line-height:1.6;text-align:center;position:relative;z-index:5;">
+                        <p style="margin:0;padding:0;text-shadow:0 1px 2px rgba(0,0,0,0.6);">This is the cost breakdown of the costs associated with launching a singular datacenter in space. Even with the rapid cost reduction of rocket launches with SpaceX and Falcon 9, launch costs remain the primary barrier to entry into this new market segment.</p>
+                    </div>       
+            <!-- Medium-sized interactive cards -->
+                    <div class="financial-cards-grid" role="list" aria-label="Financial impact topics" style="max-width:980px;margin:20px auto 0;">
+                        <div class="financial-card" role="listitem" tabindex="0" aria-expanded="false">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <h4>Cost comparisons with terrestrial datacenters</h4>
+                                </div>
+                                <div class="card-back" tabindex="0" aria-hidden="true">
+                                    <p style="margin:0;text-align:left;font-size:18px;">Space is significantly more expensive, for a datacenter of similar size, due to the fact that we need to launch all of the necessary components to build a datacenter and a datacenter in orbit need certain protections from the environment of space where radiation is prevalent.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="financial-card" role="listitem" tabindex="0" aria-expanded="false">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <h4>Cost Savings</h4>
+                                </div>
+                                <div class="card-back" tabindex="0" aria-hidden="true">
+                                    <p style="margin:0;text-align:left;font-size:18px;">Although there is significant upfront cost in building a datacenter that is functional in space, there is also significant savings. A terrestrial datacenter of the same size can require around USD 44 million a year in operational costs, when considering AI training costs and saving approximately 700 million for the total lifetime of a datacenter project along with the environmental impacts.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="financial-card" role="listitem" tabindex="0" aria-expanded="false">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <h4>ROI and Partnerships</h4>
+                                </div>
+                                <div class="card-back" tabindex="0" aria-hidden="true">
+                                    <p style="margin:0;text-align:left;font-size:18px;">Since datacenters in space offer a wider range of connectivity, and anybody with an antenna can connect to one, there is a broader, and wider range of people that can end up becoming customers and users of a space datacenter. Therefore, the profit potential is not limited to just corporations training to utilize their newest AI technologies, but regular, run of the mill people can become customers as well.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="financial-card" role="listitem" tabindex="0" aria-expanded="false">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <h4>Partnerships</h4>
+                                </div>
+                                <div class="card-back" tabindex="0" aria-hidden="true">
+                                    <p style="margin:0;text-align:left;font-size:18px;">Strategic partnerships can also work to reduce costs in developing a space based datacenter. If partnered with an organization that launches rockets, the costs could be reduced down to just the cost of fuel and labor, which would significantly reduce the cost.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                   
         </div>
     </section>
     <!-- Current Projects Section -->
