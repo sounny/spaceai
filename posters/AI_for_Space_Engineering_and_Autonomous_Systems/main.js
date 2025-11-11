@@ -1,5 +1,5 @@
 // Global variables
-let scene, camera, renderer, earth;
+let scene, camera, renderer, earth, earthClouds;
 let satellites = [];
 // reusable vector for projecting satellite positions to screen coords
 let _satProj = new THREE.Vector3();
@@ -1195,27 +1195,40 @@ function init3DEarth() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
 
-    // Create Earth with a stylized canvas texture so it reads as 'Earth' (green land on blue ocean)
+    // Create Earth geometry
     const geometry = new THREE.SphereGeometry(2, 64, 64);
-    let earthTexture;
-    try {
-        earthTexture = createEarthTexture(2048, 1024);
-    } catch (e) {
-        // fallback to solid color
-        earthTexture = null;
-    }
 
-    const materialOptions = {
-        emissive: 0x080a12,
-        shininess: 12,
-        specular: 0x223344
-    };
-    if (earthTexture) materialOptions.map = earthTexture;
-    else materialOptions.color = 0x2233ff;
-
-    const material = new THREE.MeshPhongMaterial(materialOptions);
+    // Start with a neutral Phong material and then attempt to load high-resolution textures
+    const material = new THREE.MeshPhongMaterial({ color: 0x2233ff, shininess: 12, specular: 0x222222, emissive: 0x020408 });
     earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
+
+    // Attempt to load realistic textures from the local `world` folder. Fall back to canvas texture if missing.
+    try{
+        const loader = new THREE.TextureLoader();
+        const base = './world/';
+
+        // Diffuse / color map
+        loader.load(base + 'world5400x2700.jpg', (tex) => { material.map = tex; material.map.anisotropy = renderer.capabilities.getMaxAnisotropy(); material.needsUpdate = true; });
+
+        // Bump / normal map (improves small-scale shading)
+        loader.load(base + 'Bump2.jpg', (bump) => { material.bumpMap = bump; material.bumpScale = 0.08; material.needsUpdate = true; });
+
+        // Emissive / city lights (used at night) — set as emissiveMap so lights glow on dark side
+        loader.load(base + 'earth_lights.jpg', (lights) => { material.emissiveMap = lights; material.emissive = new THREE.Color(0x222233); material.emissiveIntensity = 0.8; material.needsUpdate = true; });
+
+        // Clouds: create a slightly larger sphere with transparent cloud texture
+        loader.load(base + 'cloud_combined_2048.jpg', (cloudTex) => {
+            const cloudGeo = new THREE.SphereGeometry(2.03, 64, 64);
+            const cloudMat = new THREE.MeshLambertMaterial({ map: cloudTex, transparent: true, opacity: 0.88, depthWrite: false });
+            earthClouds = new THREE.Mesh(cloudGeo, cloudMat);
+            scene.add(earthClouds);
+        });
+
+    }catch(e){
+        // If anything fails, fallback to the stylized canvas texture generator
+        try{ material.map = createEarthTexture(2048,1024); material.needsUpdate = true; }catch(err){}
+    }
 
     // subtle atmosphere halo to make Earth read better against the starfield
     try {
@@ -1358,6 +1371,8 @@ function animate() {
     if (earth) {
         // Rotate Earth
         earth.rotation.y += 0.005;
+        // Rotate cloud layer if present (slightly faster than the planet)
+        if (earthClouds) earthClouds.rotation.y += 0.0065;
         
         // Mouse interaction
         earth.rotation.x = mouseY * 0.1;
