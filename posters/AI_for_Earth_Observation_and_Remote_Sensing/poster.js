@@ -63,6 +63,13 @@ function initTimelineCubes3D() {
 
   const cubes = [];
   const spacing = 4;
+  
+  // Phase labels for each cube
+  const phaseLabels = [
+    'Phase I: Data & Information',
+    'Phase II: Innovation & Deployment',
+    'Phase III: Application & Impact'
+  ];
 
   milestones.forEach((milestone, i) => {
     const box = BABYLON.MeshBuilder.CreateBox('cube' + i, { size: 2 }, scene);
@@ -72,6 +79,27 @@ function initTimelineCubes3D() {
     material.diffuseColor = milestone.color;
     material.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
     box.material = material;
+
+    // Create text label below each cube
+    const label = BABYLON.MeshBuilder.CreatePlane('label' + i, { width: 5, height: 1 }, scene);
+    label.position.x = box.position.x;
+    label.position.y = -2.5;
+    label.position.z = 0;
+    
+    const labelTexture = new BABYLON.DynamicTexture('labelTexture' + i, { width: 512, height: 128 }, scene);
+    const labelMaterial = new BABYLON.StandardMaterial('labelMat' + i, scene);
+    labelMaterial.diffuseTexture = labelTexture;
+    labelMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+    labelMaterial.backFaceCulling = false;
+    label.material = labelMaterial;
+    
+    // Draw text on texture
+    const ctx = labelTexture.getContext();
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 32px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(phaseLabels[i], 256, 64);
+    labelTexture.update();
 
     // Animation
     scene.registerBeforeRender(() => {
@@ -91,7 +119,6 @@ function initTimelineCubes3D() {
           '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Upstream (2025–2027)</caption><thead><tr><th>Objective</th><th>Activity</th><th>Partners / Outputs</th></tr></thead><tbody><tr><td>Build EO–AI foundation</td><td>Integrate Sentinel-1, 2, 3 &amp; 5P into unified African data cubes</td><td>ESA / Copernicus / AfSA</td></tr><tr><td>Scalable processing</td><td>Deploy cloud-native GEE environments hosted in Africa</td><td>GMES &amp; Africa / RCMRD</td></tr></tbody></table>',
           '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Midstream (2027–2031)</caption><thead><tr><th>Objective</th><th>Application</th><th>Tools / Outputs</th></tr></thead><tbody><tr><td>Forecast vegetation &amp; yield</td><td>Temporal CNN/Transformer models for crop stress and yield prediction</td><td>TensorFlow + GEE</td></tr><tr><td>Integrate climate &amp; soil</td><td>Fuse Sentinel + CHIRPS + SoilGrids + ET<sub>0</sub> for evapotranspiration &amp; moisture mapping</td><td>GeoAI ET Fusion Models</td></tr><tr><td>Policy dashboards</td><td>Develop interactive dashboards for vegetation and rainfall anomalies</td><td>GEE Apps / Leaflet</td></tr><tr><td>Digital twin</td><td>Simulate agricultural scenarios across Africa</td><td>ESA Φ-Lab / DESTIN-E</td></tr></tbody></table><p><strong>Outcome:</strong> Operational AI systems predicting drought, crop yield, and irrigation demand.</p>',
           '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Downstream (2031–2035)</caption><thead><tr><th>Objective</th><th>Action</th><th>End Users / Partners</th></tr></thead><tbody><tr><td>Farmer services</td><td>AI-driven advisories via SMS / WhatsApp on planting, irrigation, and stress alerts</td><td>Farmers / Cooperatives</td></tr><tr><td>Climate-risk finance</td><td>Integrate vegetation indices into micro-insurance and credit tools</td><td>Banks / Insurers</td></tr><tr><td>Policy alignment</td><td>Standardize EO indicators for SDG 2.4 (sustainable agriculture)</td><td>Ministries / AU / FAO</td></tr><tr><td>GeoAI Observatory</td><td>Create a continental innovation hub with open APIs for AgTech startups</td><td>AfSA / UNOOSA / ISU</td></tr></tbody></table><p><strong>Outcome:</strong> GeoAI insights translated into actionable, localized decisions that directly support farmers and national food systems.</p>'
-
         ];
         tooltip.innerHTML = tooltipTexts[i];
         tooltip.style.display = 'block';

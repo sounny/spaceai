@@ -68,7 +68,17 @@
 
 <p>Interpreting the enormous amount of down-link data from the EO satellites quickly is key. That is where AI becomes crucial. If trained well, such technology can provide the local communities with valuable up-to-date information on vegetation health. Therefore, farmers could move away from always reacting to unpredictable vegetation health, and therefore crop yield, to preventive measures (precision agriculture).</p>
 
-<p style="color: white; style="font-size: 20px; font-weight: bold;"">Our goal is to help these regions by analyzing free accessible satellite data with the help of AI. Currently, the European Copernicus program offers the highest resolution multispectral earth observation data via its Sentinel constellation. We aim to utilize Sentinel 2 in specific, coupled with free accessible data engines (Google Earth Engine) and AI. With this, our team would like to showcase that one can help local farmers in need, only by utilizing freely accessible data coming from European capabilities. It is crucial that the data is translated into valuable information to be able to develop preventive actions and countermeasures on time. If proven successful, the project could be scaled up to further regions in Africa and elsewhere around the world.</p>
+<p style="color: white; font-size: 20px; font-weight: bold;">Our goal is to help these regions by analyzing free accessible satellite data with the help of AI. Currently, the European Copernicus program offers the highest resolution multispectral earth observation data via its Sentinel constellation. We aim to utilize Sentinel 2 in specific, coupled with free accessible data engines (Google Earth Engine) and AI. With this, our team would like to showcase that one can help local farmers in need, only by utilizing freely accessible data coming from European capabilities. It is crucial that the data is translated into valuable information to be able to develop preventive actions and countermeasures on time. If proven successful, the project could be scaled up to further regions in Africa and elsewhere around the world.</p>
+</div></div>
+
+      <!-- Satellite Visual Image -->
+      <div class="section-box" style="border: none; background: transparent;">
+        <div class="section-body" style="text-align: center;">
+          <img src="./assets/SatelliteVisual.jpg" alt="Satellite Visual" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+        </div>
+      </div>
+
+      <div class="section-box" id="section-methodology"><h2>Methodology</h2><div class="section-body">Literature review was performed and Rwanda in Africa was selected as the region of interest. AI was incorporated for generating the main input dataset to give agricultural areas of interest in Rwanda. Simultaneously, rigorous cloud masking and atmospheric correction was also done to ensure data quality and reliability. Images from the Copernicus Sentinel-2 satellite were processed within the Google Earth Engine (GEE) to ensure scalability and efficient access to vast archives of Earth Observation data. Computation using the EVI formula and its visualization for Rwanda in Google Earth Engine was performed using Sentinel-2 data by selection of the correct spectral bands [B2 (Blue, 490 nm), B4 (Red, 665nm), B8 (NIR, 842 nm)]. Healthy vegetation had an EVI value closer to 1, while the stressed vegetation had EVI closer to 0. Using the EVI value obtained, an interactive web-app with a split-panel map was developed to represent vegetation health and classify it as 'healthy', 'moderate', 'stressed', and 'bare'. The analysis was made for a period covering 2020 to 2024 and seasonally over Q1 (Jan-Mar) till Q4 (Oct-Dec) aligning with Rwanda's bimodal agricultural calendar.<br><br><img src="./assets/AI Poster Methodology.png" alt="Methodology diagram" style="max-width: 100%; height: auto;"></div></div>
 </div></div>
       <div class="section-box" id="section-methodology"><h2>Methodology</h2><div class="section-body">Literature review was performed and Rwanda in Africa was selected as the region of interest. AI was incorporated for generating the main input dataset to give agricultural areas of interest in Rwanda. Simultaneously, rigorous cloud masking and atmospheric correction was also done to ensure data quality and reliability. Images from the Copernicus Sentinel-2 satellite were processed within the Google Earth Engine (GEE) to ensure scalability and efficient access to vast archives of Earth Observation data. Computation using the EVI formula and its visualization for Rwanda in Google Earth Engine was performed using Sentinel-2 data by selection of the correct spectral bands [B2 (Blue, 490 nm), B4 (Red, 665nm), B8 (NIR, 842 nm)]. Healthy vegetation had an EVI value closer to 1, while the stressed vegetation had EVI closer to 0. Using the EVI value obtained, an interactive web-app with a split-panel map was developed to represent vegetation health and classify it as ‘healthy’, ‘moderate’, ‘stressed’, and ‘bare’. The analysis was made for a period covering 2020 to 2024 and seasonally over Q1 (Jan-Mar) till Q4 (Oct-Dec) aligning with Rwanda's bimodal agricultural calendar.<br><br><img src="./assets/AI Poster Methodology.png" alt="Methodology diagram" style="max-width: 100%; height: auto;"></div></div>
       <div class="section-box" id="section-analysis" style="border: none; background: transparent;">
@@ -102,7 +112,7 @@
         
         <p>This project aligns with and contributes to achieving the Agenda 2063 Goal-5 and SDG-2, which promote sustainable agriculture and food security in Africa.</p>
       </div></div>
-      <div class="section-box" id="way-forward-box"><h2>Way Forward</h2>
+      <div class="section-box" id="section-wayforward"><h2>Way Forward</h2>
         <div class="section-body">
           <!-- Babylon.js 3D timeline canvas -->
           <canvas id="timeline-canvas" style="width: 100%; height: 280px; display: block;"></canvas>
@@ -112,7 +122,7 @@
     </section>
 
     <footer class="poster-footer">
-      <small> International Space University 2024. 
+      <small>International Space University 2024.</small>
     </footer>
   </main>
 
@@ -126,7 +136,7 @@
     </video>
     <!-- References overlay moved inside the bottom hero so it visually covers the Earth video -->
     <div class="references-overlay">
-      <div class="section-box references-box"><h2>Acknowledgements</h2><div class="section-body">PLACEHOLDER</div></div>
+      <div class="section-box references-box"><h2>Acknowledgements</h2><div class="section-body">This project was completed as part of the AI in Space Poster Session of the Master of Space Studies ISU. We thank Dr. Moulay Anwar Sounny-Slitine and Antoine Dreher for their mentorship, and the jury panel for their valuable feedback. Appreciation is extended to UNOOSA for promoting the peaceful use of space and to the Rwanda Space Agency for advancing national Earth observation capacity in support of the UN SDGs and Agenda 2063.</div></div>
       <div class="section-box references-box"><h2>References</h2><div class="section-body"><p>
         United Nations Office for Outer Space Affairs, &amp; Food and Agriculture Organization of the United Nations. (2025).
         <cite>Leveraging space technology for agricultural development and food security (ST/SPACE/89)</cite>.
@@ -161,8 +171,23 @@
         In IGARSS 2023 – 2023 IEEE International Geoscience and Remote Sensing Symposium (pp. 1396–1399). IEEE.
         <a href="https://doi.org/10.1109/IGARSS52108.2023.10282475">https://doi.org/10.1109/IGARSS52108.2023.10282475</a>
     </p>
-</body></div></div>
+</div></div>
     </div>
+  </div>
+  <!-- Right-edge tiny scroll indicator (visual scrollbar) -->
+  <div id="page-scroll-indicator" role="scrollbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0" aria-label="Page scroll position"></div>
+
+  <!-- Section Navigation Scrollbar -->
+  <nav id="section-nav" aria-label="Section navigation">
+    <a href="#section-abstract" class="nav-point" data-label="Abstract"></a>
+    <a href="#section-background" class="nav-point" data-label="Background"></a>
+    <a href="#section-methodology" class="nav-point" data-label="Methodology"></a>
+    <a href="#section-analysis" class="nav-point" data-label="Analysis"></a>
+    <a href="#section-conclusion" class="nav-point" data-label="Conclusion"></a>
+    <a href="#section-wayforward" class="nav-point" data-label="Way Forward"></a>
+  </nav>
+</body>
+</html>
   </div>
   <!-- Right-edge tiny scroll indicator (visual scrollbar) -->
   <div id="page-scroll-indicator" role="scrollbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0" aria-label="Page scroll position"></div>
