@@ -173,6 +173,8 @@ html,body{
 .section-box .section-body{ min-height:120px; display:block; color:var(--muted); }
 .section-box .section-body p{ margin-bottom: 1rem; }
 .section-box .section-body ul{ margin-bottom: 1rem; margin-left: 2rem; }
+.section-box .section-body ul li{ margin-bottom: 1.5rem; }
+.section-box .section-body ul li:last-child{ margin-bottom: 0; }
 .section-box#way-forward-box{ border: none; background: transparent; }
 .section-box#way-forward-box .section-body{ min-height: auto; display: block; }
 

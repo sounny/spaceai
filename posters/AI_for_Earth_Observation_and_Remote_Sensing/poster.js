@@ -25,6 +25,21 @@ function initTimelineCubes3D() {
     return;
   }
 
+  // Create tooltip element
+  const tooltip = document.createElement('div');
+  tooltip.id = 'cube-tooltip';
+  tooltip.style.position = 'absolute';
+  tooltip.style.background = 'rgba(0, 0, 0, 0.9)';
+  tooltip.style.color = 'white';
+  tooltip.style.padding = '10px 15px';
+  tooltip.style.borderRadius = '6px';
+  tooltip.style.fontSize = '14px';
+  tooltip.style.pointerEvents = 'none';
+  tooltip.style.display = 'none';
+  tooltip.style.zIndex = '1000';
+  tooltip.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+  document.body.appendChild(tooltip);
+
   const engine = new BABYLON.Engine(canvas, true);
   const scene = new BABYLON.Scene(engine);
   scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.15, 1);
@@ -43,8 +58,7 @@ function initTimelineCubes3D() {
   const milestones = [
     { label: 'Data Collection', color: new BABYLON.Color3(0.2, 0.6, 1), info: 'Sentinel-2 imagery acquisition' },
     { label: 'AI Processing', color: new BABYLON.Color3(0.4, 0.8, 0.3), info: 'GEE & AI classification' },
-    { label: 'EVI Analysis', color: new BABYLON.Color3(1, 0.6, 0.2), info: 'Vegetation health mapping' },
-    { label: 'Deployment', color: new BABYLON.Color3(0.9, 0.3, 0.5), info: 'Community integration' }
+    { label: 'EVI Analysis', color: new BABYLON.Color3(1, 0.6, 0.2), info: 'Vegetation health mapping' }
   ];
 
   const cubes = [];
@@ -71,12 +85,24 @@ function initTimelineCubes3D() {
       new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, () => {
         box.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
         canvas.style.cursor = 'pointer';
+        
+        // Show tooltip for all cubes
+        const tooltipTexts = [
+          'placeholder for table 1',
+          'placeholder for table 2',
+          'placeholder for table 3'
+        ];
+        tooltip.textContent = tooltipTexts[i];
+        tooltip.style.display = 'block';
       })
     );
     box.actionManager.registerAction(
       new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, () => {
         box.scaling = new BABYLON.Vector3(1, 1, 1);
         canvas.style.cursor = 'default';
+        
+        // Hide tooltip
+        tooltip.style.display = 'none';
       })
     );
     box.actionManager.registerAction(
@@ -86,6 +112,12 @@ function initTimelineCubes3D() {
     );
 
     cubes.push(box);
+  });
+
+  // Track mouse position for tooltip
+  canvas.addEventListener('mousemove', (event) => {
+    tooltip.style.left = (event.clientX + 15) + 'px';
+    tooltip.style.top = (event.clientY + 15) + 'px';
   });
 
   // Render loop
