@@ -1,5 +1,17 @@
 // poster.js — Clean implementation with 3D timeline cubes
 
+// Toggle image stack function
+function toggleImage() {
+  const frontImage = document.getElementById('front-image');
+  if (frontImage) {
+    if (frontImage.style.display === 'none') {
+      frontImage.style.display = 'block';
+    } else {
+      frontImage.style.display = 'none';
+    }
+  }
+}
+
 // Video loop setup
 function setupVideoLoop() {
   const topVideo = document.getElementById('top-video');
