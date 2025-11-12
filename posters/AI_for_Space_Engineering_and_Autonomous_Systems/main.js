@@ -203,10 +203,20 @@ if(document.readyState === 'loading'){
 
             const ctx = el.getContext('2d');
             const labels = [
-                'Launch Cost','Extra Testing Cost','Space Grade Hardware Premium','Networking','Server development cost','Storage','Factory development costs','Building Cost (Translated to Space Center Cost)'
+                'Protective Shell',
+                'Server Development',
+                'Networking',
+                'Thermals',
+                'Launch Cost'
             ];
-            const values = [47880, 263.75, 211, 120, 500, 200, 12, 12];
-            const colors = ['#ff6b35','#ff9a66','#ffd166','#00d4ff','#00ff88','#7adcff','#b19cd9','#ff6bcb'];
+            const values = [
+                4500000,   // Protective Shell
+                10500000,  // Server Development
+                4500000,   // Networking
+                10500000,  // Thermals
+                770000000  // Launch Cost
+            ];
+            const colors = ['#7adcff','#00ff88','#00d4ff','#ffd166','#ff6b35'];
             const total = values.reduce((a,b)=>a+b,0);
             const nf = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
 
@@ -256,19 +266,20 @@ if(document.readyState === 'loading'){
             try{ const prev = Chart.getChart ? Chart.getChart(el) : null; if (prev) prev.destroy(); } catch(e){}
 
             const ctx = el.getContext('2d');
-            // Order matches the left chart but omits 'Launch Cost' so slices align visually
+            // Updated categories (excluding launch) — matches $30M total
             const labels = [
-                'Extra Testing Cost',
-                'Space Grade Hardware Premium',
+                'Protective Shell',
+                'Server Development',
                 'Networking',
-                'Server development cost',
-                'Storage',
-                'Factory development costs',
-                'Building Cost (Translated to Space Center Cost)'
+                'Thermals'
             ];
-            const values = [263.75, 211, 120, 500, 200, 12, 12];
-            // use the same palette as the left chart (skipping the Launch color)
-            const colors = ['#ff9a66','#ffd166','#00d4ff','#00ff88','#7adcff','#b19cd9','#ff6bcb'];
+            const values = [
+                4500000,   // Protective Shell
+                10500000,  // Server Development
+                4500000,   // Networking
+                10500000   // Thermals
+            ];
+            const colors = ['#7adcff','#00ff88','#00d4ff','#ffd166'];
             const total = values.reduce((a,b)=>a+b,0);
             const nf = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
 
@@ -678,18 +689,21 @@ function initOrbitalViewer() {
                     try{ const prev = Chart.getChart ? Chart.getChart(el) : null; if(prev) prev.destroy(); } catch(e){}
 
                     const ctx = el.getContext('2d');
-                    const labels = [
-                        'Launch Cost',
-                        'Extra Testing Cost',
-                        'Space Grade Hardware Premium',
-                        'Networking',
-                        'Server development cost',
-                        'Storage',
-                        'Factory development costs',
-                        'Building Cost (Translated to Space Center Cost)'
-                    ];
-                    const values = [47880, 263.75, 211, 120, 500, 200, 12, 12];
-                    const colors = ['#ff6b35','#ff9a66','#ffd166','#00d4ff','#00ff88','#7adcff','#b19cd9','#ff6bcb'];
+                            const labels = [
+                                'Protective Shell',
+                                'Server Development',
+                                'Networking',
+                                'Thermals',
+                                'Launch Cost'
+                            ];
+                            const values = [
+                                4500000,   // Protective Shell
+                                10500000,  // Server Development
+                                4500000,   // Networking
+                                10500000,  // Thermals
+                                770000000  // Launch Cost
+                            ];
+                            const colors = ['#7adcff','#00ff88','#00d4ff','#ffd166','#ff6b35'];
                     const total = values.reduce((a,b)=>a+b,0);
                     const nf = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 
@@ -1863,15 +1877,17 @@ function initTemperatureChart(){
                         min: 0.001,
                         // expand max to 3000 so orbital radiator-eff (1300 W/m²) is comfortably visible
                         max: 3000,
+                        // Force tick positions to our explicit values so labels show 1000, 2000, 3000 (not 1,2,3)
+                        afterBuildTicks: function(scale){
+                            try{
+                                const vals = tickValues.filter(v => v >= scale.min && v <= scale.max);
+                                scale.ticks = vals.map(v => ({ value: v }));
+                            }catch(e){}
+                        },
                         ticks: {
-                            // only show labels at the exact tickValues we defined above (tolerant compare)
-                            // format large values (>=1000) as 'k' style (divided by 1000) per user's request
                             callback: function(val){
-                                const n = Number(val);
-                                const match = tickValues.some(tv => Math.abs(tv - n) < 1e-12);
-                                if (!match) return '';
-                                // show the full numeric value for ticks (e.g., 1000 -> "1000")
-                                return formatNumber(n);
+                                // val is the actual value for the logarithmic scale
+                                return formatNumber(val);
                             },
                             autoSkip: false,
                             maxTicksLimit: tickValues.length,
@@ -3229,10 +3245,9 @@ function initSustainabilitySection(){
         window.closeEarthModal = closeEarthModal;
     }
 
-    // Falling datacenters: spawn small `.datacenter-fall` nodes into #falling-datacenters
+    // Falling datacenters: disabled by request
     (function(){
-        // Respect reduced motion
-        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        return; // disabled: do not spawn falling figures
 
         document.addEventListener('DOMContentLoaded', function(){
             const container = document.getElementById('falling-datacenters');

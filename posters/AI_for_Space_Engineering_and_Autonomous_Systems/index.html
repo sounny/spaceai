@@ -989,7 +989,7 @@
         .tech-logo {
             width: 80px;
             height: 80px;
-            background: var(--isu-blue);
+            background: #ffffff; /* white background per request */
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -998,7 +998,27 @@
             font-weight: 700;
             font-size: 24px;
             color: var(--white);
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+            transition: transform 260ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms ease, filter 260ms ease;
         }
+        .tech-logo-img { width:100%; height:100%; object-fit:cover; display:block; filter: saturate(1) contrast(1); transition: transform 320ms cubic-bezier(.2,.9,.2,1), filter 320ms ease; }
+        .tech-logo.idr-image:hover .tech-logo-img,
+        .tech-logo.idr-image:focus .tech-logo-img,
+        .tech-logo.dl-image:hover .tech-logo-img,
+        .tech-logo.dl-image:focus .tech-logo-img,
+        .tech-logo.afr-image:hover .tech-logo-img,
+        .tech-logo.afr-image:focus .tech-logo-img {
+            transform: scale(1.08);
+            filter: saturate(1.25) contrast(1.08);
+        }
+        .tech-logo.idr-image:hover,
+        .tech-logo.idr-image:focus,
+        .tech-logo.dl-image:hover,
+        .tech-logo.dl-image:focus,
+        .tech-logo.afr-image:hover,
+        .tech-logo.afr-image:focus { box-shadow: 0 14px 42px rgba(0,0,0,0.55); transform: translateY(-4px); }
         
         /* AI Role Section */
         .ai-section {
@@ -1600,6 +1620,76 @@
             .financial-card .card-front { position:relative; }
             @media (max-width:980px) { .financial-cards-grid { grid-template-columns: 1fr; padding:0 18px; } }
         </style>
+        <style>
+            /* Unified styling for remaining financial cards (Cost Comparison & Cost Savings) */
+            .financial-cards-grid .financial-card.cost-compare-card,
+            .financial-cards-grid .financial-card.cost-savings-card,
+            .financial-cards-grid .financial-card.roi-card {
+                background:#ffffff !important;
+                border:1px solid rgba(0,0,0,0.08) !important;
+                box-shadow:0 10px 26px rgba(2,6,23,0.18) !important;
+                color:#0b2342 !important;
+            }
+            /* Front/back surfaces consistent (white + dark text) */
+            .financial-cards-grid .financial-card.cost-compare-card .card-front,
+            .financial-cards-grid .financial-card.cost-compare-card .card-back,
+            .financial-cards-grid .financial-card.cost-savings-card .card-front,
+            .financial-cards-grid .financial-card.cost-savings-card .card-back,
+            .financial-cards-grid .financial-card.roi-card .card-front,
+            .financial-cards-grid .financial-card.roi-card .card-back {
+                background:#ffffff !important;
+                color:#0b2342 !important;
+            }
+            /* Headings: same size, weight, and alignment across all four */
+            .financial-cards-grid .financial-card.cost-compare-card h4,
+            .financial-cards-grid .financial-card.cost-savings-card h4,
+            .financial-cards-grid .financial-card.roi-card h4 {
+                color:#0b2342 !important;
+                text-align:center;
+                font-size:20px !important;
+                font-weight:800 !important;
+            }
+            /* Front layout: center content like the model cards */
+            .financial-cards-grid .financial-card.roi-card .card-front {
+                display:flex;
+                flex-direction:column;
+                align-items:center;
+                justify-content:center;
+                gap:12px;
+                min-height:220px;
+            }
+            /* Ensure back content starts at top (remove unintended vertical push) */
+            .financial-cards-grid .financial-card.roi-card .card-back {
+                display:flex;
+                flex-direction:column;
+                align-items:flex-start;
+                justify-content:flex-start !important;
+                padding-top:0; /* no blank space at the top */
+            }
+            /* Let ROI/Partnership cards grow/shrink exactly to back content when flipped */
+            .financial-cards-grid .financial-card.roi-card.active {
+                min-height: auto;
+            }
+            .financial-cards-grid .financial-card.roi-card.active .card-inner {
+                min-height: auto;
+                height: auto;
+            }
+            /* ROI/Partnership images: match size of model cards */
+            .financial-cards-grid .financial-card.roi-card .card-front img {
+                max-width: 320px;
+                width: 72%;
+                height: auto;
+                display: block;
+                border-radius: 8px;
+            }
+            /* Back text: unified weight and color */
+            .financial-cards-grid .financial-card.cost-compare-card .card-back p,
+            .financial-cards-grid .financial-card.cost-savings-card .card-back p,
+            .financial-cards-grid .financial-card.roi-card .card-back p {
+                color:#0b2342 !important;
+                font-weight:700 !important;
+            }
+        </style>
 <base target="_blank">
 </head>
 <body>
@@ -1668,7 +1758,7 @@
                     <p style="color:#ffffff;margin-top:10px;font-size:18px;">Quick glossary for key technical terms used in this poster.</p>
                 </div>
                 <div class="definitions-wrap" style="position:relative;width:100%;display:flex;align-items:center;justify-content:center;margin-top:18px;">
-                    <img id="definitions-image" class="definitions-image" src="Definitions.png" alt="Definitions" tabindex="0" style="max-width:100%;width:644px;height:auto;border-radius:10px;box-shadow:0 18px 48px rgba(0,0,0,0.6); will-change: transform;" />
+                    <img id="definitions-image" class="definitions-image" src="AI Definitions.png" alt="Definitions" tabindex="0" style="max-width:100%;width:644px;height:auto;border-radius:10px;box-shadow:0 18px 48px rgba(0,0,0,0.6); will-change: transform;" />
                     <!-- Centered image popup that shows the glossary when hovering/focusing the image -->
                     <div id="definitions-popup" class="definitions-popup" aria-hidden="true" role="dialog" aria-label="Definitions popup">
                         <div class="definitions-popup-inner">
@@ -1681,6 +1771,13 @@
                 </div>
             </div>
             <!-- caption intentionally removed from here -->
+            <div class="terms-citation" aria-label="Reference citation" style="width:100%;max-width:760px;margin:34px auto 0;padding-top:14px;border-top:1px solid rgba(255,255,255,0.14);font-size:13px;line-height:1.4;color:rgba(255,255,255,0.72);letter-spacing:0.25px;font-weight:400;">
+                <p style="margin:0 0 6px;">
+                    <span style="font-weight:600;color:rgba(255,255,255,0.82);">Image AI Generated Inspired by Image from:</span>
+                    Aili, A., Choi, J., Ong, Y.S. <em>et al.</em> "The development of carbon-neutral data centres in space." <em>Nat Electron</em>. (2025).
+                </p>
+                <p style="margin:0;font-size:12.5px;color:rgba(255,255,255,0.55);">Placed here for attribution; styled subtly to avoid competing with glossary content.</p>
+            </div>
         </div>
     </section>
 
@@ -1785,24 +1882,29 @@
             <!-- AI Integration interactive background -->
             <div class="ai-integration-bg" aria-hidden="true">
                 <canvas id="aiIntegrationCanvas"></canvas>
-                <div id="falling-datacenters"></div>
             </div>
 
             <div class="tech-grid">
                 <div class="tech-card">
-                    <div class="tech-logo">IDR</div>
+                    <div class="tech-logo idr-image" role="img" aria-label="AI Data Routing image" tabindex="0">
+                        <img class="tech-logo-img" src="./AI data routing.png" alt="AI Data Routing" />
+                    </div>
                     <h3>Intelligent Data Routing</h3>
                     <p>AI-based routing evaluates network load, satellite geometry, and demand distribution to steer traffic over the best inter-satellite and ground links, minimizing latency and congestion. Predictive models anticipate failures or interference and proactively reroute flows to maintain QoS.</p>
                 </div>
                 
                 <div class="tech-card">
-                    <div class="tech-logo">DR</div>
+                    <div class="tech-logo dl-image" role="img" aria-label="AI Distributed Learning image" tabindex="0">
+                        <img class="tech-logo-img" src="./AI distributed learning.png" alt="AI Distributed Learning" />
+                    </div>
                     <h3>Distributed Learning</h3>
                     <p>Using federated/distributed learning, each node performs onboard inference/training and shares model updates (not raw data), cutting downlink volume by orders of magnitude and preserving data privacy. Inter-satellite links synchronize parameters so the constellation adapts in near-real time and improves global model performance.</p>
                 </div>
                 
                 <div class="tech-card center-card">
-                    <div class="tech-logo">AFR</div>
+                    <div class="tech-logo afr-image" role="img" aria-label="AI Fault Recognition image" tabindex="0">
+                        <img class="tech-logo-img" src="./AI fault recognition.png" alt="AI Fault Recognition" />
+                    </div>
                     <h3>Autonomous Fault Recognition</h3>
                     <p>Onboard models conduct anomaly detection and fault diagnosis, triggering autonomous failover and recovery without waiting for ground intervention. In constellation architectures this enables seconds-scale service restoration and graceful degradation, supported by ECC/TMR and redundancy (N+3–N+5).</p>
                 </div>
@@ -1924,14 +2026,14 @@
             <!-- Financial charts placeholders: two pie/donut charts side-by-side -->
             <div class="financial-charts" role="region" aria-labelledby="financial-impacts-title" style="display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:flex-start;">
                 <div class="chart-card" role="img" aria-label="Total Cost (Including Launch) pie chart" style="flex:1 1 480px;max-width:780px;background:rgba(255,255,255,0.03);border-radius:10px;padding:18px;box-sizing:border-box;">
-                    <h4 style="font-size:20px;margin:0 0 12px;color:#ffffff;">Total Cost (USD 49.198 billion) Including Launch</h4>
+                    <h4 style="font-size:20px;margin:0 0 12px;color:#ffffff;">Total Cost (USD 800M) Including Launch</h4>
                     <div class="chart-placeholder" style="height:390px;display:flex;align-items:center;justify-content:center;">
                         <canvas id="costChartIncluding" aria-label="Pie chart: Total Cost including launch" role="img" style="max-width:100%;height:330px;width:330px;"></canvas>
                     </div>
                 </div>
 
                 <div class="chart-card" role="img" aria-label="Total Cost (Excluding Launch) pie chart" style="flex:1 1 480px;max-width:780px;background:rgba(255,255,255,0.03);border-radius:10px;padding:18px;box-sizing:border-box;">
-                    <h4 style="font-size:20px;margin:0 0 12px;color:#ffffff;">Total Cost (USD 1.318 billion) Excluding Launch</h4>
+                    <h4 style="font-size:20px;margin:0 0 12px;color:#ffffff;">Total Cost (USD 30M) Excluding Launch</h4>
                     <div class="chart-placeholder" style="height:390px;display:flex;align-items:center;justify-content:center;">
                         <canvas id="costChartExcluding" aria-label="Pie chart: Total Cost excluding launch" role="img" style="max-width:100%;height:330px;width:330px;"></canvas>
                     </div>
@@ -1942,22 +2044,79 @@
                         <p style="margin:0;padding:0;text-shadow:0 1px 2px rgba(0,0,0,0.6);">This is the cost breakdown of the costs associated with launching a singular datacenter in space. Even with the rapid cost reduction of rocket launches with SpaceX and Falcon 9, launch costs remain the primary barrier to entry into this new market segment.</p>
                     </div>       
             <!-- Medium-sized interactive cards -->
+            <style>
+                /* Special styling for the Cost Comparison card */
+                .financial-cards-grid .financial-card.cost-compare-card {
+                    background:#ffffff !important;
+                    border:1px solid rgba(0,0,0,0.08) !important;
+                    box-shadow:0 10px 26px rgba(2,6,23,0.18) !important;
+                    color:#0b2342 !important;
+                }
+                .financial-cards-grid .financial-card.cost-savings-card {
+                    background:#ffffff !important;
+                    border:1px solid rgba(0,0,0,0.08) !important;
+                    box-shadow:0 10px 26px rgba(2,6,23,0.18) !important;
+                    color:#0b2342 !important;
+                }
+                .financial-cards-grid .financial-card.roi-card {
+                    background:#ffffff !important;
+                    border:1px solid rgba(0,0,0,0.08) !important;
+                    box-shadow:0 10px 26px rgba(2,6,23,0.18) !important;
+                    color:#0b2342 !important;
+                }
+                .financial-cards-grid .financial-card.cost-compare-card .card-front,
+                .financial-cards-grid .financial-card.cost-compare-card .card-back,
+                .financial-cards-grid .financial-card.cost-savings-card .card-front,
+                .financial-cards-grid .financial-card.cost-savings-card .card-back,
+                .financial-cards-grid .financial-card.roi-card .card-front,
+                .financial-cards-grid .financial-card.roi-card .card-back {
+                    background:#ffffff !important;
+                    color:#0b2342 !important;
+                }
+                .financial-cards-grid .financial-card.cost-compare-card h4,
+                .financial-cards-grid .financial-card.cost-savings-card h4,
+                .financial-cards-grid .financial-card.roi-card h4 { color:#0b2342 !important; text-align:center; }
+                .cost-compare-card .card-front,
+                .cost-savings-card .card-front { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+                .roi-card .card-front { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+                .cost-compare-card .cost-compare-image,
+                .cost-savings-card .cost-savings-image,
+                .roi-card .roi-image { max-width: 320px; width:72%; height:auto; display:block; border-radius:8px; }
+                .cost-compare-card .card-back p,
+                .cost-savings-card .card-back p,
+                .roi-card .card-back p { color:#0b2342 !important; font-weight:700; }
+                /* Ensure ROI back content starts flush at the very top with no blank gap */
+                .financial-cards-grid .financial-card.roi-card .card-back {
+                    display:flex;
+                    flex-direction:column;
+                    align-items:flex-start;
+                    justify-content:flex-start !important;
+                    padding: 0 18px 18px 18px; /* remove top padding entirely */
+                }
+                /* Remove reserved min-height so ROI can shrink/grow exactly to content */
+                .financial-cards-grid .financial-card.roi-card .card-inner { min-height:auto; }
+                /* Adaptive height for ROI when active */
+                .financial-cards-grid .financial-card.roi-card.active { min-height:auto; }
+                .financial-cards-grid .financial-card.roi-card.active .card-inner { min-height:auto; height:auto; }
+            </style>
                     <div class="financial-cards-grid" role="list" aria-label="Financial impact topics" style="max-width:980px;margin:20px auto 0;">
-                        <div class="financial-card" role="listitem" tabindex="0" aria-expanded="false">
+                        <div class="financial-card cost-compare-card" role="listitem" tabindex="0" aria-expanded="false">
                             <div class="card-inner">
                                 <div class="card-front">
                                     <h4>Cost comparisons with terrestrial datacenters</h4>
+                                    <img class="cost-compare-image" src="./Cost%20comparision.png" alt="Cost comparison: Space vs. Earth — split circle graphic showing terrestrial vs orbital" />
                                 </div>
                                 <div class="card-back" tabindex="0" aria-hidden="true">
-                                    <p style="margin:0;text-align:left;font-size:18px;">Space is significantly more expensive, for a datacenter of similar size, due to the fact that we need to launch all of the necessary components to build a datacenter and a datacenter in orbit need certain protections from the environment of space where radiation is prevalent.</p>
+                                    <p style="margin:0;text-align:left;font-size:18px;">Space is significantly more expensive, for a datacenter of similar size, due to launch logistics and the need for radiation-hardened, space-grade components. This card summarizes the high-level comparison.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="financial-card" role="listitem" tabindex="0" aria-expanded="false">
+                        <div class="financial-card cost-savings-card" role="listitem" tabindex="0" aria-expanded="false">
                             <div class="card-inner">
                                 <div class="card-front">
                                     <h4>Cost Savings</h4>
+                                    <img class="cost-savings-image" src="./Cost%20savings.png" alt="Cost savings graphic" />
                                 </div>
                                 <div class="card-back" tabindex="0" aria-hidden="true">
                                     <p style="margin:0;text-align:left;font-size:18px;">Although there is significant upfront cost in building a datacenter that is functional in space, there is also significant savings. A terrestrial datacenter of the same size can require around USD 44 million a year in operational costs, when considering AI training costs and saving approximately 700 million for the total lifetime of a datacenter project along with the environmental impacts.</p>
@@ -1965,27 +2124,20 @@
                             </div>
                         </div>
 
-                        <div class="financial-card" role="listitem" tabindex="0" aria-expanded="false">
+                        <div class="financial-card roi-card" role="listitem" tabindex="0" aria-expanded="false">
                             <div class="card-inner">
                                 <div class="card-front">
-                                    <h4>ROI and Partnerships</h4>
+                                    <h4>ROI</h4>
+                                    <img class="roi-image" src="./ROI.png" alt="Return on Investment graphic" />
                                 </div>
                                 <div class="card-back" tabindex="0" aria-hidden="true">
                                     <p style="margin:0;text-align:left;font-size:18px;">Since datacenters in space offer a wider range of connectivity, and anybody with an antenna can connect to one, there is a broader, and wider range of people that can end up becoming customers and users of a space datacenter. Therefore, the profit potential is not limited to just corporations training to utilize their newest AI technologies, but regular, run of the mill people can become customers as well.</p>
                                 </div>
                             </div>
                         </div>
+                        
 
-                        <div class="financial-card" role="listitem" tabindex="0" aria-expanded="false">
-                            <div class="card-inner">
-                                <div class="card-front">
-                                    <h4>Partnerships</h4>
-                                </div>
-                                <div class="card-back" tabindex="0" aria-hidden="true">
-                                    <p style="margin:0;text-align:left;font-size:18px;">Strategic partnerships can also work to reduce costs in developing a space based datacenter. If partnered with an organization that launches rockets, the costs could be reduced down to just the cost of fuel and labor, which would significantly reduce the cost.</p>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Partnerships card removed per user request -->
                     </div>
                    
         </div>
@@ -2499,5 +2651,37 @@
         } catch (e) { console.warn('deferred temp chart boot failed', e); }
     });
     </script>
+    <!-- References Section (muted, compact) -->
+    <section id="references" class="references-section" aria-labelledby="references-title" style="padding:46px 0 60px;background:linear-gradient(180deg,rgba(2,6,16,0.94),rgba(0,4,10,0.96));">
+        <div class="container" style="max-width:1180px;margin:0 auto;">
+            <h2 id="references-title" style="margin:0 0 18px;font-size:22px;font-weight:600;letter-spacing:0.5px;color:rgba(255,255,255,0.55);text-transform:uppercase;">References</h2>
+            <ol style="margin:0;padding-left:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px 28px;font-size:12.5px;line-height:1.45;color:rgba(220,232,242,0.48);">
+                <li style="min-width:0;">Chien, S., Candela, A., Swope, J., <em>et al.</em> (2023). Towards space edge computing and on-board AI for real-time processing: IEEE LEO SatS workshop report. Jet Propulsion Laboratory, California Institute of Technology.</li>
+                <li style="min-width:0;">Cushman &amp; Wakefield. (n.d.). Data Center Development Cost Guide 2025. <a class="ref-link" href="https://cushwake.cld.bz/Data-Center-Development-Cost-Guide-2025" target="_blank" rel="noopener noreferrer">https://cushwake.cld.bz/Data-Center-Development-Cost-Guide-2025</a></li>
+                <li style="min-width:0;">European Central Bank. (2025, July 23). Payments statistics: Second half of 2024 [Press release]. <a class="ref-link" href="https://www.ecb.europa.eu/press/stats/paysec/html/ecb.pis2024h2~5ada0087d2.en.html" target="_blank" rel="noopener noreferrer">https://www.ecb.europa.eu/press/stats/paysec/html/ecb.pis2024h2~5ada0087d2.en.html</a></li>
+                <li style="min-width:0;">European Space Agency, Advanced Concepts Team. (2021). Cybersecurity in space missions: Threats and countermeasures.</li>
+                <li style="min-width:0;">Hane, J. S. (2012). A fault-tolerant computer architecture for space vehicle applications (Master’s thesis, Montana State University). <a class="ref-link" href="https://s3vi.ndc.nasa.gov/ssri-kb/static/resources/student_007_HaneJ0512.pdf" target="_blank" rel="noopener noreferrer">https://s3vi.ndc.nasa.gov/ssri-kb/static/resources/student_007_HaneJ0512.pdf</a></li>
+                <li style="min-width:0;">NASA. (2016). Radiation effects and mitigation in space electronics (NASA/TP–2016–219182).</li>
+                <li style="min-width:0;">Rensberg, J., Zhang, S., Zhou, Y., McLeod, A. S., Schwartzberg, A. M., Ramanathan, S., Basov, D. N., &amp; Polman, A. (2019). Active optical control of thin-film thermal emitters based on VO₂ phase transition. <em>Nature Electronics, 2(9)</em>, 576–583.</li>
+                <li style="min-width:0;">Smart radiator devices for CubeSat thermal control. (2019). Proceedings of the AIAA/USU Conference on Small Satellites. <a class="ref-link" href="https://digitalcommons.usu.edu/smallsat/2019/all2019/56/" target="_blank" rel="noopener noreferrer">https://digitalcommons.usu.edu/smallsat/2019/all2019/56/</a></li>
+                <li style="min-width:0;">Sterling, T. (2025, February 2). European data centre space shortage expected in 2025 as AI booms. <em>Reuters</em>. Retrieved November 12, 2025, from <a class="ref-link" href="https://www.reuters.com/technology/european-data-centre-space-shortage-expected-2025-ai-booms-2025-02-05/" target="_blank" rel="noopener noreferrer">https://www.reuters.com/technology/european-data-centre-space-shortage-expected-2025-ai-booms-2025-02-05/</a></li>
+                <li style="min-width:0;">Tsougka, A., &amp; Warso, Z. (2025, September). From innovation to overshoot: How data centre expansion risks derailing climate goals. Environmental Coalition on Standards (ECOS) &amp; Open Future Foundation.</li>
+                <li style="min-width:0;">U.S. Environmental Protection Agency. (2025, March 24). Statistics and facts. WaterSense. <a class="ref-link" href="https://www.epa.gov/watersense/statistics-and-facts" target="_blank" rel="noopener noreferrer">https://www.epa.gov/watersense/statistics-and-facts</a></li>
+                <li style="min-width:0;">U.S. Geological Survey. (n.d.). Domestic water use. U.S. Department of the Interior. Retrieved November 12, 2025, from <a class="ref-link" href="https://www.usgs.gov/mission-areas/water-resources/science/domestic-water-use" target="_blank" rel="noopener noreferrer">https://www.usgs.gov/mission-areas/water-resources/science/domestic-water-use</a></li>
+                <li style="min-width:0;">Wall, M. (2022, March 23). SpaceX raises launch and Starlink prices, citing inflation. <em>Space.com</em>. <a class="ref-link" href="https://www.space.com/spacex-raises-prices-launch-starlink-inflation" target="_blank" rel="noopener noreferrer">https://www.space.com/spacex-raises-prices-launch-starlink-inflation</a></li>
+                <li style="min-width:0;">Yañez-Barnuevo, M. (2025, June 25). Data centers and water consumption. Environmental and Energy Study Institute. <a class="ref-link" href="https://www.eesi.org/articles/view/data-centers-and-water-consumption" target="_blank" rel="noopener noreferrer">https://www.eesi.org/articles/view/data-centers-and-water-consumption</a></li>
+                <li style="min-width:0;">Falcon 9 payload users guide. (2015, October 21). Studylib. Retrieved November 12, 2025, from <a class="ref-link" href="https://studylib.net/doc/18443166/falcon-9-user-s-guide" target="_blank" rel="noopener noreferrer">https://studylib.net/doc/18443166/falcon-9-user-s-guide</a></li>
+            </ol>
+            <p style="margin:26px 0 0;font-size:11px;letter-spacing:0.8px;color:rgba(200,230,244,0.32);text-align:center;text-transform:uppercase;">End of Poster</p>
+        </div>
+    </section>
+    <style>
+        /* references: ensure long links wrap and layout stays compact without overlap */
+        #references ol { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important; }
+        #references ol li { min-width:0; break-inside: avoid; }
+        #references .ref-link { color: rgba(180,242,255,0.55); text-decoration: none; overflow-wrap: anywhere; word-break: break-word; }
+        #references .ref-link:hover { color: rgba(210,250,255,0.75); text-decoration: underline dotted; }
+        @media (max-width:640px){ #references ol { grid-template-columns:1fr !important; } }
+    </style>
 </body>
 </html>
