@@ -656,21 +656,24 @@
             width: min(360px, 80%);
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(2,10,30,0.92);
-            border: 1px solid rgba(0,212,255,0.06);
-            color: #eaf4ff;
-            padding: 12px 16px;
+            /* Brighter, higher-contrast background with subtle gradient and blur */
+            background: linear-gradient(180deg, rgba(4,30,70,0.98), rgba(6,38,82,0.92));
+            backdrop-filter: blur(6px) saturate(120%);
+            border: 1px solid rgba(0,212,255,0.18);
+            color: #ffffff;
+            padding: 14px 18px;
             border-radius: 12px;
-            box-shadow: 0 18px 60px rgba(0,10,30,0.6);
+            box-shadow: 0 26px 80px rgba(0,24,56,0.72), 0 6px 26px rgba(0,212,255,0.06);
             z-index: 3;
-            font-size: 13px;
-            line-height: 1.4;
+            font-size: 14px;
+            line-height: 1.45;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 220ms ease, transform 220ms ease;
+            transition: opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+            text-shadow: 0 1px 0 rgba(0,0,0,0.35);
         }
 
-        .orbit-desc.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(-6px); }
+        .orbit-desc.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(-6px); box-shadow: 0 36px 110px rgba(0,28,64,0.82), 0 8px 30px rgba(0,212,255,0.08); }
 
         .orbit-desc.leo { top: 34%; }
         .orbit-desc.meo { top: 56%; }
@@ -1275,7 +1278,7 @@
 
         /* Issues to Address section styles */
         .issues-section { padding: 84px 0; background: linear-gradient(180deg, rgba(2,6,18,0.96), rgba(4,12,26,0.98)); }
-        .issues-grid { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items:start; margin-top: 20px; }
+    .issues-grid { display: grid; grid-template-columns: 1fr; gap: 28px; align-items:start; margin-top: 20px; justify-items: center; }
         .issues-list { background: rgba(255,255,255,0.03); padding: 24px; border-radius: 12px; border:1px solid rgba(0,212,255,0.04); }
         .issue-item { padding: 12px 14px; border-radius: 8px; margin-bottom: 12px; background: linear-gradient(180deg, rgba(0,12,24,0.3), rgba(0,6,14,0.18)); box-shadow: 0 8px 28px rgba(0,8,20,0.45); }
         .issue-item h4 { margin:0 0 6px 0; font-size:16px; color:#ffd; }
@@ -1634,10 +1637,12 @@
                     <span class="stat-label">Latency LEO</span>
                 </div>
             </div>
+            <!-- hero controls (WorldWind buttons removed per user request) -->
             <!-- Explanatory caption removed from hero (moved to Financial Impacts) -->
             <!-- Launch cost table removed from hero and relocated to Financial Impacts per layout request -->
         </div>
     </section>
+    <!-- Inline WorldWind embed container removed (WorldWind toggles removed) -->
     
     <!-- Abstract Section -->
     <section id="problem" class="abstract-section section">
@@ -1650,6 +1655,9 @@
             </div>
         </div>
     </section>
+    <script>
+        // WorldWind toggles removed. The three.js Earth hero remains the primary globe.
+    </script>
     
     <!-- Terms to define: small split section placed before Current Data Center Challenges -->
     <section class="terms-define section" aria-labelledby="terms-title">
@@ -1721,7 +1729,7 @@
             
             <div class="orbital-visualization">
                 <!-- Dedicated canvas for a small 3D orbital viewer -->
-                <canvas id="orbitalCanvas" style="width:100%;height:100%;display:block;opacity:0;transition:opacity 420ms ease;"></canvas>
+                <canvas id="orbitalCanvas" style="width:100%;height:100%;display:block;opacity:1;transition:opacity 420ms ease;"></canvas>
 
                 <!-- Orbit labels removed per request -->
 
@@ -2013,36 +2021,75 @@
     </section>
     <section id="issues" class="issues-section section">
         <div class="container">
-            <h2 class="section-title">Issues to Address</h2>
+            <h2 class="section-title">Space Data Center Hazards &amp; Mitigations</h2>
 
             <div class="issues-grid">
-                <div class="issues-list">
-                    <div class="issue-item" role="article" aria-labelledby="iss1">
-                        <h4 id="iss1">Regulatory & Licensing</h4>
-                        <p>Frequency coordination, orbital slot allocation, and cross-border data transfer rules require careful planning and partnership with regulators.</p>
+                <!-- arrange as 3x2 grid, shorter cards so all fit on one screen */ -->
+                <div class="issues-list" style="display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));grid-auto-rows:130px;gap:20px;justify-content:center;justify-items:center;align-items:stretch;margin:0 auto;max-width:1200px;">
+                    <div class="issue-item" role="article" aria-labelledby="iss1" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss1" style="font-size:18px;margin:0;">🌌 Radiation</h4>
                     </div>
 
-                    <div class="issue-item" role="article" aria-labelledby="iss2">
-                        <h4 id="iss2">Space Debris & Long-term Safety</h4>
-                        <p>Mitigation, end-of-life disposal, and collision avoidance must be engineered into constellation design to preserve orbital environment sustainability.</p>
+                    <div class="issue-item" role="article" aria-labelledby="iss2" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss2" style="font-size:18px;margin:0;">🌡️ Thermal Cycling</h4>
                     </div>
 
-                    <div class="issue-item" role="article" aria-labelledby="iss3">
-                        <h4 id="iss3">Launch & Manufacturing Emissions</h4>
-                        <p>Lifecycle emissions from manufacturing and launches need to be measured and minimized to ensure net environmental benefit versus terrestrial infrastructure.</p>
+                    <div class="issue-item" role="article" aria-labelledby="iss3" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss3" style="font-size:18px;margin:0;">☀️ Power Generation</h4>
                     </div>
 
-                    <div class="issue-item" role="article" aria-labelledby="iss4">
-                        <h4 id="iss4">Security & Data Sovereignty</h4>
-                        <p>Secure authentication, encrypted links, and clear policies on jurisdictional data handling are essential for adoption across regions and sectors.</p>
+                    <div class="issue-item" role="article" aria-labelledby="iss4" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss4" style="font-size:18px;margin:0;">📡 Data Transmission</h4>
+                    </div>
+
+                    <div class="issue-item" role="article" aria-labelledby="iss5" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss5" style="font-size:18px;margin:0;">🛠️ Maintenance</h4>
+                    </div>
+
+                    <div class="issue-item" role="article" aria-labelledby="iss6" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss6" style="font-size:18px;margin:0;">☄️ Debris Impact</h4>
                     </div>
                 </div>
 
-                <aside class="issues-side">
-                    <h4>Quick Notes</h4>
-                    <p>Prioritize debris mitigation, regulatory engagement, and transparent lifecycle accounting. Consider partnerships for launch offsets and shared ground infrastructure.</p>
-                </aside>
+                <style>
+                /* responsive adjustments for the 3x2 layout */
+                @media (max-width: 1100px) {
+                    .issues-list { grid-template-columns: repeat(2, minmax(220px,1fr)); grid-auto-rows:120px; }
+                }
+                @media (max-width: 640px) {
+                    .issues-list { grid-template-columns: 1fr; grid-auto-rows:100px; }
+                }
+                .issues-list .issue-item { transition: transform 180ms ease, box-shadow 180ms ease; }
+                .issues-list .issue-item:focus, .issues-list .issue-item:hover { transform: translateY(-6px); box-shadow: 0 18px 48px rgba(0,20,60,0.45); }
+                </style>
             </div>
+
+            <!-- Shared issue detail popup (futuristic glass card) -->
+            <div id="issuePopup" class="issue-popup" aria-hidden="true" role="dialog" aria-modal="true">
+                <div class="issue-popup-inner" role="document">
+                    <button class="issue-popup-close" aria-label="Close issue details">✕</button>
+                    <header class="issue-popup-header">
+                        <h3 id="issuePopupTitle">Title</h3>
+                    </header>
+                    <div id="issuePopupBody" class="issue-popup-body"></div>
+                </div>
+            </div>
+
+            <style>
+            /* Popup styles: futuristic glass card centered on screen */
+            .issue-popup { position: fixed; left: 0; top: 0; right: 0; bottom: 0; display:none; align-items:center; justify-content:center; z-index:120; }
+            .issue-popup.show { display:flex; }
+            .issue-popup::before { content: ''; position: absolute; inset:0; background: rgba(2,6,18,0.56); backdrop-filter: blur(6px) saturate(120%); }
+            .issue-popup-inner { position:relative; background: linear-gradient(180deg, rgba(8,18,34,0.92), rgba(4,10,22,0.86)); border: 1px solid rgba(80,200,255,0.06); padding:22px; width: min(820px, 94%); max-height: 82vh; overflow:auto; border-radius:14px; box-shadow: 0 30px 80px rgba(0,18,40,0.6); transform: translateY(-8px); transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease; color: #eaf4ff; }
+            .issue-popup.show .issue-popup-inner { transform: translateY(0); }
+            .issue-popup-close { position:absolute; right:12px; top:12px; background:transparent; border:0; color:#bfeeff; font-size:20px; cursor:pointer; padding:6px; border-radius:8px; }
+            .issue-popup-close:focus { outline: 3px solid rgba(66,153,225,0.12); }
+            .issue-popup-header h3 { margin:0 0 12px 0; font-size:20px; color:var(--neon-blue, #9fdcff); }
+            .issue-popup-body ul { margin:0 0 0 18px; padding:0; line-height:1.6; font-size:16px; }
+            .issue-popup-body li { margin-bottom:8px; }
+            .issue-popup-body .label { font-weight:700; color:#dff8ff; margin-right:6px; }
+            @media (max-width:640px){ .issue-popup-inner { padding:16px; width:94%; } .issue-popup-header h3 { font-size:18px; } }
+            </style>
         </div>
     </section>
     <section id="ai" class="ai-section section">
@@ -2134,6 +2181,102 @@
             console.error('Failed to initialize CAPEX donut chart:', err);
         }
     });
+    </script>
+    <script>
+    // Issue boxes -> shared popup interactions
+    (function(){
+        const details = {
+            iss1: {
+                title: '🌌 Radiation',
+                risks: 'Bit flips, logic errors, system degradation',
+                mitigation: 'Use radiation-hardened electronics, ECC RAM, and redundancy to ensure reliable operation.'
+            },
+            iss2: {
+                title: '🌡️ Thermal Cycling',
+                risks: 'Expansion/contraction fatigue due to extreme temperature changes',
+                mitigation: 'Employ passive or active thermal control and low-CTE (Coefficient of Thermal Expansion) materials.'
+            },
+            iss3: {
+                title: '☀️ Power Generation',
+                risks: 'Solar panel efficiency varies with distance and orientation',
+                mitigation: 'Utilize adaptive solar arrays with hybrid RTG (Radioisotope Thermoelectric Generator) backup for consistent power.'
+            },
+            iss4: {
+                title: '📡 Data Transmission',
+                risks: 'Signal latency and packet loss in deep-space communication',
+                mitigation: 'Implement Delay-Tolerant Networking (DTN) and edge caching to maintain data integrity.'
+            },
+            iss5: {
+                title: '🛠️ Maintenance',
+                risks: 'Repair and upgrades are challenging beyond LEO (Low Earth Orbit)',
+                mitigation: 'Design modular self-repair mechanisms and integrate robotic servicing systems.'
+            },
+            iss6: {
+                title: '☄️ Debris Impact',
+                risks: 'Micrometeoroid and fragment collisions',
+                mitigation: 'Apply Whipple shielding and predictive AI systems for impact avoidance.'
+            }
+        };
+
+        let lastFocused = null;
+        const popup = document.getElementById('issuePopup');
+        const popupTitle = document.getElementById('issuePopupTitle');
+        const popupBody = document.getElementById('issuePopupBody');
+        const closeBtn = popup && popup.querySelector('.issue-popup-close');
+
+        function buildList(d){
+            return `<ul><li><span class="label">Risks:</span> ${d.risks}</li><li><span class="label">Mitigation:</span> ${d.mitigation}</li></ul>`;
+        }
+
+        function openPopup(id){
+            const d = details[id];
+            if (!d || !popup) return;
+            lastFocused = document.activeElement;
+            popupTitle.textContent = d.title;
+            popupBody.innerHTML = buildList(d);
+            popup.setAttribute('aria-hidden','false');
+            popup.classList.add('show');
+            // trap focus loosely
+            if (closeBtn) closeBtn.focus();
+            document.addEventListener('keydown', onKeydown);
+        }
+
+        function closePopup(){
+            if (!popup) return;
+            popup.setAttribute('aria-hidden','true');
+            popup.classList.remove('show');
+            document.removeEventListener('keydown', onKeydown);
+            if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+        }
+
+        function onKeydown(e){ if (e.key === 'Escape') closePopup(); }
+
+        // attach handlers to issue items
+        function init(){
+            const items = Array.from(document.querySelectorAll('.issues-list .issue-item'));
+            if (!items.length) return;
+            items.forEach(it=>{
+                it.addEventListener('click', ()=>{
+                    const h4 = it.querySelector('h4');
+                    if (!h4) return;
+                    openPopup(h4.id);
+                });
+                it.addEventListener('keydown', (e)=>{
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const h4 = it.querySelector('h4'); if (h4) openPopup(h4.id); }
+                });
+            });
+
+            if (popup){
+                // close button
+                if (closeBtn) closeBtn.addEventListener('click', closePopup);
+                // click outside to close
+                popup.addEventListener('click', (e)=>{ if (e.target === popup) closePopup(); });
+            }
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+        else init();
+    })();
     </script>
     <script>
     // Parallax for the abstract: subtle parent rotation + per-term parallax

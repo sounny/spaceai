@@ -1,11 +1,41 @@
 // Global variables
-let scene, camera, renderer, earth, earthClouds;
+let scene, camera, renderer, earth, earthClouds, emissiveOverlay, heroSun;
+// Hero material lock: keep the hero sphere as a solid blue at all times
+const HERO_SOLID_COLOR = 0x2b6cff;
+let heroMaterialFinalized = false;
 // Toggle: when true attempt to replace sphere with world.obj; keep false to use textured sphere
 const USE_OBJ_MODEL = false;
+// If true, apply high-resolution world textures; set to false to keep a stable flat-colored sphere
+const APPLY_TEXTURES = false;
 let satellites = [];
+// connections between satellites (visual network lines)
+let satelliteConnections = [];
 // reusable vector for projecting satellite positions to screen coords
 let _satProj = new THREE.Vector3();
 let mouseX = 0, mouseY = 0;
+// only respond to mouse when hovering the hero canvas
+let heroMouseActive = false;
+
+function enforceHeroSolidMaterial(){
+    try{
+        if(!earth || !earth.material) return;
+        const mat = earth.material;
+        // force solid blue, no transparency, no map
+        mat.color && mat.color.setHex(HERO_SOLID_COLOR);
+        mat.map = null;
+        mat.needsUpdate = true;
+        mat.transparent = false;
+        mat.opacity = 1.0;
+        mat.depthWrite = true;
+        // remove emissive glow
+        if(mat.emissive) mat.emissive.setHex(0x000000);
+        mat.emissiveIntensity = 0;
+        // hide overlays
+        if(earthClouds) { try{ earthClouds.visible = false; }catch(e){} }
+        if(emissiveOverlay) { try{ emissiveOverlay.visible = false; }catch(e){} }
+        heroMaterialFinalized = true;
+    }catch(e){ console.warn('enforceHeroSolidMaterial failed', e); }
+}
 
 /* Financial Impacts spotlight: creates an overlay that follows the mouse and makes the
    surrounding area visually solid (radial mask). Respects prefers-reduced-motion. */
@@ -612,46 +642,31 @@ function initOrbitalViewer() {
     orbitalRenderer.setPixelRatio(window.devicePixelRatio || 1);
     orbitalRenderer.setSize(container.clientWidth, container.clientHeight);
     orbitalRenderer.setClearColor(0x000000, 0);
+    // Ensure the orbital viewer is visible immediately so it runs around the principal sphere
+    try { orbitalRenderer.domElement.style.opacity = '1'; } catch(e){}
 
     // Create a small group to rotate
     orbitalGroup = new THREE.Group();
     orbitalScene.add(orbitalGroup);
 
-    // Earth / Datacenter sphere (starts as image; morphs into textured sphere on scroll)
-    const earthGeo = new THREE.SphereGeometry(1.0, 32, 32);
-    const datacenterImage = document.getElementById('datacenterImage');
-    let dataTexture = null;
-    const earthMat = new THREE.MeshStandardMaterial({ color: 0x2255ff, emissive: 0x001122, metalness: 0.1, roughness: 0.7 });
+    // Earth sphere: match hero Earth visual style using synchronous canvas texture (avoid async flash)
+    const earthGeo = new THREE.SphereGeometry(1.0, 64, 64);
+    const earthTex = createEarthTexture(1024, 512);
+    try { earthTex.encoding = THREE.sRGBEncoding; } catch(e){}
+    earthTex.needsUpdate = true;
+    const earthMat = new THREE.MeshStandardMaterial({
+        map: earthTex,
+        color: 0xffffff,
+        metalness: 0.06,
+        roughness: 0.42,
+        emissive: 0x0a1018,
+        emissiveIntensity: 0.06,
+        envMapIntensity: 0.6
+    });
     const orbitalEarth = new THREE.Mesh(earthGeo, earthMat);
-    // start scaled down so it can 'grow' during the morph
-    orbitalEarth.scale.setScalar(0.28);
+    orbitalEarth.scale.setScalar(0.28); // initial morph scale
     orbitalGroup.add(orbitalEarth);
-
-    // If a datacenter image exists, create a Three texture from it when loaded
-    if (datacenterImage) {
-        console.debug('[orbital] datacenterImage element found, complete=', datacenterImage.complete);
-        if (datacenterImage.complete && datacenterImage.naturalWidth) {
-            try {
-                dataTexture = new THREE.Texture(datacenterImage);
-                dataTexture.needsUpdate = true;
-                earthMat.map = dataTexture;
-                earthMat.needsUpdate = true;
-                console.debug('[orbital] created texture from datacenter image (synchronous)');
-            } catch (e) {
-                console.warn('Failed to create texture from datacenter image (sync):', e);
-            }
-        } else {
-            datacenterImage.addEventListener('load', function() {
-                try {
-                    dataTexture = new THREE.Texture(datacenterImage);
-                    dataTexture.needsUpdate = true;
-                    earthMat.map = dataTexture;
-                    earthMat.needsUpdate = true;
-                    console.debug('[orbital] created texture from datacenter image (onload)');
-                } catch (e) {
-                    console.warn('Failed to create texture from datacenter image (onload):', e);
-                }
-            });
+    let dataTexture = null; // preserve variable name for existing morph logic (will be unused unless later replaced)
     
             // Cost chart: "Including Launch" (interactive doughnut)
             function initCostChartIncluding(){
@@ -720,17 +735,23 @@ function initOrbitalViewer() {
                     window._costChartIncluding = chart;
                 }catch(err){ console.error('[costChartIncluding] init failed', err); }
             }
-        }
-    }
 
     // Call cost chart initializer (ensure it runs regardless of datacenter image load state)
     try{ initCostChartIncluding(); }catch(e){ console.warn('[costChartIncluding] deferred init failed', e); }
 
-    // Ambient + rim light
-    orbitalScene.add(new THREE.AmbientLight(0xffffff, 0.35));
-    const rim = new THREE.DirectionalLight(0xffffff, 0.9);
-    rim.position.set(5, 3, 5);
+    // Lighting: brighten to match hero Earth appearance
+    orbitalScene.add(new THREE.AmbientLight(0xffffff, 0.65));
+    const key = new THREE.DirectionalLight(0xffffff, 0.85);
+    key.position.set(4, 3, 6);
+    orbitalScene.add(key);
+    const hemi = new THREE.HemisphereLight(0x9fdcff, 0x101020, 0.5);
+    orbitalScene.add(hemi);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.18);
+    rim.position.set(-4, 2, -5);
     orbitalScene.add(rim);
+    const fill = new THREE.PointLight(0xffffff, 0.18, 10);
+    fill.position.set(0, 2, 2);
+    orbitalScene.add(fill);
 
     // Rings for LEO, MEO, GEO using TorusGeometry for a subtle 3D look
     const ringMaterial = new THREE.MeshBasicMaterial({ color: 0x00d4ff, opacity: 0.14, transparent: true, side: THREE.DoubleSide });
@@ -748,7 +769,8 @@ function initOrbitalViewer() {
         // reuse the same concept as hero satellites but smaller
         const g = new THREE.Group();
         const body = new THREE.SphereGeometry(0.06 * scale, 12, 12);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0fffe0, emissive: 0x00ffd0, emissiveIntensity: 0.55, metalness: 0.2, roughness: 0.25 });
+    // brighten orbital viewer satellites so they read clearly (still avoid additive peaks)
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0fffe0, emissive: 0x00ffd0, emissiveIntensity: 0.9, metalness: 0.2, roughness: 0.25 });
         const bodyMesh = new THREE.Mesh(body, bodyMat);
         g.add(bodyMesh);
 
@@ -765,7 +787,9 @@ function initOrbitalViewer() {
             const c = document.createElement('canvas'); const s = 48; c.width = s; c.height = s; const cx = c.getContext('2d');
             const gg = cx.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2); gg.addColorStop(0,'rgba(0,255,220,0.7)'); gg.addColorStop(0.2,'rgba(0,255,220,0.18)'); gg.addColorStop(1,'rgba(0,0,0,0)'); cx.fillStyle = gg; cx.fillRect(0,0,s,s);
         const _satProj = new THREE.Vector3();
-            const tex = new THREE.CanvasTexture(c); return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, blending: THREE.AdditiveBlending }));
+            const tex = new THREE.CanvasTexture(c);
+            const sprMat = new THREE.SpriteMaterial({ map: tex, transparent: true, blending: THREE.NormalBlending, opacity: 0.95, depthWrite: false });
+            return new THREE.Sprite(sprMat);
         })();
         spr.scale.set(0.45 * scale, 0.45 * scale, 1);
         g.add(spr);
@@ -774,14 +798,20 @@ function initOrbitalViewer() {
     }
     for (let i = 0; i < 9; i++) {
         const sat = buildOrbitalSat(0.7);
-                const baseSpeed = 0.01 + (i % 3) * 0.005;
-                satellite.userData = {
-                    radius: radius,
-                    angle: angle,
-                    baseSpeed: baseSpeed * 0.1, // run much slower by default
-                    currentSpeed: baseSpeed * 0.1,
-                    originalY: height
-                };
+        const radius = 2.0 + (i % 3) * 0.6;
+        const angle = (i / 9) * Math.PI * 2;
+        const height = Math.sin(i * 0.7) * 0.3;
+        sat.position.set(Math.cos(angle) * radius, height, Math.sin(angle) * radius);
+        const baseSpeed = 0.01 + (i % 3) * 0.005;
+        sat.userData = {
+            radius,
+            angle,
+            baseSpeed: baseSpeed * 0.1,
+            currentSpeed: baseSpeed * 0.1,
+            originalY: height
+        };
+        orbitalSatellites.push(sat);
+        orbitalGroup.add(sat);
     }
 
     // Camera position
@@ -798,9 +828,9 @@ function initOrbitalViewer() {
         // map a sweet spot into 0..1 (start ~0.18, end ~0.78)
         const t = clamp((progress - 0.18) / 0.6, 0, 1);
 
-    // crossfade image and canvas
+    // keep orbital viewer visible from the start (principal sphere) and crossfade image if present
     if (datacenterImage) datacenterImage.style.opacity = (1 - t).toFixed(3);
-    try { orbitalRenderer.domElement.style.opacity = t.toFixed(3); } catch(e){}
+    try { orbitalRenderer.domElement.style.opacity = '1'; } catch(e){}
 
     // debug
     if (window.__orbital_debug) console.debug('[orbital] morph t=', t.toFixed(3), 'progress=', progress.toFixed(3));
@@ -827,8 +857,6 @@ function initOrbitalViewer() {
 
     // Simple drag-to-rotate controls
     let isDragging = false;
-                const baseSpeed = 0.008 + (i % 3) * 0.002;
-                sat.userData = { radius: radius, angle: angle, baseSpeed: baseSpeed * 0.1, currentSpeed: baseSpeed * 0.1 };
     container.addEventListener('mousedown', (e) => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
     window.addEventListener('mouseup', () => { isDragging = false; });
     window.addEventListener('mousemove', (e) => {
@@ -1198,146 +1226,104 @@ function init3DEarth() {
     renderer.setClearColor(0x000000, 0);
     // Use sRGB output for more accurate colors with PBR materials
     if (THREE && THREE.Color) renderer.outputEncoding = THREE.sRGBEncoding;
-
-    // Create Earth geometry
-    const geometry = new THREE.SphereGeometry(2, 64, 64);
-
-    // Start with a neutral PBR material (MeshStandard) and then load high-resolution textures
-    const material = new THREE.MeshStandardMaterial({ color: 0x2233ff, roughness: 0.6, metalness: 0.05, emissive: 0x020408, envMapIntensity: 1.0 });
-    earth = new THREE.Mesh(geometry, material);
-    scene.add(earth);
-
-    // Attempt to load realistic textures from the local `world` folder. Fall back to canvas texture if missing.
-    try{
-        const loader = new THREE.TextureLoader();
-        const base = './world/';
-
-        // PMREM generator for creating an environment map suitable for PBR
-        const pmremGenerator = new THREE.PMREMGenerator(renderer);
-        pmremGenerator.compileEquirectangularShader();
-
-        // Diffuse / color (equirectangular) map — also used to create an environment
-        loader.load(base + 'world5400x2700.jpg', (tex) => {
-            try{
-                tex.encoding = THREE.sRGBEncoding;
-                // create environment from equirectangular map
-                tex.mapping = THREE.EquirectangularReflectionMapping;
-                const envMap = pmremGenerator.fromEquirectangular(tex).texture;
-                scene.environment = envMap;
-                material.envMap = envMap;
-                material.map = tex;
-                material.needsUpdate = true;
-            }catch(err){ console.warn('Failed to create envMap from equirectangular texture', err); }
-        });
-
-        // Bump / normal map (improves small-scale shading)
-        loader.load(base + 'Bump2.jpg', (bump) => { try{ bump.encoding = THREE.LinearEncoding; material.bumpMap = bump; material.bumpScale = 0.08; material.needsUpdate = true; }catch(e){} });
-
-        // Emissive / city lights (used at night)
-        loader.load(base + 'earth_lights.jpg', (lights) => { try{ lights.encoding = THREE.sRGBEncoding; material.emissiveMap = lights; material.emissive = new THREE.Color(0x222233); material.emissiveIntensity = 0.9; material.needsUpdate = true; }catch(e){} });
-
-        // Clouds: create a slightly larger sphere with transparent cloud texture
-        loader.load(base + 'cloud_combined_2048.jpg', (cloudTex) => {
-            try{
-                cloudTex.encoding = THREE.sRGBEncoding;
-                const cloudGeo = new THREE.SphereGeometry(2.03, 64, 64);
-                const cloudMat = new THREE.MeshLambertMaterial({ map: cloudTex, transparent: true, opacity: 0.9, depthWrite: false });
-                earthClouds = new THREE.Mesh(cloudGeo, cloudMat);
-                scene.add(earthClouds);
-            }catch(e){}
-        });
-
-        // Dispose PMREM generator when idle
-        setTimeout(()=>{ try{ pmremGenerator.dispose(); }catch(e){} }, 1500);
-
-    }catch(e){
-        // If anything fails, fallback to the stylized canvas texture generator
-        try{ material.map = createEarthTexture(2048,1024); material.needsUpdate = true; }catch(err){}
-    }
-
-    // Optionally load a higher-detail OBJ model (with MTL) from the world folder and replace the sphere.
-    // Disabled by default to ensure the textured sphere is used as the authoritative Earth representation.
-    if (USE_OBJ_MODEL) {
-        try {
-            if (typeof THREE.OBJLoader !== 'undefined') {
-                const mtlLoader = new THREE.MTLLoader();
-                mtlLoader.setPath('./world/');
-                mtlLoader.load('world.mtl', (materials) => {
-                    materials.preload();
-                    const objLoader = new THREE.OBJLoader();
-                    objLoader.setMaterials(materials);
-                    objLoader.setPath('./world/');
-                    objLoader.load('world.obj', (obj) => {
-                        try {
-                            const bbox = new THREE.Box3().setFromObject(obj);
-                            const size = bbox.getSize(new THREE.Vector3());
-                            const maxDim = Math.max(size.x, size.y, size.z) || 1;
-                            const scaleFactor = (2.0 * 1.02) / maxDim;
-                            obj.scale.setScalar(scaleFactor);
-                            const center = bbox.getCenter(new THREE.Vector3());
-                            obj.position.sub(center.multiplyScalar(scaleFactor));
-                            obj.traverse((c) => { if (c.isMesh) { if (!c.material || c.material.name === '') { c.material = material.clone(); c.material.needsUpdate = true; } c.castShadow = false; c.receiveShadow = true; } });
-                            scene.remove(earth);
-                            earth = obj;
-                            scene.add(earth);
-                        } catch (err) { console.warn('Failed to integrate OBJ model', err); }
-                    }, undefined, (err) => { console.warn('OBJ load error', err); });
-                }, undefined, (err) => {
-                    const objLoader = new THREE.OBJLoader();
-                    objLoader.setPath('./world/');
-                    objLoader.load('world.obj', (obj) => {
-                        try {
-                            const bbox = new THREE.Box3().setFromObject(obj);
-                            const size = bbox.getSize(new THREE.Vector3());
-                            const maxDim = Math.max(size.x, size.y, size.z) || 1;
-                            const scaleFactor = (2.0 * 1.02) / maxDim;
-                            obj.scale.setScalar(scaleFactor);
-                            const center = bbox.getCenter(new THREE.Vector3());
-                            obj.position.sub(center.multiplyScalar(scaleFactor));
-                            obj.traverse((c) => { if (c.isMesh) { c.material = material.clone(); c.material.needsUpdate = true; c.castShadow = false; c.receiveShadow = true; } });
-                            scene.remove(earth);
-                            earth = obj;
-                            scene.add(earth);
-                        } catch (err) { console.warn('Failed to integrate OBJ model (no MTL)', err); }
-                    }, undefined, (err) => { console.warn('OBJ load error (no MTL)', err); });
-                });
-            }
-        } catch (err) { console.warn('Detailed OBJ load attempt failed', err); }
-    }
-
-    // subtle atmosphere halo to make Earth read better against the starfield
+    // Use physically correct lights and gentle ACES tone mapping for richer highlights
     try {
-        const atmosphereGeo = new THREE.SphereGeometry(2.06, 48, 48);
-        const atmosphereMat = new THREE.MeshBasicMaterial({ color: 0x7ec8ff, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, side: THREE.BackSide });
-        const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
-        scene.add(atmosphere);
-    } catch (e) {
-        // non-fatal: if atmosphere creation fails, continue without it
-    }
+        renderer.physicallyCorrectLights = true;
+        if (THREE.ACESFilmicToneMapping) renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        // Slightly raise exposure so the PBR materials read brighter on most displays
+        renderer.toneMappingExposure = 1.25;
+        renderer.shadowMap.enabled = false; // keep perf friendly; shadows are not critical here
+    } catch (e) {}
 
-    // Add satellites
-    createSatellites();
+    // Create a stylized Earth mesh at the center so satellites have a body to orbit.
+    try {
+        const geometry = new THREE.SphereGeometry(2, 128, 128);
+        // use the synchronous canvas-based texture generator to avoid async flashing
+        const tex = createEarthTexture(2048, 1024);
+        try { tex.encoding = THREE.sRGBEncoding; } catch (e) {}
+        tex.needsUpdate = true;
+        // Brighter material settings: slightly lower roughness, small metalness, and a tiny emissive so highlights read whiter
+        const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, metalness: 0.06, roughness: 0.42, emissive: 0x0a1018, emissiveIntensity: 0.06, envMapIntensity: 0.6 });
+        earth = new THREE.Mesh(geometry, mat);
+        earth.castShadow = false;
+        earth.receiveShadow = true;
+        scene.add(earth);
+        // no clouds/emissive overlay by default for a clean look
+        earthClouds = null;
+        emissiveOverlay = null;
+        // mark finalized so we don't force a solid color over the textured Earth
+        heroMaterialFinalized = true;
+    } catch (e) {
+        console.warn('Failed to create Earth mesh, falling back to no-sphere', e);
+        earth = null;
+        earthClouds = null;
+        emissiveOverlay = null;
+        heroMaterialFinalized = true;
+    }
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+    // stronger ambient to ensure base visibility (brightened slightly for the Earth)
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.9);
     scene.add(ambientLight);
-    
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 3, 5);
-    scene.add(directionalLight);
+
+    // directional light used as the sun for shading / day-night terminator
+    // gentle stable key light to provide subtle sculpting without flashing
+    // increase to brighten the top-of-page highlight
+    heroSun = new THREE.DirectionalLight(0xffffff, 0.9);
+    heroSun.position.set(5, 3, 5);
+    heroSun.castShadow = false;
+    scene.add(heroSun);
+
+    // subtle hemisphere fill light for soft top/bottom separation (no animation)
+    try {
+    const hemi = new THREE.HemisphereLight(0x9fdcff, 0x101020, 0.45);
+        scene.add(hemi);
+    } catch (e) { /* non-fatal if HemisphereLight unavailable */ }
+
+    // additional soft top fill to ensure the lit hemisphere reads clearly
+    const topFill = new THREE.DirectionalLight(0xffffff, 0.14);
+    topFill.position.set(-2, 4, 1);
+    scene.add(topFill);
+
+    // subtle rim/back light to bring out edges and make the globe read against the background
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.12);
+    rimLight.position.set(-5, 2, -4);
+    scene.add(rimLight);
+
+    // small camera-attached point light so satellites and small meshes catch a bit of light
+    try {
+    const camLight = new THREE.PointLight(0xffffff, 0.12, 20);
+        camera.add(camLight);
+        scene.add(camera);
+    } catch (e) {}
 
     // Camera position
     camera.position.z = 6;
 
-    // Mouse interaction
-    document.addEventListener('mousemove', onMouseMove);
+    // Mouse interaction: only track when pointer is over the hero canvas to avoid global motion
+    const heroCanvas = document.getElementById('heroCanvas');
+    if (heroCanvas) {
+        heroCanvas.addEventListener('mouseenter', () => { heroMouseActive = true; });
+        heroCanvas.addEventListener('mouseleave', () => { heroMouseActive = false; });
+        heroCanvas.addEventListener('mousemove', onMouseMove, { passive: true });
+    } else {
+        // fallback to entire document if canvas missing
+        document.addEventListener('mousemove', onMouseMove);
+    }
     
-    // Animation loop
+    // Recreate rotating satellites (data-center markers)
+    try { createSatellites(scene); } catch (e) { /* non-fatal */ }
+    // create visual connections between them
+    try { createConnections(scene); } catch (e) { /* non-fatal */ }
+
+    // Start animation loop
     animate();
 }
 
-// Create orbiting satellites
-function createSatellites() {
+// Create orbiting satellites. Accept an optional parent (THREE.Object3D) so satellites
+// can be added to the main hero scene or to a separate group. Defaults to `scene`.
+function createSatellites(parent) {
+    parent = parent || scene;
     // Helper: create glow sprite for subtle bloom around satellites
     function createGlowSprite(size = 64, color = 'rgba(0,212,255,0.9)') {
         const c = document.createElement('canvas');
@@ -1351,9 +1337,10 @@ function createSatellites() {
         g.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = g;
         ctx.fillRect(0,0,s,s);
-        const tex = new THREE.CanvasTexture(c);
-        const mat = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending });
-        return new THREE.Sprite(mat);
+    const tex = new THREE.CanvasTexture(c);
+    // make hero satellite glows brighter but keep NormalBlending to avoid additive flashes
+    const mat = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, blending: THREE.NormalBlending, opacity: 0.95, depthWrite: false });
+    return new THREE.Sprite(mat);
     }
 
     // Helper: construct a stylized futuristic satellite group
@@ -1361,21 +1348,23 @@ function createSatellites() {
         const group = new THREE.Group();
 
         // central body - rounded capsule using cylinder + sphere caps
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x121826, emissive: 0x00374d, metalness: 0.6, roughness: 0.2 });
+    // increase emissive intensity so satellites read brighter (kept without pulsing)
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1b2a33, emissive: 0x005f7f, emissiveIntensity: 0.9, metalness: 0.5, roughness: 0.22 });
         const cyl = new THREE.CylinderGeometry(0.06 * scale, 0.06 * scale, 0.2 * scale, 12);
         const body = new THREE.Mesh(cyl, bodyMat);
         body.rotation.z = Math.PI / 2;
         group.add(body);
 
         // small front plate with emissive window
-        const windowMat = new THREE.MeshStandardMaterial({ color: 0x00e6ff, emissive: 0x00e6ff, emissiveIntensity: 0.8, metalness: 0.1, roughness: 0.3 });
+    // brighten window emissive for legibility at small sizes
+    const windowMat = new THREE.MeshStandardMaterial({ color: 0x66f0ff, emissive: 0x66f0ff, emissiveIntensity: 1.6, metalness: 0.12, roughness: 0.28 });
         const win = new THREE.BoxGeometry(0.04 * scale, 0.02 * scale, 0.02 * scale);
         const winMesh = new THREE.Mesh(win, windowMat);
         winMesh.position.set(0.12 * scale, 0, 0);
         group.add(winMesh);
 
         // solar panels (thin boxes) on either side
-        const panelMat = new THREE.MeshStandardMaterial({ color: 0x072033, emissive: 0x003344, emissiveIntensity: 0.15, metalness: 0.1, roughness: 0.45 });
+    const panelMat = new THREE.MeshStandardMaterial({ color: 0x041820, emissive: 0x004d66, emissiveIntensity: 0.26, metalness: 0.08, roughness: 0.4 });
         const panelGeo = new THREE.BoxGeometry(0.0015 * scale, 0.12 * scale, 0.06 * scale);
         const leftPanel = new THREE.Mesh(panelGeo, panelMat);
         leftPanel.position.set(-0.02 * scale, 0, 0.12 * scale);
@@ -1385,7 +1374,7 @@ function createSatellites() {
         group.add(rightPanel);
 
         // small antenna
-        const antMat = new THREE.MeshStandardMaterial({ color: 0x99f6ff, emissive: 0x66ffff, emissiveIntensity: 0.5, metalness: 0.4, roughness: 0.3 });
+    const antMat = new THREE.MeshStandardMaterial({ color: 0xbfefff, emissive: 0x99f6ff, emissiveIntensity: 0.9, metalness: 0.4, roughness: 0.28 });
         const antStem = new THREE.CylinderGeometry(0.005 * scale, 0.005 * scale, 0.12 * scale, 6);
         const stem = new THREE.Mesh(antStem, antMat);
         stem.position.set(-0.12 * scale, 0, 0);
@@ -1396,8 +1385,8 @@ function createSatellites() {
         dish.position.set(-0.18 * scale, 0, 0);
         group.add(dish);
 
-        // subtle glow sprite behind the satellite
-        const glow = createGlowSprite(80 * Math.max(0.6, scale), 'rgba(0,212,255,0.55)');
+    // subtle glow sprite behind the satellite (stronger inner alpha for higher apparent brightness)
+    const glow = createGlowSprite(80 * Math.max(0.6, scale), 'rgba(0,212,255,0.95)');
         glow.scale.set(0.6 * scale, 0.6 * scale, 1);
         glow.position.set(0, 0, 0);
         group.add(glow);
@@ -1429,7 +1418,48 @@ function createSatellites() {
         };
 
         satellites.push(satellite);
-        scene.add(satellite);
+        try { parent.add(satellite); } catch(e){ scene.add(satellite); }
+    }
+}
+
+// Create visual connections between satellites (curved lines). We'll connect each sat to its next neighbor
+// and a short-chord partner to create a web-like network. Lines are updated each frame to follow
+// satellite motion. Opacity increases when the mouse is near the line midpoint to create a "WOW" effect.
+function createConnections(parent) {
+    parent = parent || scene;
+    // clear existing
+    satelliteConnections.forEach(c => { try{ if(c.line && c.line.parent) c.line.parent.remove(c.line); }catch(e){} });
+    satelliteConnections = [];
+    const n = satellites.length;
+    if (n < 2) return;
+
+    // helper to build a connection object between two satellite indices
+    function buildConnection(i, j) {
+        const a = satellites[i];
+        const b = satellites[j];
+        const p0 = new THREE.Vector3(); const p2 = new THREE.Vector3();
+        a.getWorldPosition(p0); b.getWorldPosition(p2);
+        // compute an upward control point so the line arcs nicely
+        const mid = new THREE.Vector3().addVectors(p0, p2).multiplyScalar(0.5);
+        const up = Math.max(0.5, mid.length() * 0.08);
+        mid.y += up;
+
+        const curve = new THREE.QuadraticBezierCurve3(p0, mid, p2);
+        const points = curve.getPoints(48);
+        const geom = new THREE.BufferGeometry().setFromPoints(points);
+        const mat = new THREE.LineBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.16 });
+        const line = new THREE.Line(geom, mat);
+        line.frustumCulled = false;
+        parent.add(line);
+        satelliteConnections.push({ line, geom, mat, aIndex: i, bIndex: j });
+    }
+
+    // connect neighbors in ring and short chords (i -> i+1 and i -> i+2)
+    for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n;
+        buildConnection(i, j);
+        const k = (i + 2) % n;
+        if (k !== i && k !== j) buildConnection(i, k);
     }
 }
 
@@ -1443,53 +1473,117 @@ function onMouseMove(event) {
 function animate() {
     requestAnimationFrame(animate);
 
+    // If the earth mesh exists, update it; otherwise skip earth-specific work
     if (earth) {
+        // one-time enforcement in case something changed material after init
+        if(!heroMaterialFinalized) enforceHeroSolidMaterial();
         // Rotate Earth
         earth.rotation.y += 0.005;
         // Rotate cloud layer if present (slightly faster than the planet)
         if (earthClouds) earthClouds.rotation.y += 0.0065;
-        
-        // Mouse interaction
-        earth.rotation.x = mouseY * 0.1;
-        earth.rotation.z = mouseX * 0.1;
-        
-        // Animate satellites
-        satellites.forEach((satellite, index) => {
-            // proximity-based speed modulation (hero scene)
-            let target = satellite.userData.baseSpeed;
-            // compute mouse position in screen pixels
-            const mx = (mouseX + 1) / 2 * window.innerWidth;
-            const my = (1 - mouseY) / 2 * window.innerHeight;
-            // project satellite to screen
-            satellite.getWorldPosition(_satProj);
-            _satProj.project(camera);
-            const sx = (_satProj.x + 1) / 2 * window.innerWidth;
-            const sy = (1 - _satProj.y) / 2 * window.innerHeight;
-            const dx = sx - mx;
-            const dy = sy - my;
-            const d = Math.sqrt(dx*dx + dy*dy);
-            const thresh = 160;
-            if (d < thresh) {
-                const factor = (thresh - d) / thresh; // 0..1
-                target = satellite.userData.baseSpeed * (1 + factor * 6); // up to ~7x
-            }
-            // smooth toward target
-            satellite.userData.currentSpeed += (target - satellite.userData.currentSpeed) * 0.12;
 
-            satellite.userData.angle += satellite.userData.currentSpeed;
-            satellite.position.x = Math.cos(satellite.userData.angle) * satellite.userData.radius;
-            satellite.position.z = Math.sin(satellite.userData.angle) * satellite.userData.radius;
-            satellite.position.y = satellite.userData.originalY + Math.sin(Date.now() * 0.001 + index) * 0.2;
-
-            // small rotation to make them feel alive
-            satellite.rotation.y += 0.05;
-        });
-        
-        // Camera movement based on mouse
-        camera.position.x = mouseX * 0.5;
-        camera.position.y = mouseY * 0.5;
-        camera.lookAt(scene.position);
+        // Mouse interaction: smoothly follow mouse when hovering, otherwise relax back to neutral
+        const targetRx = heroMouseActive ? (mouseY * 0.1) : 0;
+        const targetRz = heroMouseActive ? (mouseX * 0.1) : 0;
+        // smooth interpolation
+        earth.rotation.x += (targetRx - earth.rotation.x) * 0.08;
+        earth.rotation.z += (targetRz - earth.rotation.z) * 0.08;
     }
+
+    // Animate satellites regardless of whether an earth sphere exists
+    satellites.forEach((satellite, index) => {
+        // proximity-based speed modulation (hero scene)
+        let target = satellite.userData.baseSpeed;
+        // compute mouse position in screen pixels
+        const mx = (mouseX + 1) / 2 * window.innerWidth;
+        const my = (1 - mouseY) / 2 * window.innerHeight;
+        // project satellite to screen
+        satellite.getWorldPosition(_satProj);
+        _satProj.project(camera);
+        const sx = (_satProj.x + 1) / 2 * window.innerWidth;
+        const sy = (1 - _satProj.y) / 2 * window.innerHeight;
+        const dx = sx - mx;
+        const dy = sy - my;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        const thresh = 160;
+        if (d < thresh) {
+            const factor = (thresh - d) / thresh; // 0..1
+            target = satellite.userData.baseSpeed * (1 + factor * 6); // up to ~7x
+        }
+        // smooth toward target
+        satellite.userData.currentSpeed += (target - satellite.userData.currentSpeed) * 0.12;
+
+        satellite.userData.angle += satellite.userData.currentSpeed;
+        satellite.position.x = Math.cos(satellite.userData.angle) * satellite.userData.radius;
+        satellite.position.z = Math.sin(satellite.userData.angle) * satellite.userData.radius;
+        satellite.position.y = satellite.userData.originalY + Math.sin(Date.now() * 0.001 + index) * 0.2;
+
+        // small rotation to make them feel alive
+        satellite.rotation.y += 0.05;
+    });
+
+    // Camera movement: subtle follow only when hovering
+    const camTargetX = heroMouseActive ? (mouseX * 0.5) : 0;
+    const camTargetY = heroMouseActive ? (mouseY * 0.5) : 0;
+    camera.position.x += (camTargetX - camera.position.x) * 0.06;
+    camera.position.y += (camTargetY - camera.position.y) * 0.06;
+    camera.lookAt(scene.position);
+
+    // Update connection geometries so lines follow satellites and respond to mouse proximity
+    try {
+        const mx = (mouseX + 1) / 2 * window.innerWidth;
+        const my = (1 - mouseY) / 2 * window.innerHeight;
+        satelliteConnections.forEach(conn => {
+            try {
+                const a = satellites[conn.aIndex];
+                const b = satellites[conn.bIndex];
+                if (!a || !b) return;
+                const p0 = new THREE.Vector3(); const p2 = new THREE.Vector3();
+                a.getWorldPosition(p0); b.getWorldPosition(p2);
+                const mid = new THREE.Vector3().addVectors(p0, p2).multiplyScalar(0.5);
+                const up = Math.max(0.5, mid.length() * 0.08);
+                mid.y += up;
+                const curve = new THREE.QuadraticBezierCurve3(p0, mid, p2);
+                const pts = curve.getPoints(48);
+                // update geometry positions
+                const pos = conn.geom.attributes && conn.geom.attributes.position ? conn.geom.attributes.position.array : null;
+                if (pos && pos.length === pts.length * 3) {
+                    for (let i = 0; i < pts.length; i++) {
+                        pos[i*3+0] = pts[i].x;
+                        pos[i*3+1] = pts[i].y;
+                        pos[i*3+2] = pts[i].z;
+                    }
+                    conn.geom.attributes.position.needsUpdate = true;
+                } else {
+                    conn.geom.setFromPoints(pts);
+                }
+
+                // compute screen-space midpoint proximity to mouse and adjust opacity smoothly
+                const midScreen = mid.clone().project(camera);
+                const sx = (midScreen.x + 1) / 2 * window.innerWidth;
+                const sy = (1 - midScreen.y) / 2 * window.innerHeight;
+                const dx = sx - mx; const dy = sy - my; const d = Math.sqrt(dx*dx + dy*dy);
+                const thresh = 180;
+                const factor = Math.max(0, 1 - d / thresh); // 0..1
+                const base = 0.16;
+                const target = base + factor * 0.5; // brightens up near cursor
+                conn.mat.opacity += (target - conn.mat.opacity) * 0.12;
+            } catch (e) {}
+        });
+    } catch (e) {}
+
+    // Update emissive overlay sun direction (no pulsing) — overlay kept hidden per user preference
+    try {
+        if (emissiveOverlay && emissiveOverlay.material && emissiveOverlay.material.uniforms && heroSun) {
+            const sd = new THREE.Vector3();
+            sd.copy(heroSun.position).normalize();
+            emissiveOverlay.material.uniforms.sunDirection.value.copy(sd);
+            // ensure no animated pulsing: keep emissiveIntensity constant
+            if (emissiveOverlay.material.uniforms.emissiveIntensity) {
+                emissiveOverlay.material.uniforms.emissiveIntensity.value = 0.0;
+            }
+        }
+    } catch (e) { /* non-fatal */ }
 
     renderer.render(scene, camera);
 }
@@ -2422,7 +2516,8 @@ function initAIBoxModels() {
                     renderer.setPixelRatio(window.devicePixelRatio || 1);
                     renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
                     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-                    const dir = new THREE.DirectionalLight(0xffffff, 0.8); dir.position.set(5,3,5); scene.add(dir);
+                    // directional lighting disabled to avoid flashing
+                    const dir = new THREE.DirectionalLight(0xffffff, 0.0); dir.position.set(5,3,5); scene.add(dir);
                     // simple placeholder geometry depending on id
                     let mesh;
                     if (id === 'ai-box-routing') {
@@ -2472,7 +2567,8 @@ function initAIBoxModels() {
                 renderer.setPixelRatio(window.devicePixelRatio || 1);
                 renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
                 scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-                const dir = new THREE.DirectionalLight(0xffffff, 0.8); dir.position.set(5,3,5); scene.add(dir);
+                // directional lighting disabled to avoid flashing
+                const dir = new THREE.DirectionalLight(0xffffff, 0.0); dir.position.set(5,3,5); scene.add(dir);
 
                 let group = new THREE.Group();
                 scene.add(group);
@@ -2899,7 +2995,8 @@ function initSustainabilitySection(){
 
             // lights
             scene.add(new THREE.AmbientLight(0x404040, 0.6));
-            const dir = new THREE.DirectionalLight(0xffffff, 1.0); dir.position.set(5,3,5); scene.add(dir);
+            // directional lighting disabled to avoid flashing
+            const dir = new THREE.DirectionalLight(0xffffff, 0.0); dir.position.set(5,3,5); scene.add(dir);
 
             // simple stars background using a large points cloud (cheap)
             const starsGeo = new THREE.BufferGeometry();
