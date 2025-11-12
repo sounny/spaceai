@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Mission Financial Planning AI - System Architecture</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --isu-blue: #001454;
+            --isu-secondary: #002366;
+            --isu-accent: #0a3c86;
+            --white: #ffffff;
+            --light-bg: #f4f7fb;
+            --text-color: #222222;
+            --heading-font: 'Calibri', 'Arial', sans-serif;
+            --body-font: 'Calibri', 'Arial', sans-serif;
+            --card-shadow: 0 12px 24px rgba(0, 20, 84, 0.12);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--body-font);
+            color: var(--text-color);
+            background-color: var(--light-bg);
+            background-image: 
+                linear-gradient(135deg, rgba(0, 20, 80, 0.5) 0%, rgba(5, 35, 90, 0.5) 40%, rgba(15, 50, 110, 0.5) 100%),
+                url('pexels-shashank-brahmavar-737732917-18507019.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            line-height: 1.6;
+        }
+        
+        .container { max-width:1400px; margin:0 auto; padding:0 20px; }
+        
+        /* Hero Banner */
+        .hero-banner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 1rem;
+            position: relative;
+            color: var(--white);
+            text-align: center;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            border-radius: 0;
+            /* Hero background: Pexels space image with blue-tinted gradient overlay */
+            background-image:
+                linear-gradient(135deg, rgba(0, 20, 80, 0.87) 0%, rgba(5, 35, 90, 0.85) 40%, rgba(15, 50, 110, 0.83) 100%),
+                url('pexels-shashank-brahmavar-737732917-18507019.jpg');
+            background-size: cover, cover;
+            background-position: center, center;
+            background-attachment: scroll;
+            background-blend-mode: multiply;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .hero-logo {
+            width: 160px;
+            height: auto;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+            margin-bottom: 8px;
+        }
+        
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0));
+        }
+        
+        h1 { 
+            text-align:center; 
+            font-size:3.2rem; 
+            margin-bottom:16px; 
+            color: var(--white); 
+            font-family: var(--heading-font); 
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            padding-bottom: 16px;
+            background: linear-gradient(90deg, transparent, rgba(100,200,255,0.9), rgba(255,255,255,0.8), rgba(100,200,255,0.9), transparent) bottom no-repeat;
+            background-size: 100% 3px;
+            display: inline-block;
+            width: 100%;
+            position: relative;
+        }
+        .subtitle { text-align:center; color: rgba(255,255,255,0.95); margin-bottom:10px; font-size:1.15rem; }
+        .subtitle-line { display:block; font-weight:600; color: rgba(255,255,255,0.95); }
+
+        .hero-title-small { margin-top: 6px; font-size:1.25rem; color: rgba(255,255,255,0.95); font-weight:600; }
+        .hero-desc { margin-top:10px; color: rgba(255,255,255,0.9); font-size:1rem; max-width:820px; margin-left:auto; margin-right:auto; }
+        .hero-event { margin-top:12px; font-size:0.95rem; color: rgba(255,255,255,0.9); font-weight:600; }
+
+        /* problem-statement */
+        .problem-statement {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: linear-gradient(135deg, #eef4ff 0%, #ffffff 55%, #eef4ff 100%);
+            color: var(--text-color);
+            padding: 22px 22px;
+            border-radius: 14px;
+            margin-bottom: 28px;
+            font-size: 1.08rem;
+            line-height: 1.7;
+            border-left: 6px solid var(--isu-accent);
+            box-shadow: var(--card-shadow);
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .problem-statement::before {
+            content: '';
+            flex: 0 0 48px;
+            width: 48px; height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--isu-blue), var(--isu-accent));
+            background-image: url('pixelated-budgie-logo.png');
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 6px 16px rgba(0,20,84,0.18);
+            margin-top: 2px;
+        }
+        .problem-statement strong { color: var(--isu-blue); }
+        .problem-statement .pill {
+            display: inline-block;
+            background: #dfeafe;
+            color: var(--isu-blue);
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-weight: 700;
+            margin: 0 2px;
+            box-shadow: 0 2px 6px rgba(0,20,84,0.12);
+            border: 1px solid rgba(0,20,84,0.15);
+        }
+
+        .architecture-container { background: var(--white); border-radius:20px; padding:24px; border:1px solid #ddd; margin-bottom:28px; box-shadow: var(--card-shadow); }
+        .layer { margin-bottom:20px; opacity:0; transform:translateY(12px); animation: fadeInUp 0.8s forwards; }
+        .layer:nth-child(1) { animation-delay:0.1s; }
+        .layer:nth-child(2) { animation-delay:0.2s; }
+        .layer:nth-child(3) { animation-delay:0.3s; }
+        .layer:nth-child(4) { animation-delay:0.4s; }
+        .layer:nth-child(5) { animation-delay:0.5s; }
+        @keyframes fadeInUp { to { opacity:1; transform:translateY(0); } }
+
+    .layer-header { background: linear-gradient(90deg, var(--isu-blue), var(--isu-accent)); padding:12px 16px; border-radius:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+    .layer-header.centered { justify-content:center; gap:12px; }
+        .layer-title { font-size:1.05rem; font-weight:600; color: var(--white); }
+    .layer-media { display:flex; justify-content:center; align-items:center; padding:16px; }
+    .layer-media-img { max-width:100%; height:auto; border-radius:12px; box-shadow: var(--card-shadow); }
+        .layer-badge { background: var(--light-bg); padding:5px 12px; border-radius:16px; font-size:0.85rem; color: var(--isu-blue); }
+
+        .components { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+        .component { background: var(--light-bg); padding:12px; border-radius:10px; border:1px solid #ddd; transition: all 0.25s ease; cursor:default; }
+        .component:hover { transform: translateY(-4px); box-shadow: var(--card-shadow); }
+        .component-icon { font-size:1.4rem; margin-bottom:8px; }
+        .component-name { font-weight:600; margin-bottom:6px; color: var(--isu-blue); }
+        .component-desc { font-size:0.9rem; color: #555; }
+
+    /* Comparison Section: ChatGPT vs. BUDGIE */
+    .comparison-section { background: var(--white); border-radius:20px; padding:24px; border:1px solid #ddd; margin:28px auto; box-shadow: var(--card-shadow); max-width: 1200px; }
+    .comparison-header { text-align:center; font-size:1.6rem; color: var(--isu-blue); margin-bottom:8px; }
+    .comparison-subtitle { text-align:center; color:#555; margin-bottom:20px; font-size:0.95rem; }
+    .compare-wrapper { --pos:50%; position:relative; display:grid; grid-template-columns: var(--pos) calc(100% - var(--pos)); border:1px solid #e2e6ef; border-radius:14px; overflow:hidden; box-shadow:0 4px 14px rgba(0,20,84,0.08); }
+    .compare-pane { padding:18px; min-height:240px; }
+    .compare-pane.left { background:#f5f9ff; }
+    .compare-pane.right { background:#ffffff; }
+    .compare-title { font-weight:700; color: var(--isu-blue); margin-bottom:10px; font-size:1.05rem; text-align:center; }
+    .compare-list { margin:0; padding-left:18px; color:#444; font-size:0.9rem; }
+    .compare-list li { margin-bottom:6px; }
+    .compare-handle { position:absolute; top:0; bottom:0; left:var(--pos); width:4px; background: linear-gradient(to bottom, #001454, #0a3c86); transform:translateX(-50%); cursor: ew-resize; }
+    .compare-grip { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:26px; height:26px; background:#0a3c86; border:2px solid #fff; border-radius:50%; box-shadow:0 4px 10px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.75rem; font-weight:600; letter-spacing:0.5px; }
+    .compare-range { width:100%; margin:16px 0 0; }
+    .compare-note { text-align:center; font-size:0.75rem; color:#666; margin-top:10px; }
+
+    /* Uniform metric bubbles for both sides */
+    .metrics-bubbles { display:grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap:12px; justify-items:stretch; align-items:stretch; margin-top:6px; }
+    .metric-bubble { background:#ffffff; border:1px solid #e2e6ef; border-radius:999px; padding:10px 14px; box-shadow:0 2px 8px rgba(0,20,84,0.06); display:flex; align-items:center; gap:10px; width:100%; min-height:42px; }
+    .metric-label { font-size:0.78rem; color:#666; font-weight:700; letter-spacing:0.02em; text-transform:uppercase; flex:1; }
+    .metric-value { font-size:0.98rem; color: var(--isu-blue); font-weight:800; text-align:right; }
+    .compare-pane.left .metric-bubble { background:#fff; }
+    .compare-pane.right .metric-bubble { background:#fff; }
+
+    @media (max-width: 640px) {
+        .metrics-bubbles { grid-template-columns: 1fr; }
+    }
+
+        .agent-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+        .agent-card { background: var(--white); padding:14px; border-radius:12px; border:1px solid #ddd; box-shadow: 0 4px 12px rgba(0, 20, 84, 0.08); transition: all 0.3s ease; }
+        .agent-card:hover { transform: translateY(-4px); box-shadow: var(--card-shadow); }
+        .agent-icon { width:44px; height:44px; background: linear-gradient(135deg, var(--isu-blue), var(--isu-accent)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; margin-bottom:12px; }
+        .agent-name { font-size:1rem; font-weight:700; margin-bottom:8px; color: var(--isu-blue); }
+        .agent-functions { list-style:none; font-size:0.9rem; color: #555; padding-left:0; }
+        .agent-functions li { margin-bottom:6px; padding-left:14px; position:relative; }
+        .agent-functions li::before { content:'▸'; position:absolute; left:0; color: var(--isu-accent); }
+
+    .flow-diagram { background: var(--white); border-radius:14px; padding:16px 20px 20px; margin-top:14px; box-shadow: var(--card-shadow); max-width: 1200px; margin-left: auto; margin-right: auto; }
+        .flow-title { text-align:center; font-size:1.5rem; margin-bottom:16px; color: var(--isu-blue); }
+        .purpose-intro { 
+            display:block;
+            background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 40%, #f0f6ff 100%);
+            padding:16px 26px;
+            border-radius: 999px;
+            font-size:1.05rem;
+            font-weight:700;
+            color: var(--isu-blue);
+            text-align:center;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+            box-shadow: 0 6px 18px rgba(0,20,84,0.12);
+            border:1px solid rgba(0,20,84,0.18);
+            position: relative;
+            margin: 0 auto 20px;
+            width: fit-content;
+            max-width: 900px;
+        }
+        .purpose-intro::after {
+            content:'';
+            position:absolute;
+            left:50%;
+            bottom:-10px;
+            transform:translateX(-50%);
+            width:0; height:0;
+            border-left:10px solid transparent;
+            border-right:10px solid transparent;
+            border-top:10px solid rgba(240,246,255,1);
+            filter: drop-shadow(0 -2px 3px rgba(0,20,84,0.12));
+        }
+        .purpose-intro:hover { box-shadow: 0 8px 24px rgba(10,60,134,0.25); transform: translateY(-2px); transition: all 0.35s ease; }
+        
+        /* Linear flow for High-Level Purpose */
+        .flow-steps { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+        .flow-step { flex:1; min-width:140px; text-align:center; position:relative; transition: transform 0.3s ease; cursor: pointer; }
+        .flow-step:hover { transform: scale(1.08); }
+        .flow-step:hover .flow-step-circle { background: linear-gradient(135deg, var(--isu-accent), #0d4fb8); box-shadow: 0 8px 20px rgba(10, 60, 134, 0.4); }
+        .flow-step-circle { width:64px; height:64px; background: linear-gradient(135deg, var(--isu-blue), var(--isu-accent)); border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:bold; color: var(--white); box-shadow: var(--card-shadow); transition: all 0.3s ease; }
+        .flow-step-text { font-size:0.95rem; color: var(--text-color); }
+        /* Arrows between linear flow steps */
+        .flow-arrow { 
+            position:absolute; 
+            top:35%; 
+            right:-28px; 
+            width:40px; 
+            height:40px; 
+            transform: translateY(-50%);
+            filter: drop-shadow(0 2px 6px rgba(10, 60, 134, 0.4)); 
+            animation: arrowSlide 1.5s ease-in-out infinite; 
+        }
+        @keyframes arrowSlide { 
+            0%, 100% { transform: translateY(-50%) translateX(0); opacity: 0.8; } 
+            50% { transform: translateY(-50%) translateX(6px); opacity: 1; filter: drop-shadow(0 3px 10px rgba(10, 60, 134, 0.6)); } 
+        }
+        
+        /* Circular flow for Intelligent Planning Process Flow */
+        .flow-steps-circular { 
+            position: relative;
+            width: 560px;
+            height: 560px;
+            margin: 36px auto 10px; /* Extra room below title so it doesn't touch bubble 1 */
+            border-radius: 50%;
+            padding: 0;
+        }
+        .flow-steps-circular .flow-step { 
+            position:absolute; 
+            width:140px; 
+            text-align:center; 
+            transform:translate(-50%, -50%);
+            transition: none;
+            cursor: default;
+        }
+        .flow-steps-circular .flow-step:hover { transform: translate(-50%, -50%); }
+        .flow-steps-circular .flow-step-circle { 
+            width:68px; height:68px; 
+            background: linear-gradient(135deg, var(--isu-blue), var(--isu-accent)); 
+            border-radius:50%; 
+            margin:0 auto 8px; 
+            display:flex; align-items:center; justify-content:center; 
+            font-size:1.4rem; font-weight:bold; color:#fff; 
+            box-shadow: 0 6px 14px rgba(0,20,84,0.25); 
+        }
+        .flow-steps-circular .flow-step-text { font-size:0.85rem; color: var(--text-color); font-weight:600; }
+        /* Positions around circle (center at 50%,50%) - perfectly spaced at 45° intervals */
+        .flow-step[data-pos="1"] { top:5%; left:50%; }      /* 0° - top */
+        .flow-step[data-pos="2"] { top:15%; left:85%; }     /* 45° - top-right */
+        .flow-step[data-pos="3"] { top:50%; left:95%; }     /* 90° - right */
+        .flow-step[data-pos="4"] { top:85%; left:85%; }     /* 135° - bottom-right */
+        .flow-step[data-pos="5"] { top:95%; left:50%; }     /* 180° - bottom */
+        .flow-step[data-pos="6"] { top:85%; left:15%; }     /* 225° - bottom-left */
+        .flow-step[data-pos="7"] { top:50%; left:5%; }      /* 270° - left */
+        .flow-step[data-pos="8"] { top:15%; left:15%; }     /* 315° - top-left */
+        .flow-center { 
+            position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); 
+            width:220px; height:220px; background: linear-gradient(135deg,#ffffff,#eef4ff); border:2px solid var(--isu-accent); border-radius:50%; 
+            display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center; box-shadow:0 10px 28px rgba(0,20,84,0.15);
+        }
+        .flow-center h3 { font-size:0.95rem; color: var(--isu-blue); margin-bottom:6px; }
+        .flow-center p { font-size:0.7rem; line-height:1.2; color:#333; }
+        /* remove arrow animation */
+        
+        /* Important for Mission Planners section */
+        .mission-planners {
+            background: var(--white);
+            border: 2px solid var(--isu-accent);
+            border-radius: 16px;
+            padding: 28px 32px;
+            margin: 28px auto;
+            box-shadow: var(--card-shadow);
+            max-width: 1200px;
+        }
+        .mission-planners h2 {
+            color: var(--isu-blue);
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .planners-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            max-width: 1080px;
+            margin: 0 auto;
+            justify-items: stretch;
+        }
+        @media (max-width: 1024px) {
+            .planners-grid { grid-template-columns: repeat(2, 1fr); max-width: 720px; }
+        }
+        @media (max-width: 640px) {
+            .planners-grid { grid-template-columns: 1fr; max-width: 520px; }
+        }
+        .planner-item {
+            background: #ffffff;
+            border-left: 4px solid var(--isu-accent);
+            border-radius: 10px;
+            padding: 16px 18px;
+            box-shadow: 0 4px 12px rgba(0, 20, 84, 0.08);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .planner-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0, 20, 84, 0.15);
+        }
+        .planner-item h3 {
+            color: var(--isu-blue);
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .planner-item h3::before {
+            content: '✓';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--isu-blue), var(--isu-accent));
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .planner-item p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .metrics-dashboard { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:20px; }
+        .metric-card { background: var(--white); padding:12px; border-radius:10px; text-align:center; border:1px solid #ddd; box-shadow: 0 4px 12px rgba(0, 20, 84, 0.08); }
+        .metric-value { font-size:1.4rem; font-weight:700; color: var(--isu-blue); }
+        .metric-label { font-size:0.85rem; color: #666; margin-top:6px; }
+
+        /* Constrain charts so they don't become oversized on wide displays */
+        .chart-container { margin:24px auto; background: var(--white); padding:24px; border-radius:10px; max-width:1000px; width:100%; box-shadow: var(--card-shadow); }
+        .chart-container h2 { margin-bottom:18px; color: var(--isu-blue); font-size:1.5rem; }
+        .chart-container canvas { width:100% !important; height:380px !important; }
+
+        @media (max-width:768px){
+            .components { grid-template-columns:1fr; }
+            .agent-grid { grid-template-columns:1fr; }
+            /* keep arrow sizing comfortable on mobile */
+            .flow-arrow { right:-24px; width:36px; height:36px; }
+            .hero-logo { width: 80px; }
+            h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+        <div class="hero-content">
+            <img src="ISU-Logo-patch-300px.png" alt="ISU Mission Patch" class="hero-logo" />
+            <h1>BUDGIE</h1>
+            <p class="subtitle"><span class="subtitle-line">BUDGET UTILISATION DYNAMIC</span><span class="subtitle-line">GUIDANCE INTELLIGENCE ENGINE</span></p>
+        </div>
+    </div>
+    
+    <div class="container">
+
+        <div class="problem-statement">
+            <div>
+                <strong>Planning a space mission</strong> involves complex decisions, high costs, and significant risks. 
+                <strong>BUDGIE</strong> enables rapid, <strong>AI-driven cost estimation</strong>, <strong>budget optimization</strong>, and <strong>risk assessment</strong> in near real-time — empowering startups and emerging space companies to make confident financial decisions early, without requiring large cost-analysis teams or deep historical datasets.
+            </div>
+        </div>
+
+
+
+        <!-- Space Mission Planning Essentials -->
+        <div class="mission-planners">
+            <h2>Space Mission Planning Essentials</h2>
+            <div class="planners-grid">
+                <div class="planner-item">
+                    <h3>Rapid Cost Estimation</h3>
+                    <p>Get preliminary cost estimates in seconds</p>
+                </div>
+                <div class="planner-item">
+                    <h3>Data-Light Approach</h3>
+                    <p>So you don't need extensive historical mission data to get started.</p>
+                </div>
+                <div class="planner-item">
+                    <h3>Risk-Aware Budgeting</h3>
+                    <p>Build realistic contingency buffers and avoid cost overruns with integrated risk assessment</p>
+                </div>
+                <div class="planner-item">
+                    <h3>Multi-Scenario Analysis</h3>
+                    <p>Quickly compare alternative mission architectures, technology choices, and budget allocations to find optimal solutions.</p>
+                </div>
+                <div class="planner-item">
+                    <h3>Designed for Agility</h3>
+                    <p>Optimised for startups and emerging companies that need professional-grade cost planning.</p>
+                </div>
+                <div class="planner-item">
+                    <h3>Transparent AI Insights</h3>
+                    <p>Understand the reasoning behind cost predictions with explainable AI outputs and confidence intervals for every estimate.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- High-Level Purpose Flow -->
+        <div class="flow-diagram">
+            <h2 class="flow-title">High-Level Purpose: How BUDGIE Works</h2>
+            <p class="purpose-intro"><strong>BUDGIE</strong> takes mission input data (like payload mass, TRL, mission duration, etc.), learns patterns from historical missions, and then:</p>
+            <div class="flow-steps">
+                <div class="flow-step">
+                    <div class="flow-step-circle">📊</div>
+                    <div class="flow-step-text">Predicts Mission Cost (ML)</div>
+                    <svg class="flow-arrow" width="40" height="40" viewBox="0 0 40 40"><defs><linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#0a3c86;stop-opacity:0.6" /><stop offset="100%" style="stop-color:#0a3c86;stop-opacity:1" /></linearGradient></defs><path d="M5,20 L30,20 M25,15 L35,20 L25,25" stroke="url(#arrowGrad)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-step-circle">⚠️</div>
+                    <div class="flow-step-text">Calculates Risk & Overruns</div>
+                    <svg class="flow-arrow" width="40" height="40" viewBox="0 0 40 40"><defs><linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#0a3c86;stop-opacity:0.6" /><stop offset="100%" style="stop-color:#0a3c86;stop-opacity:1" /></linearGradient></defs><path d="M5,20 L30,20 M25,15 L35,20 L25,25" stroke="url(#arrowGrad)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-step-circle">📈</div>
+                    <div class="flow-step-text">Fits Uncertainty Distributions</div>
+                    <svg class="flow-arrow" width="40" height="40" viewBox="0 0 40 40"><defs><linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#0a3c86;stop-opacity:0.6" /><stop offset="100%" style="stop-color:#0a3c86;stop-opacity:1" /></linearGradient></defs><path d="M5,20 L30,20 M25,15 L35,20 L25,25" stroke="url(#arrowGrad)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-step-circle">📉</div>
+                    <div class="flow-step-text">Generates Visualizations</div>
+                    <svg class="flow-arrow" width="40" height="40" viewBox="0 0 40 40"><defs><linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#0a3c86;stop-opacity:0.6" /><stop offset="100%" style="stop-color:#0a3c86;stop-opacity:1" /></linearGradient></defs><path d="M5,20 L30,20 M25,15 L35,20 L25,25" stroke="url(#arrowGrad)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-step-circle">🎯</div>
+                    <div class="flow-step-text">Optimizes Budget</div>
+                    <svg class="flow-arrow" width="40" height="40" viewBox="0 0 40 40"><defs><linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#0a3c86;stop-opacity:0.6" /><stop offset="100%" style="stop-color:#0a3c86;stop-opacity:1" /></linearGradient></defs><path d="M5,20 L30,20 M25,15 L35,20 L25,25" stroke="url(#arrowGrad)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-step-circle">📋</div>
+                    <div class="flow-step-text">Outputs Dashboard</div>
+                </div>
+            </div>
+        </div>
+                </div>
+            </div>
+        </div>
+        <!-- Process Flow (moved up under High-Level Purpose) -->
+        <div class="flow-diagram">
+            <h2 class="flow-title">Intelligent Planning Process Flow</h2>
+            <div class="flow-steps-circular">
+                <div class="flow-step" data-pos="1"><div class="flow-step-circle">1</div><div class="flow-step-text">Mission Requirements<br/>Input</div></div>
+                <div class="flow-step" data-pos="2"><div class="flow-step-circle">2</div><div class="flow-step-text">Multi-Agent<br/>Analysis</div></div>
+                <div class="flow-step" data-pos="3"><div class="flow-step-circle">3</div><div class="flow-step-text">Optimization &<br/>Planning</div></div>
+                <div class="flow-step" data-pos="4"><div class="flow-step-circle">4</div><div class="flow-step-text">Scenario<br/>Evaluation</div></div>
+                <div class="flow-step" data-pos="5"><div class="flow-step-circle">5</div><div class="flow-step-text">Financial Plan<br/>Output</div></div>
+                <div class="flow-step" data-pos="6"><div class="flow-step-circle">6</div><div class="flow-step-text">Risk & Cost<br/>Assessment</div></div>
+                <div class="flow-step" data-pos="7"><div class="flow-step-circle">7</div><div class="flow-step-text">Budget<br/>Optimization</div></div>
+                <div class="flow-step" data-pos="8"><div class="flow-step-circle">8</div><div class="flow-step-text">Dashboard &<br/>Reporting</div></div>
+                <div class="flow-center">
+                    <h3>Central Intelligence</h3>
+                    <p>Coordinated AI agents<br/>continuously refine cost,<br/>risk & budget decisions.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BUDGIE In Action -->
+        <div class="flow-diagram">
+            <h2 class="flow-title">BUDGIE In Action</h2>
+            <div class="layer-media">
+                <img src="BUDGIE_AI_screen_rec_GIFd.gif" alt="BUDGIE in action screen recording" class="layer-media-img">
+            </div>
+        </div>
+
+        <!-- Comparison: ChatGPT vs. BUDGIE -->
+        <div class="comparison-section" id="comparison">
+            <h2 class="comparison-header">ChatGPT vs. BUDGIE: Budget Optimization for the Flock-1 Mission</h2>
+            <p style="text-align:center; font-size:0.95rem; color:#555; margin-bottom:12px;">
+                <strong>Flock-1 Mission Budget Estimate:</strong> <span style="color:var(--isu-blue); font-weight:700;">$150-200 million</span>
+            </p>
+            <div class="compare-wrapper" id="compareWrapper" style="--pos:100%">
+                <div class="compare-pane left">
+                    <div class="compare-title">ChatGPT Output</div>
+                    <div class="metrics-bubbles">
+                        <div class="metric-bubble"><span class="metric-label">Estimated Total Cost</span><span class="metric-value">$130,000,000</span></div>
+                        <div class="metric-bubble"><span class="metric-label">Risk Score</span><span class="metric-value">62/100</span></div>
+                        <div class="metric-bubble"><span class="metric-label">AI Confidence</span><span class="metric-value">55%</span></div>
+                        <div class="metric-bubble"><span class="metric-label">Estimated AI Savings</span><span class="metric-value">$9,100,000</span></div>
+                    </div>
+                </div>
+                <div class="compare-pane right">
+                    <div class="compare-title">BUDGIE Output</div>
+                    <div class="metrics-bubbles">
+                        <div class="metric-bubble"><span class="metric-label">Estimated Total Cost</span><span class="metric-value">$154,000,000</span></div>
+                        <div class="metric-bubble"><span class="metric-label">Risk Score</span><span class="metric-value">35.5/100</span></div>
+                        <div class="metric-bubble"><span class="metric-label">AI Confidence</span><span class="metric-value">82%</span></div>
+                        <div class="metric-bubble"><span class="metric-label">Estimated AI Savings</span><span class="metric-value">$20,000,000</span></div>
+                    </div>
+                </div>
+                <div class="compare-handle" id="compareHandle">
+                    <div class="compare-grip">⇆</div>
+                </div>
+            </div>
+            <input type="range" id="compareRange" class="compare-range" min="0" max="100" value="100" aria-label="Comparison slider">
+            <div class="compare-note">Drag the slider or the handle to reveal more of each side.</div>
+        </div>
+
+    </div>
+
+    <!-- Footer with BUDGIE Logo and Team Credits -->
+    <div style="background:var(--white); border-radius:14px; padding:30px 20px; margin:28px auto; box-shadow:var(--card-shadow); max-width:1200px; text-align:center;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:24px; margin-bottom:20px;">
+            <img src="pixelated-budgie-logo.png" alt="BUDGIE Logo" style="width:120px; height:120px; transform:scaleX(-1);">
+            <div style="background:#fff; border:2px solid var(--isu-blue); border-radius:20px; padding:12px 20px; box-shadow:0 4px 12px rgba(0,20,84,0.15); position:relative;">
+                <p style="font-size:1.1rem; color:var(--isu-blue); font-weight:600; margin:0;">
+                    <strong>BUDGIE</strong> your smart companion for space missions
+                </p>
+                <!-- Speech bubble pointer -->
+                <div style="position:absolute; left:-12px; top:50%; transform:translateY(-50%); width:0; height:0; border-top:10px solid transparent; border-bottom:10px solid transparent; border-right:12px solid var(--isu-blue);"></div>
+                <div style="position:absolute; left:-9px; top:50%; transform:translateY(-50%); width:0; height:0; border-top:9px solid transparent; border-bottom:9px solid transparent; border-right:10px solid #fff;"></div>
+            </div>
+        </div>
+        <div style="padding:12px 20px; background:linear-gradient(135deg, #f0f6ff, #ffffff); border:1px solid #e2e6ef; border-radius:12px; display:inline-block;">
+            <p style="font-size:0.9rem; color:#555; margin:0; font-style:italic;">
+                Darius Dantzler, Nikola Mazzarella, Robert Nagy, Avani Sharan, Venkata Sri Varshini Budi
+            </p>
+        </div>
+    </div>
+
+    <!-- Chart.js Script -->
+    <script>
+    // Charts removed per user request
+
+    // Comparison slider logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const range = document.getElementById('compareRange');
+        const wrapper = document.getElementById('compareWrapper');
+        const handle = document.getElementById('compareHandle');
+        if (!range || !wrapper || !handle) return;
+        const setPos = (val) => wrapper.style.setProperty('--pos', val + '%');
+        setPos(range.value);
+        range.addEventListener('input', (e) => setPos(e.target.value));
+
+        // Drag the handle with mouse/touch
+        const onMove = (clientX) => {
+            const rect = wrapper.getBoundingClientRect();
+            let pct = ((clientX - rect.left) / rect.width) * 100;
+            pct = Math.max(0, Math.min(100, pct));
+            setPos(pct);
+            range.value = pct;
+        };
+        let dragging = false;
+        handle.addEventListener('mousedown', (e) => { dragging = true; e.preventDefault(); });
+        window.addEventListener('mousemove', (e) => { if (dragging) onMove(e.clientX); });
+        window.addEventListener('mouseup', () => { dragging = false; });
+        handle.addEventListener('touchstart', (e) => { dragging = true; });
+        window.addEventListener('touchmove', (e) => { if (dragging && e.touches[0]) onMove(e.touches[0].clientX); }, { passive: true });
+        window.addEventListener('touchend', () => { dragging = false; });
+        // Clicking anywhere on the wrapper sets position
+        wrapper.addEventListener('click', (e) => onMove(e.clientX));
+    });
+    </script>
+</body>
+</html>
