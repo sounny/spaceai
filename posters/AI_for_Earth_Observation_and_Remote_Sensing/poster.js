@@ -63,13 +63,6 @@ function initTimelineCubes3D() {
 
   const cubes = [];
   const spacing = 4;
-  
-  // Phase labels for each cube
-  const phaseLabels = [
-    'Phase I: Data & Information',
-    'Phase II: Innovation & Deployment',
-    'Phase III: Application & Impact'
-  ];
 
   milestones.forEach((milestone, i) => {
     const box = BABYLON.MeshBuilder.CreateBox('cube' + i, { size: 2 }, scene);
@@ -79,27 +72,6 @@ function initTimelineCubes3D() {
     material.diffuseColor = milestone.color;
     material.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
     box.material = material;
-
-    // Create text label below each cube
-    const label = BABYLON.MeshBuilder.CreatePlane('label' + i, { width: 5, height: 1 }, scene);
-    label.position.x = box.position.x;
-    label.position.y = -2.5;
-    label.position.z = 0;
-    
-    const labelTexture = new BABYLON.DynamicTexture('labelTexture' + i, { width: 512, height: 128 }, scene);
-    const labelMaterial = new BABYLON.StandardMaterial('labelMat' + i, scene);
-    labelMaterial.diffuseTexture = labelTexture;
-    labelMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-    labelMaterial.backFaceCulling = false;
-    label.material = labelMaterial;
-    
-    // Draw text on texture
-    const ctx = labelTexture.getContext();
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 32px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(phaseLabels[i], 256, 64);
-    labelTexture.update();
 
     // Animation
     scene.registerBeforeRender(() => {
