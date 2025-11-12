@@ -42,7 +42,7 @@ function initTimelineCubes3D() {
 
   const engine = new BABYLON.Engine(canvas, true);
   const scene = new BABYLON.Scene(engine);
-  scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.15, 1);
+  scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
 
   // Camera
   const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 3, 15, BABYLON.Vector3.Zero(), scene);
