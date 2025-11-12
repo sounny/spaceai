@@ -78,7 +78,31 @@
         </div>
       </div>
 
+                        
                         <div class="section-box" id="section-methodology"><h2>Methodology</h2><div class="section-body">Literature review was performed and Rwanda in Africa was selected as the region of interest. AI was incorporated for generating the main input dataset to give agricultural areas of interest in Rwanda. Simultaneously, rigorous cloud masking and atmospheric correction was also done to ensure data quality and reliability. Images from the Copernicus Sentinel-2 satellite were processed within the Google Earth Engine (GEE) to ensure scalability and efficient access to vast archives of Earth Observation data. Computation using the EVI formula and its visualization for Rwanda in Google Earth Engine was performed using Sentinel-2 data by selection of the correct spectral bands [B2 (Blue, 490 nm), B4 (Red, 665nm), B8 (NIR, 842 nm)]. Healthy vegetation had an EVI value closer to 1, while the stressed vegetation had EVI closer to 0. Using the EVI value obtained, an interactive web-app with a split-panel map was developed to represent vegetation health and classify it as 'healthy', 'moderate', 'stressed', and 'bare'. The analysis was made for a period covering 2020 to 2024 and seasonally over Q1 (Jan-Mar) till Q4 (Oct-Dec) aligning with Rwanda's bimodal agricultural calendar.<br><br><img src="./assets/AI Poster Methodology.png" alt="Methodology diagram" style="max-width: 100%; height: auto;"></div></div>
+      
+      <!-- Clickable image stack -->
+      <div class="section-box" style="border: none; background: transparent;">
+        <div class="section-body" style="text-align: center;">
+          <div id="image-stack" style="position: relative; width: 100%; max-width: 100%; cursor: pointer; display: inline-block;" onclick="toggleImage()">
+            <img src="./assets/2_BugaramaValleyCVI.png" alt="Bugarama Valley CVI Background" style="width: 100%; height: auto; display: block;">
+            <img id="front-image" src="./assets/1_BugaramaValleyCVI.png" alt="Bugarama Valley CVI Front" style="position: absolute; top: 0; left: 0; width: 100%; height: auto; display: block;">
+          </div>
+        </div>
+      </div>
+      
+      <div class="section-box" id="section-analysis" style="border: none; background: transparent;">
+        <div class="section-body" style="text-align: center; display: block;">
+          <video controls loop autoplay muted style="width: 100%; height: auto; display: block; margin: 0 auto 1rem auto;">
+            <source src="./assets/Dashboard EVI.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+          <p style="text-align: center; color: var(--muted); font-size: 14px; margin-top: 0.5rem;">
+            This video shows how Google Earth Engine was used to determine the seasonal variations in vegetation health across Rwanda. The key in the bottom right corner shows how each color corresponds to a vegetation health category: Healthy (purple), Moderate (light blue), Stressed (yellow), and Bare (red).
+          </p>
+        </div>
+      </div>
+      <div class="section-box" id="section-video"><h2>Seasonal Vegetation Health Analysis</h2>
       
       <!-- Clickable image stack -->
       <div class="section-box" style="border: none; background: transparent;">
