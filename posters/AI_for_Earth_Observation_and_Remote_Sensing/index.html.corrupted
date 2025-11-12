@@ -150,26 +150,15 @@
           </p>
         </div>
       </div>
-      <div class="section-box" id="section-conclusion"><h2>Conclusion</h2>
-        <div class="section-body">
-          <p>This analysis realized an AI-driven vegetation-monitoring framework by utilizing open-access satellite data (Sentinel-2) and AI-based analysis (Google Earth Engine). This demonstrates that, through the use of free satellite imagery and AI, agriculture can evolve toward more sustainable and precision-based methods even when subjected to interannual weather variability and management challenges.</p>
-          
-          <p>Focusing on Rwanda as our case study, the Enhanced Vegetation Index (EVI) was successfully calculated and visualized, enabling the classification of agricultural areas into four distinct health categories. The seasonal analysis revealed critical insights into Rwanda's bimodal agricultural patterns and their response to climate variability.</p>
-          
-          <p>The results demonstrate the potential application of low-cost and scalable agricultural monitoring methods using remote sensing coupled with AI. Key achievements include:</p>
-          
-          <ul>
-            <li><strong>Operational Framework:</strong> Development of a replicable methodology combining Sentinel-2 data, Google Earth Engine processing, and AI-driven agricultural area identification</li>
-            <li><strong>Real-time Monitoring:</strong> Demonstration of near real-time vegetation health assessment capabilities aligned with Rwanda's agricultural calendar</li>
-            <li><strong>Early Warning Potential:</strong> Identification of stress patterns that correlate with documented climate events, enabling proactive agricultural intervention</li>
-            <li><strong>Scalability:</strong> Use of freely accessible data and cloud computing resources ensures the approach can be replicated across other African regions</li>
-          </ul>
-          
-          <p>This project directly aligns with and contributes to achieving multiple Sustainable Development Goals: SDG-2 (Zero Hunger), SDG-13 (Climate Action), and SDG-15 (Life on Land), as well as supporting the African Union's Agenda 2063 Goal-5, which promotes sustainable agriculture and food security across Africa.</p>
-          
-          <p>The integration of space technology, artificial intelligence, and local agricultural knowledge represents a paradigm shift from reactive to proactive precision agriculture, offering African farmers and policymakers the tools needed to build climate-resilient food systems.</p>
-        </div>
-      </div>
+      <div class="section-box" id="section-conclusion"><h2>Conclusion</h2><div class="section-body">
+        <p>This analysis realized an AI-driven vegetation-monitoring framework by utilizing open-access satellite data (Sentinel-2) and AI-based analysis (Google Earth Engine). This demonstrates that, through the use of free satellite imagery and AI, agriculture can evolve toward more sustainable and precision-based methods even if subjected to interannual weather and management.</p>
+        
+        <p>Focusing on Rwanda for this case study, the Enhanced Vegetation Index (EVI) was calculated and visualized, and the area of interest was classified into four health categories.</p>
+        
+        <p>The results demonstrate the potential application of low-cost and scalable agricultural monitoring.</p>
+        
+        <p>This project aligns with and contributes to achieving the Agenda 2063 Goal-5 and SDG-2, which promote sustainable agriculture and food security in Africa.</p>
+      </div></div>
       <div class="section-box" id="section-wayforward"><h2>Way Forward</h2>
         <div class="section-body">
           <!-- Babylon.js 3D timeline canvas -->
@@ -187,42 +176,6 @@
           <p style="margin-top: 1rem;">
             <strong>Vision:</strong> Establish a Pan-African GeoAI ecosystem integrating Earth Observation, Artificial Intelligence, and local knowledge to enhance agricultural productivity, climate resilience, and food security. The roadmap aligns with SDG 2 (Zero Hunger), SDG 13 (Climate Action), SDG 15 (Life on Land), and Agenda 2063 Goal 5 (Modern Agriculture for Increased Productivity).
           </p>
-          
-          <div style="margin-top: 2rem;">
-            <h4><strong>Phase I: Data & Information Infrastructure (2025-2027)</strong></h4>
-            <ul>
-              <li><strong>Expand Geographic Coverage:</strong> Scale the Rwanda framework to include neighboring East African countries (Uganda, Tanzania, Kenya, Burundi)</li>
-              <li><strong>Enhanced Data Integration:</strong> Incorporate additional satellite missions (Landsat-9, MODIS, future Copernicus sensors) and ground-based IoT sensors</li>
-              <li><strong>Multi-language Support:</strong> Develop user interfaces in local languages (Kinyarwanda, Swahili, French, English)</li>
-              <li><strong>Capacity Building:</strong> Train local technicians and agricultural extension workers in GeoAI tools and interpretation</li>
-            </ul>
-            
-            <h4><strong>Phase II: Innovation & Deployment (2027-2030)</strong></h4>
-            <ul>
-              <li><strong>Predictive Analytics:</strong> Develop machine learning models for crop yield forecasting and climate impact prediction</li>
-              <li><strong>Mobile Integration:</strong> Launch smartphone apps for farmers to receive real-time alerts and recommendations</li>
-              <li><strong>Precision Agriculture Tools:</strong> Integrate with GPS-enabled farm equipment and drone-based monitoring systems</li>
-              <li><strong>Financial Integration:</strong> Connect vegetation health data with crop insurance and microfinance systems</li>
-            </ul>
-            
-            <h4><strong>Phase III: Application & Impact (2030-2035)</strong></h4>
-            <ul>
-              <li><strong>Continental Network:</strong> Establish the Pan-African Agricultural Intelligence Network covering all 54 African Union member states</li>
-              <li><strong>Policy Integration:</strong> Embed GeoAI insights into national agricultural policies and continental food security strategies</li>
-              <li><strong>Climate Adaptation:</strong> Deploy AI-driven early warning systems for drought, flood, and pest management across Africa</li>
-              <li><strong>Knowledge Transfer:</strong> Export the African GeoAI model to other developing regions globally (South Asia, Latin America)</li>
-            </ul>
-          </div>
-          
-          <div style="margin-top: 2rem; padding: 1rem; background-color: rgba(255,255,255,0.1); border-radius: 8px;">
-            <p><strong>Expected Impact by 2035:</strong></p>
-            <ul>
-              <li>300 million African farmers accessing real-time vegetation health information</li>
-              <li>25% reduction in climate-related crop losses across participating countries</li>
-              <li>Integration with Africa's emerging space agencies and Continental Space Program</li>
-              <li>Contribution to achieving Zero Hunger (SDG-2) and building climate-resilient agricultural systems</li>
-            </ul>
-          </div>
         </div>
       </div>
       <!-- references removed from linear list and will be placed above the bottom video for prominence -->
