@@ -12,6 +12,18 @@ function toggleImage() {
   }
 }
 
+// Toggle Bugarama Valley images
+function toggleBugaramaImage() {
+  const overlay = document.getElementById('bugarama-overlay');
+  if (overlay) {
+    if (overlay.style.display === 'none') {
+      overlay.style.display = 'block';
+    } else {
+      overlay.style.display = 'none';
+    }
+  }
+}
+
 // Video loop setup
 function setupVideoLoop() {
   const topVideo = document.getElementById('top-video');
