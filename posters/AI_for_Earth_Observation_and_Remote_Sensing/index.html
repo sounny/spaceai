@@ -85,7 +85,7 @@
         <div class="section-body" style="text-align: center;">
           <img id="toggle-image" src="./assets/1_BugaramaValleyCVI.png" alt="Bugarama Valley CVI" style="max-width: 100%; height: auto; cursor: pointer; display: block; margin: 0 auto;">
           <p style="text-align: center; color: var(--muted); font-size: 14px; margin-top: 0.5rem;">
-            Click the image to toggle between different views of Bugarama Valley CVI analysis.
+            Satellite imagery of Bugarama Valley, Rwanda. Typical crops include rice, sugarcane, and maize. To switch between the satellite photo and the plant health classification, click the image. 
           </p>
         </div>
       </div>
@@ -105,7 +105,10 @@
           <p style="text-align: center; color: var(--muted); font-size: 14px; margin-top: 0.5rem;">
             This video shows the Enhanced Vegetation Index (EVI) [0-1] evolution from 2020 to 2024 aligned with Rwanda's bimodal agricultural calendar.
           </p>
-          <div class="section-box" id="section-analysis" style="border: none; background: transparent;">
+        </div>
+      </div>
+      
+      <div class="section-box" id="section-analysis" style="border: none; background: transparent;">
         <div class="section-body" style="text-align: center; display: block;">
           <video controls loop autoplay muted style="width: 100%; height: auto; display: block; margin: 0 auto 1rem auto;">
             <source src="./assets/Dashboard EVI.mp4" type="video/mp4">
@@ -113,9 +116,15 @@
           </video>
           <p style="text-align: center; color: var(--muted); font-size: 14px; margin-top: 0.5rem;">
             This video shows how Google Earth Engine was used to determine the seasonal variations in vegetation health across Rwanda. The key in the bottom right corner shows how each color corresponds to a vegetation health category: Healthy (purple), Moderate (light blue), Stressed (yellow), and Bare (red).
-            </p>
+          </p>
+          <div style="text-align: center; margin-top: 1rem;">
+            <a href="https://isu-lceuranie.projects.earthengine.app/view/rwandaevi2020-2024cvi" target="_blank" style="display: inline-block; background-color: white; color: black; padding: 8px 16px; text-decoration: none; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-weight: bold; transition: background-color 0.3s;">
+              Link to Google Earth Engine
+            </a>
+          </div>
         </div>
       </div>
+      
       <div class="section-box" id="section-conclusion"><h2>Conclusion</h2><div class="section-body">
         <p>This analysis realized an AI-driven vegetation-monitoring framework by utilizing open-access satellite data (Sentinel-2) and AI-based analysis (Google Earth Engine). This demonstrates that, through the use of free satellite imagery and AI, agriculture can evolve toward more sustainable and precision-based methods even if subjected to interannual weather and management.</p>
         
@@ -125,6 +134,7 @@
         
         <p>This project aligns with and contributes to achieving the Agenda 2063 Goal-5 and SDG-2, which promote sustainable agriculture and food security in Africa.</p>
       </div></div>
+      
       <div class="section-box" id="section-wayforward"><h2>Way Forward</h2>
         <div class="section-body">
           <!-- Babylon.js 3D timeline canvas -->
