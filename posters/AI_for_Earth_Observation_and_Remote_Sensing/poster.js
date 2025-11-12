@@ -88,11 +88,11 @@ function initTimelineCubes3D() {
         
         // Show tooltip for all cubes
         const tooltipTexts = [
-          'placeholder for table 1',
+          '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Upstream (2025–2027)</caption><thead><tr><th>Objective</th><th>Activity</th><th>Partners / Outputs</th></tr></thead><tbody><tr><td>Build EO–AI foundation</td><td>Integrate Sentinel-1, 2, 3 &amp; 5P into unified African data cubes</td><td>ESA / Copernicus / AfSA</td></tr><tr><td>Scalable processing</td><td>Deploy cloud-native GEE environments hosted in Africa</td><td>GMES &amp; Africa / RCMRD</td></tr></tbody></table>',
           'placeholder for table 2',
           'placeholder for table 3'
         ];
-        tooltip.textContent = tooltipTexts[i];
+        tooltip.innerHTML = tooltipTexts[i];
         tooltip.style.display = 'block';
       })
     );
