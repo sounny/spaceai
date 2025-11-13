@@ -1,234 +1,201 @@
-// poster.js — interactive behaviors for the EO poster
+// poster.js — Clean implementation with 3D timeline cubes
 
+// Toggle image stack function
+function toggleImage() {
+  const frontImage = document.getElementById('front-image');
+  if (frontImage) {
+    if (frontImage.style.display === 'none') {
+      frontImage.style.display = 'block';
+    } else {
+      frontImage.style.display = 'none';
+    }
+  }
+}
+
+// Toggle Bugarama Valley images
+function toggleBugaramaImage() {
+  const overlay = document.getElementById('bugarama-overlay');
+  if (overlay) {
+    if (overlay.style.display === 'none') {
+      overlay.style.display = 'block';
+    } else {
+      overlay.style.display = 'none';
+    }
+  }
+}
+
+// Video loop setup
+function setupVideoLoop() {
+  const topVideo = document.getElementById('top-video');
+  const bottomVideo = document.getElementById('bottom-video');
+  if (topVideo) {
+    topVideo.addEventListener('ended', () => { topVideo.currentTime = 0; topVideo.play(); });
+  }
+  if (bottomVideo) {
+    bottomVideo.addEventListener('ended', () => { bottomVideo.currentTime = 0; bottomVideo.play(); });
+  }
+}
+
+// 3D Timeline Cubes with Babylon.js
+function initTimelineCubes3D() {
+  const canvas = document.getElementById('timeline-canvas');
+  if (!canvas) {
+    console.error('Timeline canvas not found');
+    return;
+  }
+  
+  if (typeof BABYLON === 'undefined') {
+    console.error('Babylon.js library not loaded');
+    return;
+  }
+
+  // Create tooltip element
+  const tooltip = document.createElement('div');
+  tooltip.id = 'cube-tooltip';
+  tooltip.style.position = 'absolute';
+  tooltip.style.background = 'rgba(0, 0, 0, 0.9)';
+  tooltip.style.color = 'white';
+  tooltip.style.padding = '10px 15px';
+  tooltip.style.borderRadius = '6px';
+  tooltip.style.fontSize = '14px';
+  tooltip.style.pointerEvents = 'none';
+  tooltip.style.display = 'none';
+  tooltip.style.zIndex = '1000';
+  tooltip.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+  document.body.appendChild(tooltip);
+
+  const engine = new BABYLON.Engine(canvas, true);
+  const scene = new BABYLON.Scene(engine);
+  scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+
+  // Camera
+  const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 3, 15, BABYLON.Vector3.Zero(), scene);
+  camera.attachControl(canvas, true);
+  camera.lowerRadiusLimit = 10;
+  camera.upperRadiusLimit = 25;
+
+  // Lighting
+  const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene);
+  light.intensity = 0.8;
+
+  // Timeline data
+  const milestones = [
+    { label: 'Data Collection', color: new BABYLON.Color3(0.2, 0.6, 1), info: 'Sentinel-2 imagery acquisition' },
+    { label: 'AI Processing', color: new BABYLON.Color3(0.4, 0.8, 0.3), info: 'GEE & AI classification' },
+    { label: 'EVI Analysis', color: new BABYLON.Color3(1, 0.6, 0.2), info: 'Vegetation health mapping' }
+  ];
+
+  const cubes = [];
+  const spacing = 4;
+
+  milestones.forEach((milestone, i) => {
+    const box = BABYLON.MeshBuilder.CreateBox('cube' + i, { size: 2 }, scene);
+    box.position.x = (i - milestones.length / 2 + 0.5) * spacing;
+    
+    const material = new BABYLON.StandardMaterial('mat' + i, scene);
+    material.diffuseColor = milestone.color;
+    material.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+    box.material = material;
+
+    // Animation
+    scene.registerBeforeRender(() => {
+      box.rotation.y += 0.01;
+      box.rotation.x = Math.sin(Date.now() * 0.001 + i) * 0.1;
+    });
+
+    // Hover interaction
+    box.actionManager = new BABYLON.ActionManager(scene);
+    box.actionManager.registerAction(
+      new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, () => {
+        box.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+        canvas.style.cursor = 'pointer';
+        
+        // Show tooltip for all cubes
+        const tooltipTexts = [
+          '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Downstream (2031–2035)</caption><thead><tr><th>Objective</th><th>Action</th><th>End Users / Partners</th></tr></thead><tbody><tr><td>Farmer services</td><td>AI-driven advisories via SMS / WhatsApp on planting, irrigation, and stress alerts</td><td>Farmers / Cooperatives</td></tr><tr><td>Climate-risk finance</td><td>Integrate vegetation indices into micro-insurance and credit tools</td><td>Banks / Insurers</td></tr><tr><td>Policy alignment</td><td>Standardize EO indicators for SDG 2.4 (sustainable agriculture)</td><td>Ministries / AU / FAO</td></tr><tr><td>GeoAI Observatory</td><td>Create a continental innovation hub with open APIs for AgTech startups</td><td>AfSA / UNOOSA / ISU</td></tr></tbody></table><p><strong>Outcome:</strong> GeoAI insights translated into actionable, localized decisions that directly support farmers and national food systems.</p>',
+          '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Midstream (2027–2031)</caption><thead><tr><th>Objective</th><th>Application</th><th>Tools / Outputs</th></tr></thead><tbody><tr><td>Forecast vegetation &amp; yield</td><td>Temporal CNN/Transformer models for crop stress and yield prediction</td><td>TensorFlow + GEE</td></tr><tr><td>Integrate climate &amp; soil</td><td>Fuse Sentinel + CHIRPS + SoilGrids + ET<sub>0</sub> for evapotranspiration &amp; moisture mapping</td><td>GeoAI ET Fusion Models</td></tr><tr><td>Policy dashboards</td><td>Develop interactive dashboards for vegetation and rainfall anomalies</td><td>GEE Apps / Leaflet</td></tr><tr><td>Digital twin</td><td>Simulate agricultural scenarios across Africa</td><td>ESA Φ-Lab / DESTIN-E</td></tr></tbody></table><p><strong>Outcome:</strong> Operational AI systems predicting drought, crop yield, and irrigation demand.</p>',
+          '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Upstream (2025–2027)</caption><thead><tr><th>Objective</th><th>Activity</th><th>Partners / Outputs</th></tr></thead><tbody><tr><td>Build EO–AI foundation</td><td>Integrate Sentinel-1, 2, 3 &amp; 5P into unified African data cubes</td><td>ESA / Copernicus / AfSA</td></tr><tr><td>Scalable processing</td><td>Deploy cloud-native GEE environments hosted in Africa</td><td>GMES &amp; Africa / RCMRD</td></tr></tbody></table>',
+        ];
+        tooltip.innerHTML = tooltipTexts[i];
+        tooltip.style.display = 'block';
+      })
+    );
+    box.actionManager.registerAction(
+      new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, () => {
+        box.scaling = new BABYLON.Vector3(1, 1, 1);
+        canvas.style.cursor = 'default';
+        
+        // Hide tooltip
+        tooltip.style.display = 'none';
+      })
+    );
+    box.actionManager.registerAction(
+      new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, () => {
+        alert(milestone.label + '\n' + milestone.info);
+      })
+    );
+
+    cubes.push(box);
+  });
+
+  // Track mouse position for tooltip
+  canvas.addEventListener('mousemove', (event) => {
+    tooltip.style.left = (event.pageX + 15) + 'px';
+    tooltip.style.top = (event.pageY + 15) + 'px';
+  });
+
+  // Render loop
+  engine.runRenderLoop(() => {
+    scene.render();
+  });
+
+  // Resize handling
+  window.addEventListener('resize', () => {
+    engine.resize();
+  });
+  
+  console.log('Timeline cubes initialized successfully');
+}
+
+// Section navigation highlight
+function updateActiveSection() {
+  const sections = document.querySelectorAll('.section-box[id^="section-"]');
+  const navPoints = document.querySelectorAll('.nav-point');
+  
+  if (navPoints.length === 0) return;
+  
+  let currentSection = '';
+  sections.forEach(section => {
+    const rect = section.getBoundingClientRect();
+    if (rect.top <= 150 && rect.bottom >= 150) {
+      currentSection = section.id;
+    }
+  });
+  
+  navPoints.forEach(point => {
+    const href = point.getAttribute('href');
+    if (href) {
+      const targetId = href.substring(1);
+      if (targetId === currentSection) {
+        point.classList.add('active');
+      } else {
+        point.classList.remove('active');
+      }
+    }
+  });
+}
+
+// Initialize everything
 document.addEventListener('DOMContentLoaded', () => {
-  // Toggle layers and datasets
-  const resetBtn = document.getElementById('reset-view');
-  const aiABtn = document.getElementById('toggle-aiA');
-  const aiBBtn = document.getElementById('toggle-aiB');
-  const aiA = document.getElementById('ai-a');
-  const aiB = document.getElementById('ai-b');
-
-  function setPressed(btn, pressed) {
-    if (!btn) return;
-    btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
-  }
-
-  function showLayer(el, show) {
-    if (!el) return;
-    el.style.display = show ? '' : 'none';
-    el.setAttribute('data-hidden', show ? 'false' : 'true');
-  }
-
-  if (aiABtn) aiABtn.addEventListener('click', () => {
-    // toggle AI A on/off
-    const hidden = aiA && aiA.getAttribute('data-hidden') === 'true';
-    showLayer(aiA, hidden);
-    setPressed(aiABtn, hidden);
-  });
-
-  if (aiBBtn) aiBBtn.addEventListener('click', () => {
-    const hidden = aiB && aiB.getAttribute('data-hidden') === 'true';
-    showLayer(aiB, hidden);
-    setPressed(aiBBtn, hidden);
-  });
-
-  if (resetBtn) resetBtn.addEventListener('click', () => resetTransform());
-
-  // Simple carousel
-  const frame = document.querySelector('.carousel-frame');
-  const slides = Array.from(document.querySelectorAll('.carousel-slide'));
-  const prev = document.getElementById('prev');
-  const next = document.getElementById('next');
-  let idx = 0;
-
-  function showIndex(i) {
-    idx = (i + slides.length) % slides.length;
-    const offset = -idx * 100;
-    if (frame) frame.style.transform = `translateX(${offset}%)`;
-    slides.forEach(s => s.setAttribute('aria-hidden', s.dataset.index != idx));
-  }
-
-  if (prev) prev.addEventListener('click', () => showIndex(idx - 1));
-  if (next) next.addEventListener('click', () => showIndex(idx + 1));
-
-  // initialize carousel layout
-  if (frame) {
-    frame.style.display = 'flex';
-    frame.style.transition = 'transform 300ms ease';
-    slides.forEach(s => {
-      s.style.minWidth = '100%';
-      s.style.flexShrink = '0';
-    });
-    showIndex(0);
-  }
-
-  // Simple SVG zoom & pan
-  const svg = document.getElementById('visual-svg');
-  let isPanning = false;
-  let start = {x:0, y:0};
-  let view = {x:0, y:0, k:1};
-
-  if (svg) {
-    svg.style.cursor = 'grab';
-    svg.addEventListener('wheel', (ev) => {
-      ev.preventDefault();
-      const delta = -ev.deltaY * 0.001;
-      const newK = Math.min(6, Math.max(0.5, view.k * (1 + delta)));
-      view.k = newK;
-      applyTransform();
-    }, {passive: false});
-
-    svg.addEventListener('pointerdown', (ev) => {
-      isPanning = true;
-      svg.setPointerCapture(ev.pointerId);
-      start = {x: ev.clientX, y: ev.clientY};
-      svg.style.cursor = 'grabbing';
-    });
-
-    svg.addEventListener('pointermove', (ev) => {
-      if (!isPanning) return;
-      const dx = (ev.clientX - start.x) / view.k;
-      const dy = (ev.clientY - start.y) / view.k;
-      start = {x: ev.clientX, y: ev.clientY};
-      view.x += dx;
-      view.y += dy;
-      applyTransform();
-    });
-
-    svg.addEventListener('pointerup', (ev) => {
-      isPanning = false;
-      svg.releasePointerCapture(ev.pointerId);
-      svg.style.cursor = 'grab';
-    });
-
-    svg.addEventListener('pointercancel', () => {
-      isPanning = false;
-      svg.style.cursor = 'grab';
-    });
-  }
-
-  function applyTransform() {
-    if (!svg) return;
-    // Use a simple group transform. Wrap in a <g id="viewport"> if advanced control is needed.
-    svg.style.transformOrigin = 'center center';
-    svg.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.k})`;
-  }
-
-  function resetTransform() {
-    view = {x:0, y:0, k:1};
-    applyTransform();
-  }
-
-  // Accessibility: keyboard controls
-  document.addEventListener('keydown', (ev) => {
-    if (ev.key === 'ArrowRight') showIndex(idx + 1);
-    if (ev.key === 'ArrowLeft') showIndex(idx - 1);
-    if (ev.key === '+') { view.k = Math.min(6, view.k * 1.1); applyTransform(); }
-    if (ev.key === '-') { view.k = Math.max(0.5, view.k / 1.1); applyTransform(); }
-    if (ev.key === '0') resetTransform();
-  });
-
-  // Hero video handling: fade to loop behavior
-  function setupHeroVideo(id){
-    const v = document.getElementById(id);
-    if (!v) return;
-    // don't rely on native loop; implement gentle fade between end and restart
-    v.removeAttribute('loop');
-    v.addEventListener('loadeddata', () => {
-      // ensure playback (muted allows autoplay in most browsers)
-      v.play().catch(()=>{});
-    });
-    v.addEventListener('ended', () => {
-      // fade out, then rewind and fade in
-      v.classList.add('fade-out');
-      setTimeout(() => {
-        try{ v.currentTime = 0; v.play(); } catch(e){}
-        // force reflow then remove fade-out to fade back in
-        requestAnimationFrame(()=> v.classList.remove('fade-out'));
-      }, 600);
-    });
-    // slight initial fade-in
-    v.classList.add('fade-out');
-    setTimeout(()=> v.classList.remove('fade-out'), 120);
-  }
-
-  setupHeroVideo('top-video');
-  setupHeroVideo('bottom-video');
-
-  // Image compare (vertical slider) wiring
-  const compareRange = document.getElementById('compare-range');
-  const imgA = document.querySelector('.image-compare .img-a');
-  const imgB = document.querySelector('.image-compare .img-b');
-  function updateCompare(val){
-    const v = Number(val);
-    // clip right side so that left image A shows v% width
-    const clipRight = 100 - v;
-    if (imgA) imgA.style.clipPath = `inset(0 ${clipRight}% 0 0)`;
-    if (compareRange) compareRange.setAttribute('aria-valuenow', String(v));
-  }
-  if (compareRange){
-    compareRange.addEventListener('input', (e)=> updateCompare(e.target.value));
-    // initialize
-    updateCompare(compareRange.value);
-  }
-
-  // Timeline: position milestone cubes along the SVG curve and update on scroll/resize
-  const timelineWrap = document.querySelector('.timeline-wrap');
-  const timeline = document.querySelector('.timeline');
-  let timelineSvg = timelineWrap ? timelineWrap.querySelector('svg') : null;
-  let timelinePath = timelineSvg ? timelineSvg.querySelector('path') : null;
-
-  function positionTimelineCubes(){
-    if (!timeline || !timelineSvg || !timelinePath) return;
-    // parse viewBox to scale SVG coordinates to pixel coordinates
-    const vb = (timelineSvg.getAttribute('viewBox') || '0 0 1000 200').split(/\s+/).map(Number);
-    const vbW = vb[2] || 1000;
-    const vbH = vb[3] || 200;
-
-    const pathLength = timelinePath.getTotalLength();
-    const svgRect = timelineSvg.getBoundingClientRect();
-    const timelineRect = timeline.getBoundingClientRect();
-    const wrapRect = timelineWrap.getBoundingClientRect();
-
-    const cubes = Array.from(timeline.querySelectorAll('.cube[data-pos]'));
-    cubes.forEach(cube => {
-      const pos = Math.max(0, Math.min(100, Number(cube.dataset.pos || 0)));
-      const length = (pos / 100) * pathLength;
-      let pt;
-      try{ pt = timelinePath.getPointAtLength(length); } catch(e){ pt = {x: (pos/100)*vbW, y: vbH/2}; }
-
-      // map SVG point to pixel coordinates in the document
-      const scaleX = svgRect.width / vbW;
-      const scaleY = svgRect.height / vbH;
-      const pixelX = svgRect.left + pt.x * scaleX;
-      const pixelY = svgRect.top + pt.y * scaleY;
-
-      // compute left relative to the scrolling .timeline element (account for scrollLeft)
-      const leftWithinTimeline = pixelX - timelineRect.left + timeline.scrollLeft;
-      const topWithinWrap = pixelY - wrapRect.top; // position relative to wrap's top
-
-      // apply positions (cubes are positioned absolute inside .timeline)
-      cube.style.position = 'absolute';
-      cube.style.left = `${Math.round(leftWithinTimeline)}px`;
-      // center vertically around the path point
-      const offsetY = Math.round(topWithinWrap - (cube.offsetHeight / 2));
-      cube.style.top = `${offsetY}px`;
-    });
-  }
-
-  // Optimize updates with RAF
-  let rafId = null;
-  function schedulePosition(){
-    if (rafId) return;
-    rafId = requestAnimationFrame(()=>{ positionTimelineCubes(); rafId = null; });
-  }
-
-  // initial positioning
-  schedulePosition();
-  // reposition on scroll of the timeline (horizontal) and on resize
-  if (timeline) timeline.addEventListener('scroll', schedulePosition, {passive:true});
-  window.addEventListener('resize', schedulePosition);
-
-  // also reposition when images/videos load that can change layout
-  window.addEventListener('load', schedulePosition);
+  console.log('DOM loaded, initializing...');
+  
+  setupVideoLoop();
+  
+  // Wait a bit for Babylon.js to load if needed
+  setTimeout(() => {
+    initTimelineCubes3D();
+  }, 100);
+  
+  window.addEventListener('scroll', updateActiveSection);
+  updateActiveSection();
 });
