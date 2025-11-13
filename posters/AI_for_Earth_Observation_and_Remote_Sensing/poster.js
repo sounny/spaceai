@@ -69,10 +69,10 @@ function initTimelineCubes3D() {
   scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
 
   // Camera
-  const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 3, 15, BABYLON.Vector3.Zero(), scene);
+  const camera = new BABYLON.ArcRotateCamera('camera', BABYLON.Vector3.Zero(), scene);
   camera.attachControl(canvas, true);
   camera.lowerRadiusLimit = 10;
-  camera.upperRadiusLimit = 25;
+  camera.upperRadiusLimit = 10;
 
   // Lighting
   const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene);
@@ -86,7 +86,7 @@ function initTimelineCubes3D() {
   ];
 
   const cubes = [];
-  const spacing = 8;
+  const spacing = 9;
 
   milestones.forEach((milestone, i) => {
     const box = BABYLON.MeshBuilder.CreateBox('cube' + i, { size: 2 }, scene);
