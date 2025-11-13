@@ -86,7 +86,7 @@ function initTimelineCubes3D() {
   ];
 
   const cubes = [];
-  const spacing = 4;
+  const spacing = 8;
 
   milestones.forEach((milestone, i) => {
     const box = BABYLON.MeshBuilder.CreateBox('cube' + i, { size: 2 }, scene);
