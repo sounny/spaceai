@@ -70,9 +70,9 @@ function initTimelineCubes3D() {
 
   // Camera
   const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 3, 15, BABYLON.Vector3.Zero(), scene);
-  camera.attachControl(canvas, true);
+  camera.attachControl(canvas, false);
   camera.lowerRadiusLimit = 10;
-  camera.upperRadiusLimit = 25;
+  camera.upperRadiusLimit = 10;
 
   // Lighting
   const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene);
@@ -120,7 +120,7 @@ function initTimelineCubes3D() {
     mainBody.material = bodyMaterial;
     
     const panelMaterial = new BABYLON.StandardMaterial('panelMat' + i, scene);
-    panelMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.4); // Dark blue for solar panels
+    panelMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.7, 1.0); // Light blue for solar panels
     panelMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.8);
     solarPanel1.material = panelMaterial;
     solarPanel2.material = panelMaterial;
