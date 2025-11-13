@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AI, Policy, Ethics & Space Law — (Vanilla)</title>
+    <style>
+      :root{--bg:#070417;--muted:#9aa6b2;--accent:#08b1d0;--accent2:#8b5cf6}
+      html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(180deg,#070417 0%, #0f1230 100%);color:#e6eef6}
+      .wrap{max-width:1080px;margin:0 auto;padding:36px}
+      header{text-align:center;padding:36px 12px}
+      h1{font-size:40px;margin:0;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+      p.lead{color:#b7c6d1;max-width:900px;margin:8px auto 0}
+      .card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);padding:18px;border-radius:12px;margin-top:20px}
+      button.cta{background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;color:#041025;padding:12px 18px;border-radius:10px;font-weight:700;cursor:pointer}
+      .content{margin-top:18px;display:none}
+      .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
+      .tile{background:rgba(0,0,0,0.25);padding:10px;border-radius:8px;text-align:center}
+      img.poster-img{width:100%;height:160px;object-fit:cover;border-radius:6px}
+      .hidden{display:none}
+      .spinner{width:64px;height:64px;border-radius:50%;background:conic-gradient(var(--accent),var(--accent2));margin:40px auto;animation:spin 1.2s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      footer{margin-top:40px;color:#9fb2c4;font-size:13px;text-align:center}
+      .modal{position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:60}
+      .modal .box{background:#071428;padding:22px;border-radius:10px;max-width:800px;width:92%;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+      .close-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#dfeffb;padding:8px 10px;border-radius:8px;cursor:pointer}
+      @media (max-width:520px){h1{font-size:28px}} 
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>AI, Policy, Ethics & Space Law</h1>
+        <p class="lead">A concise exploration of how autonomous AI systems are changing responsibility, liability and governance in space operations.</p>
+      </header>
+
+      <div class="card">
+        <p>Below is a compact version of the poster. Use the button to reveal the problem summary and sample images (these use the already-built assets in the `dist/` folder).</p>
+        <div style="text-align:center;margin-top:14px">
+          <button id="exploreBtn" class="cta">Explore Risks</button>
+        </div>
+        <div id="spinner" class="spinner hidden" aria-hidden="true"></div>
+
+        <div id="mainContent" class="content">
+          <section id="problemSection">
+            <h2 style="margin:8px 0;color:var(--accent);">The Problem: Autonomous Risks</h2>
+            <p style="color:var(--muted)">Autonomous systems in space introduce new liability, operational, and ethical risks. The summary below highlights four critical challenges.</p>
+            <div class="grid" id="tiles"></div>
+          </section>
+
+          <section id="imagesSection" style="margin-top:18px">
+            <h3 style="color:var(--accent);margin:8px 0">Illustrative assets</h3>
+            <div class="grid" id="imagesGrid"></div>
+          </section>
+        </div>
+      </div>
+
+      <footer>Built (vanilla) — images loaded from the `dist/` directory. Swap this file to `index.html` to use it on GitHub Pages or test locally with a simple static server.</footer>
+    </div>
+
+    <!-- modal container -->
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <strong id="modalTitle">Details</strong>
+          <button id="closeModal" class="close-btn">Close</button>
+        </div>
+        <div id="modalBody" style="color:var(--muted)"></div>
+      </div>
+    </div>
+
+    <script>
+      // Minimal plain JS replacement for React app's core interactive bits.
+      (function(){
+        const exploreBtn = document.getElementById('exploreBtn');
+        const spinner = document.getElementById('spinner');
+        const mainContent = document.getElementById('mainContent');
+        const tiles = document.getElementById('tiles');
+        const imagesGrid = document.getElementById('imagesGrid');
+        const modal = document.getElementById('modal');
+        const closeModal = document.getElementById('closeModal');
+        const modalBody = document.getElementById('modalBody');
+
+        // Problem tiles (short summaries)
+        const problems = [
+          {title:'Liability Gaps', body:'Who is responsible when an autonomous system causes damage in space? Traditional liability frameworks may not fit.'},
+          {title:'Decision Transparency', body:'Opaque ML models make it hard to audit decisions made in critical missions.'},
+          {title:'Surveillance & Privacy', body:'Autonomous observation systems increase risks of privacy violations and dual-use monitoring.'},
+          {title:'Runaway Autonomy', body:'Unanticipated emergent behaviours could create cascading mission failures.'}
+        ];
+
+        // Images to show (from the built dist/ folder)
+        const images = [
+          'dist/Image_1-BU6HoM_l.jpg',
+          'dist/Image_3-C31cALbU.png',
+          'dist/Image_12-DnKrQvdO.jpeg',
+          'dist/Image_19-CTGLTyvD.jpeg'
+        ];
+
+        function showSpinner(){ spinner.classList.remove('hidden'); }
+        function hideSpinner(){ spinner.classList.add('hidden'); }
+
+        function openModal(title, body){
+          document.getElementById('modalTitle').textContent = title;
+          modalBody.innerHTML = '<p>'+body+'</p>';
+          modal.classList.remove('hidden');
+        }
+
+        closeModal.addEventListener('click', ()=>{ modal.classList.add('hidden'); });
+        modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.add('hidden'); });
+
+        exploreBtn.addEventListener('click', ()=>{
+          // If content already visible, just toggle
+          if(mainContent.style.display === 'block'){
+            mainContent.style.display = 'none';
+            return;
+          }
+
+          // Simulate short loading then reveal
+          showSpinner();
+          exploreBtn.disabled = true;
+          setTimeout(()=>{
+            hideSpinner();
+            mainContent.style.display = 'block';
+            exploreBtn.disabled = false;
+            populateProblems();
+            populateImages();
+          }, 600);
+        });
+
+        function populateProblems(){
+          tiles.innerHTML = '';
+          problems.forEach((p, idx)=>{
+            const el = document.createElement('div'); el.className='tile';
+            const t = document.createElement('h4'); t.textContent = p.title; t.style.margin='8px 0'; t.style.color='var(--accent)';
+            const b = document.createElement('p'); b.textContent = p.body; b.style.color='var(--muted)'; b.style.fontSize='14px';
+            const btn = document.createElement('button'); btn.textContent='Read more'; btn.className='close-btn'; btn.style.marginTop='8px';
+            btn.addEventListener('click', ()=> openModal(p.title, p.body));
+            el.appendChild(t); el.appendChild(b); el.appendChild(btn);
+            tiles.appendChild(el);
+          });
+        }
+
+        function populateImages(){
+          imagesGrid.innerHTML = '';
+          images.forEach(src=>{
+            const box = document.createElement('div'); box.className='tile';
+            const img = document.createElement('img'); img.className='poster-img'; img.src = src; img.alt = 'poster asset';
+            img.addEventListener('click', ()=> openModal('Image preview','<img src="'+src+'" style="width:100%;height:auto;border-radius:6px">'));
+            box.appendChild(img);
+            imagesGrid.appendChild(box);
+          });
+        }
+
+        // If user navigates with ?vanilla=1, auto-open
+        if(new URLSearchParams(location.search).get('vanilla')==='1'){
+          exploreBtn.click();
+        }
+      })();
+    </script>
+  </body>
+</html>

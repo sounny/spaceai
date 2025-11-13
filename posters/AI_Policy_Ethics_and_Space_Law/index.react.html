@@ -59,6 +59,17 @@
         overflow: hidden;
       }
     </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
 </head>
   <body class="bg-black">
     <div id="root">
@@ -159,6 +170,6 @@
         <div id="modal-root"></div>
       </div>
     </div>
-  <script type="module" crossorigin src="./assets/index.js"></script>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
