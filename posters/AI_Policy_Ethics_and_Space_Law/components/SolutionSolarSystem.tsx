@@ -15,7 +15,7 @@ function showSolutionModal(solution: Solution, modalRoot: HTMLElement) {
                     <p class="text-lg sm:text-xl text-gray-300 leading-relaxed whitespace-pre-line">${solution.description}</p>
                 </div>
                 <div class="w-full h-48 bg-white/5 border border-dashed border-cyan-500/30 rounded-xl flex items-center justify-center overflow-hidden shadow-lg">
-                    <img src="/assets/images/img-${17 + imgIndex}.jpg" alt="Conceptual image for ${solution.title}" class="w-full h-full object-cover" />
+                    <img src="/assets/Image_${17 + imgIndex}.jpeg" alt="Conceptual image for ${solution.title}" class="w-full h-full object-cover" />
                 </div>
             </div>`;
     } else {

@@ -25,16 +25,33 @@ export async function mainApp() {
     const nextStepsSectionContainer = document.getElementById('next-steps-section-container');
     const referencesSectionContainer = document.getElementById('references-section-container');
 
+    // Debug logging
+    console.log('DOM Elements loaded:', {
+        exploreRisksBtn: !!exploreRisksBtn,
+        problemContentContainer: !!problemContentContainer,
+        modalRoot: !!modalRoot
+    });
+
     // --- State Variables ---
     let isRisksExplored = false;
 
     // --- Event Handlers ---
-    exploreRisksBtn.addEventListener('click', () => {
-        isRisksExplored = !isRisksExplored;
-        problemContentContainer.classList.toggle('expanded', isRisksExplored);
-        exploreRisksBtn.textContent = isRisksExplored ? 'Hide Risks' : 'Explore Risks';
-        exploreRisksBtn.classList.toggle('animate-pulse-bounce', !isRisksExplored);
-    });
+    if (exploreRisksBtn && problemContentContainer) {
+        exploreRisksBtn.addEventListener('click', () => {
+            console.log('Explore Risks button clicked');
+            isRisksExplored = !isRisksExplored;
+            console.log('isRisksExplored:', isRisksExplored);
+            problemContentContainer.classList.toggle('expanded', isRisksExplored);
+            exploreRisksBtn.textContent = isRisksExplored ? 'Hide Risks' : 'Explore Risks';
+            exploreRisksBtn.classList.toggle('animate-pulse-bounce', !isRisksExplored);
+            console.log('Classes on problem container:', problemContentContainer.className);
+        });
+    } else {
+        console.error('Failed to initialize: Explore Risks button or problem content container not found', {
+            exploreRisksBtn,
+            problemContentContainer
+        });
+    }
 
     // --- Initial Load ---
     renderAnimatedBackground('animated-background');

@@ -8,7 +8,7 @@ export function renderPolicyFramework(container: HTMLElement) {
                     <h2 class="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-purple-400 tracking-tighter">UNOOSA</h2>
                     <p class="text-xl text-cyan-100 font-light tracking-widest uppercase">104 Countries</p>
                     <div class="flex items-center justify-center w-72 h-20 bg-white/5 border border-dashed border-cyan-500/30 rounded-xl overflow-hidden">
-                        <img src="/assets/images/img-19.jpg" alt="UNOOSA Logo" class="w-full h-full object-cover" />
+                        <img src="/assets/Image_19.jpeg" alt="UNOOSA Logo" class="w-full h-full object-cover" />
                     </div>
                     </div>
                     <div class="flex-1 md:pl-8 md:border-l border-cyan-500/20 pt-2 text-base">
