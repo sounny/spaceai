@@ -1,13 +1,19 @@
 import { Solution } from '../types';
 import { problemsData } from './ProblemGrid';
+import { solutionIllustrations, SolutionIllustrationKey } from '../assets/imageRegistry';
+
+const solutionIllustrationOrder: SolutionIllustrationKey[] = ['adaptive', 'tech', 'meaningful', 'binding'];
+
+function resolveSolutionImage(title: string) {
+    const normalizedTitle = title.toLowerCase();
+    const match = solutionIllustrationOrder.find(key => normalizedTitle.includes(key));
+    return match ? solutionIllustrations[match] : null;
+}
 
 function showSolutionModal(solution: Solution, modalRoot: HTMLElement) {
     let contentHTML = '';
-    if (solution.title.toLowerCase().includes('adaptive governance') ||
-        solution.title.toLowerCase().includes('tech diplomacy') ||
-        solution.title.toLowerCase().includes('meaningful human control') ||
-        solution.title.toLowerCase().includes('binding legal')) {
-        const imgIndex = ['adaptive', 'tech', 'meaningful', 'binding'].findIndex(s => solution.title.toLowerCase().includes(s));
+    const solutionImage = resolveSolutionImage(solution.title);
+    if (solutionImage) {
         contentHTML = `
             <div class="flex flex-col gap-6">
                 <div>
@@ -15,7 +21,7 @@ function showSolutionModal(solution: Solution, modalRoot: HTMLElement) {
                     <p class="text-lg sm:text-xl text-gray-300 leading-relaxed whitespace-pre-line">${solution.description}</p>
                 </div>
                 <div class="w-full h-48 bg-white/5 border border-dashed border-cyan-500/30 rounded-xl flex items-center justify-center overflow-hidden shadow-lg">
-                    <img src="/assets/Image_${17 + imgIndex}.jpeg" alt="Conceptual image for ${solution.title}" class="w-full h-full object-cover" />
+                    <img src="${solutionImage}" alt="Conceptual image for ${solution.title}" class="w-full h-full object-cover" />
                 </div>
             </div>`;
     } else {

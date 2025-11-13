@@ -1,4 +1,5 @@
 import { GapTopic } from '../types';
+import { treatyImages, lawFrameworkLogos, currentUseImages } from '../assets/imageRegistry';
 
 function parseBoldText(text: string) {
     return text.split('**').map((part, index) => 
@@ -41,20 +42,22 @@ function handleSegmentClick(topic: GapTopic, modalRoot: HTMLElement) {
     }
 
     if (topic.title.includes('Outer Space Treaty')) {
-        detailsContent = `<div class="space-y-4">${topic.details.split('\n').map((line, index) => `
+        const treatyLines = topic.details
+            .split('\n')
+            .map(line => line.trim())
+            .filter(Boolean);
+        detailsContent = `<div class="space-y-4">${treatyLines.map((line, index) => `
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4 border-b border-cyan-500/10 last:border-b-0">
                 <p class="flex-1 text-base text-gray-300 sm:text-lg leading-relaxed">${line.replace(/^- /, '')}</p>
                 <div class="flex flex-shrink-0 w-full sm:w-28 h-20 bg-white/5 border border-dashed border-cyan-500/30 rounded-md transition-colors hover:border-cyan-500/60 overflow-hidden">
-                    <img src="/assets/Image_${index + 1}.jpg" alt="Illustration for Outer Space Treaty principle ${index + 1}" class="w-full h-full object-cover" />
+                    <img src="${treatyImages[index % treatyImages.length]}" alt="Illustration for Outer Space Treaty principle ${index + 1}" class="w-full h-full object-cover" />
                 </div>
             </div>`).join('')}</div>`;
     } else if (topic.title.includes('Current Laws')) {
-        const sections = topic.details.split('\n\n');
+        const sections = topic.details.split('\n\n').filter(Boolean);
         const frameworks = sections.slice(0, 3).map((framework, index) => {
             const [title, ...descriptionParts] = framework.split('\n');
-            const logoContent = index === 0 
-                ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 62.1" class="w-20 h-auto fill-current text-white"><path d="M93.8 62.1c-5.4 0-10.9-.3-16.3-.9l-2-12.3c3.4.4 6.8.6 10.2.6 5.8 0 8.7-2.3 8.7-7.2V.4h11.9v39.8c0 12.8-7.2 21.9-22.5 21.9zm-41.5-39c0-12.8-8.2-23.1-23-23.1C12.4 0 0 13.3 0 27.6c0 14.8 13.1 27.8 28.9 27.8 13.1 0 23.4-9.9 23.4-22.3zM35.6 27c0 7.8-5.3 12.3-11.9 12.3-6.5 0-11.7-4.6-11.7-12.7 0-7.6 5.2-12.3 11.7-12.3 6.6 0 11.9 5 11.9 12.7zM154.5.4h-12.8l-23.1 48.9-3.7-25.5h-11.8l7.8 61.3h9.1L154.5.4zM256 23.1c0 16.5-12.3 26.2-27.4 26.2-11.4 0-19.7-5.5-23.1-15.1l10.8-6.1c2.1 5.3 6.1 8.8 12.2 8.8 7.3 0 12.3-4.1 12.3-11.3V.4h15.2v22.7zM189.2 36.8c-7.2 0-12.3-5-12.3-12.4 0-7.1 5.2-12.3 12.3-12.3s12.3 5.2 12.3 12.3c0 7.4-5.1 12.4-12.3 12.4z"></path></svg>`
-                : `<img src="/assets/Image_${10 + index}.png" alt="${title.split(':')[0].replace(/\*\*/g, '')}" class="w-full h-full object-cover" />`;
+            const logoSrc = lawFrameworkLogos[index % lawFrameworkLogos.length];
             return `
               <div class="relative p-4 overflow-hidden border rounded-lg bg-white/5 border-white/10">
                 <div class="relative z-10 flex flex-col sm:flex-row gap-4 justify-between items-start">
@@ -63,7 +66,7 @@ function handleSegmentClick(topic: GapTopic, modalRoot: HTMLElement) {
                       <p class="mt-2 text-sm text-gray-300 sm:text-base">${parseBoldText(descriptionParts.join('\n'))}</p>
                   </div>
                    <div class="flex items-center justify-center flex-shrink-0 w-full sm:w-28 h-20 bg-white/5 border border-dashed border-cyan-500/30 rounded-md transition-colors hover:border-cyan-500/60 mt-2 sm:mt-0 overflow-hidden">
-                      ${logoContent}
+                      <img src="${logoSrc}" alt="${title.split(':')[0].replace(/\*\*/g, '')}" class="w-full h-full object-cover" />
                   </div>
                 </div>
               </div>`;
@@ -71,8 +74,10 @@ function handleSegmentClick(topic: GapTopic, modalRoot: HTMLElement) {
          const softLaw = sections.length > 3 ? `<div class="p-4 mt-4 border-l-2 border-purple-400 bg-purple-900/20"><p class="text-gray-300 italic">${parseBoldText(sections[3])}</p></div>` : '';
          detailsContent = `<div class="space-y-6">${frameworks}${softLaw}</div>`;
     } else if (topic.title.includes('Current uses of AI')) {
-        detailsContent = `<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">${topic.details.split('\n\n').map((useCase, index) => {
+        const useCases = topic.details.split('\n\n').filter(Boolean);
+        detailsContent = `<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">${useCases.map((useCase, index) => {
             const [title, ...descriptionParts] = useCase.split('\n');
+            const imageSrc = currentUseImages[index % currentUseImages.length];
             return `
               <div class="p-5 bg-[#0c0a1d] border border-cyan-500/30 rounded-xl shadow-lg hover:shadow-cyan-500/20 transition-shadow duration-300 flex flex-col">
                 <div class="flex-1">
@@ -80,7 +85,7 @@ function handleSegmentClick(topic: GapTopic, modalRoot: HTMLElement) {
                     <p class="text-sm text-gray-300 leading-relaxed mb-4">${descriptionParts.join('\n')}</p>
                 </div>
                 <div class="w-full h-24 bg-white/5 border border-dashed border-cyan-500/30 rounded-md overflow-hidden">
-                    <img src="/assets/Image_${13 + index}.png" alt="${title.split(':')[0].replace(/\*\*/g, '')}" class="w-full h-full object-cover" />
+                    <img src="${imageSrc}" alt="${title.split(':')[0].replace(/\*\*/g, '')}" class="w-full h-full object-cover" />
                 </div>
               </div>`;
         }).join('')}</div>`;
