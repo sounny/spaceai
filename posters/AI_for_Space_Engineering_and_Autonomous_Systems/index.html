@@ -512,6 +512,15 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 212, 255, 0.2);
         }
+
+        /* Temperature chart: solid dark card background for stronger contrast */
+        #temp-stability .chart-container {
+            background: #000; /* solid black for maximum contrast */
+            border-radius: 12px;
+            padding: 36px;
+            border: 1px solid rgba(255,255,255,0.04);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
         
         .chart-title {
             font-size: 24px;
@@ -647,21 +656,24 @@
             width: min(360px, 80%);
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(2,10,30,0.92);
-            border: 1px solid rgba(0,212,255,0.06);
-            color: #eaf4ff;
-            padding: 12px 16px;
+            /* Brighter, higher-contrast background with subtle gradient and blur */
+            background: linear-gradient(180deg, rgba(4,30,70,0.98), rgba(6,38,82,0.92));
+            backdrop-filter: blur(6px) saturate(120%);
+            border: 1px solid rgba(0,212,255,0.18);
+            color: #ffffff;
+            padding: 14px 18px;
             border-radius: 12px;
-            box-shadow: 0 18px 60px rgba(0,10,30,0.6);
+            box-shadow: 0 26px 80px rgba(0,24,56,0.72), 0 6px 26px rgba(0,212,255,0.06);
             z-index: 3;
-            font-size: 13px;
-            line-height: 1.4;
+            font-size: 14px;
+            line-height: 1.45;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 220ms ease, transform 220ms ease;
+            transition: opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+            text-shadow: 0 1px 0 rgba(0,0,0,0.35);
         }
 
-        .orbit-desc.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(-6px); }
+        .orbit-desc.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(-6px); box-shadow: 0 36px 110px rgba(0,28,64,0.82), 0 8px 30px rgba(0,212,255,0.08); }
 
         .orbit-desc.leo { top: 34%; }
         .orbit-desc.meo { top: 56%; }
@@ -882,6 +894,8 @@
             z-index: 1;
             pointer-events: none; /* overlay visuals only; interactions handled by section */
             overflow: hidden;
+            /* make the AI background a bit transparent so the starfield behind shows through */
+            opacity: 0.46;
         }
 
         .ai-integration-bg canvas {
@@ -914,11 +928,68 @@
             transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0, 212, 255, 0.2);
         }
+
+        /* utility: center a single tech card within the grid */
+        .tech-card.center-card {
+            justify-self: center;
+            align-self: center;
+            max-width: 520px; /* avoid overly wide centered card */
+        }
+
+        /* AI Integration small 3D boxes grid */
+        .ai-box-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-top: 32px;
+        }
+
+        .ai-box-card {
+            background: linear-gradient(180deg, rgba(2,8,30,0.85), rgba(0,20,40,0.6));
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid rgba(0,212,255,0.08);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            min-height: 120px;
+            overflow: hidden;
+        }
+
+        .ai-box-card .ai-box-canvas {
+            width: 110px;
+            height: 110px;
+            flex: 0 0 110px;
+            border-radius: 10px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+            box-shadow: 0 8px 26px rgba(0, 10, 30, 0.6);
+            display: block;
+        }
+
+        .ai-box-card h4 { margin: 0 0 6px 0; font-size: 16px; }
+        .ai-box-card p { margin: 0; font-size: 13px; color: rgba(234,244,255,0.92); }
+
+        /* parallax variable applied to tech cards and ai-box-cards */
+        .tech-card, .ai-box-card {
+            transform: translateY(var(--parallax-y, 0px));
+            will-change: transform;
+        }
+
+        /* adjust hover transform to compose with parallax variable */
+        .tech-card:hover {
+            transform: translateY(calc(var(--parallax-y, 0px) - 8px));
+            box-shadow: 0 18px 40px rgba(0, 212, 255, 0.22);
+        }
+
+        @media (max-width: 680px) {
+            .ai-box-card { flex-direction: row; gap: 12px; }
+            .ai-box-card .ai-box-canvas { width: 86px; height: 86px; flex: 0 0 86px; }
+        }
         
         .tech-logo {
             width: 80px;
             height: 80px;
-            background: var(--isu-blue);
+            background: #ffffff; /* white background per request */
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -927,7 +998,27 @@
             font-weight: 700;
             font-size: 24px;
             color: var(--white);
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+            transition: transform 260ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms ease, filter 260ms ease;
         }
+        .tech-logo-img { width:100%; height:100%; object-fit:cover; display:block; filter: saturate(1) contrast(1); transition: transform 320ms cubic-bezier(.2,.9,.2,1), filter 320ms ease; }
+        .tech-logo.idr-image:hover .tech-logo-img,
+        .tech-logo.idr-image:focus .tech-logo-img,
+        .tech-logo.dl-image:hover .tech-logo-img,
+        .tech-logo.dl-image:focus .tech-logo-img,
+        .tech-logo.afr-image:hover .tech-logo-img,
+        .tech-logo.afr-image:focus .tech-logo-img {
+            transform: scale(1.08);
+            filter: saturate(1.25) contrast(1.08);
+        }
+        .tech-logo.idr-image:hover,
+        .tech-logo.idr-image:focus,
+        .tech-logo.dl-image:hover,
+        .tech-logo.dl-image:focus,
+        .tech-logo.afr-image:hover,
+        .tech-logo.afr-image:focus { box-shadow: 0 14px 42px rgba(0,0,0,0.55); transform: translateY(-4px); }
         
         /* AI Role Section */
         .ai-section {
@@ -1092,6 +1183,171 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Sustainability section styles */
+        .sustainability-section { padding: 96px 0; background: linear-gradient(180deg, rgba(0,8,20,0.96), rgba(2,18,40,0.98)); }
+        .sustain-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 28px; align-items: start; margin-top: 28px; }
+    .sustain-main { padding-right: 22px; }
+    /* stronger visual split: darker side background, thicker divider, inset glow */
+    /* bright blue almost-white divider */
+    .sustain-side { display:flex; flex-direction:column; gap:18px; align-items:flex-end; border-left:3px solid rgba(234,252,255,0.96); padding-left:28px; background: linear-gradient(180deg, rgba(0,6,14,0.28), rgba(0,12,24,0.18)); border-top-right-radius:12px; border-bottom-right-radius:12px; box-shadow: inset 0 0 48px rgba(0,20,40,0.18); }
+    .sustain-side .sustain-heading { color: #9fdcff; }
+    .sustain-side .sustain-cube { background: linear-gradient(180deg, rgba(1,18,30,0.95), rgba(0,12,24,0.82)); box-shadow: 0 22px 60px rgba(0,8,30,0.6); border:1px solid rgba(0,212,255,0.08); }
+        .sustain-heading { font-size:20px; font-weight:800; color:var(--neon-blue); margin-bottom:12px; }
+
+    .sustain-cubes { display:flex; gap:18px; flex-wrap:wrap; justify-content:flex-start; }
+    .sustain-cube { --rx: 0deg; --ry: 0deg; --tz: 0px; --sy: 0px; width: calc(30% - 12px); min-width: 200px; background: linear-gradient(180deg, rgba(2,10,30,0.9), rgba(0,20,40,0.7)); border-radius:14px; padding:20px; box-shadow: 0 18px 50px rgba(0,10,30,0.6); border:1px solid rgba(0,212,255,0.06); color: #eaf4ff; transform-style: preserve-3d; transform: translateY(var(--sy)) rotateX(var(--rx)) rotateY(var(--ry)) translateZ(var(--tz)); transition: transform 220ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms ease, filter 200ms ease; cursor: pointer; display:flex; flex-direction:column; gap:8px; }
+
+    .sustain-cube.single { width:100%; }
+    .sustain-side .sustain-cube.single { min-width: 240px; max-width: 92%; }
+
+        .sustain-cube:focus { outline: none; box-shadow: 0 30px 80px rgba(0,40,120,0.6); }
+
+        .sustain-cube .cube-inner h4 { margin:0 0 8px 0; font-size:18px; color:#dff8ff; }
+        .sustain-cube .cube-inner p { margin:0; font-size:14px; color:rgba(234,244,255,0.95); line-height:1.5; }
+
+        .sustain-cube.hover { --sy: -12px; box-shadow: 0 46px 120px rgba(0,60,140,0.6); filter: saturate(120%); }
+
+        @media (max-width: 980px) {
+            .sustain-grid { grid-template-columns: 1fr; }
+            .sustain-cube { width: 100%; }
+            .sustain-cube.single { margin-top: 8px; }
+        }
+        /* Financial Impacts section styles */
+        .financial-section { padding: 84px 0; background: #000; color: #eaf4ff; }
+        .financial-section .container { position: relative; z-index: 2; }
+        .financial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+        .financial-card { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)); border-radius: 12px; padding: 18px; border:1px solid rgba(255,255,255,0.04); min-height: 120px; display:flex; flex-direction:column; gap:8px; }
+        .financial-card h4 { margin:0; font-size:18px; color:#9fdcff; }
+        .financial-card p { margin:0; color: rgba(234,244,255,0.94); font-size:14px; line-height:1.45; }
+
+        /* Interactive highlight state when mouse approaches or card is focused */
+        .financial-card.interactive {
+            transform: translateY(-10px) scale(1.04);
+            box-shadow: 0 36px 80px rgba(0,160,220,0.12);
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(2,8,18,0.12));
+            z-index: 4;
+            position: relative;
+            transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+        }
+
+        .financial-card h4 { transition: color 160ms ease, transform 180ms ease; }
+        .financial-card.interactive h4 { color: #ffffff; transform: translateZ(0); }
+        .financial-card p { transition: color 180ms ease, opacity 180ms ease; }
+        .financial-card.interactive p { color: rgba(255,255,255,0.96); }
+
+        /* Spotlight overlay for Financial Impacts: makes area around cursor solid */
+        .financial-section { position: relative; }
+        .financial-spotlight {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 260ms ease;
+            z-index: 1; /* behind content (container has z-index:2) */
+            mix-blend-mode: normal;
+            /* default empty background; will be set by JS on mousemove */
+            background: radial-gradient(circle 200px at 50% 50%, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0) 60%);
+        }
+
+        /* Extra styling for financial card proximity/glow and positioning to allow ::after glow */
+        .financial-card {
+            position: relative;
+            overflow: visible;
+            transition: transform 260ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms ease, filter 220ms ease;
+        }
+
+        .financial-card::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 14px;
+            pointer-events: none;
+            box-shadow: 0 0 0 0 rgba(0,150,220,0);
+            transition: box-shadow 240ms ease, opacity 220ms ease;
+            opacity: 0;
+        }
+
+        .financial-card.hovered::after {
+            box-shadow: 0 0 48px 8px rgba(0,150,220,0.06);
+            opacity: 1;
+        }
+
+        /* Compact grid of medium-sized cards used in Financial Impacts */
+    /* Layout cards in a 2x2 grid on wide screens, stack on small screens */
+    .financial-cards-grid { display:grid; grid-template-columns:repeat(2,minmax(320px,1fr)); gap:22px; justify-items:center; align-items:start; margin:18px auto 0; position:relative; z-index:6; max-width:980px; }
+        /* Increase card size so back text fits comfortably */
+        .financial-cards-grid .financial-card { width:100%; min-width:320px; max-width:520px; padding:26px; align-items:flex-start; text-align:left; cursor:pointer; border-radius:12px; }
+            .financial-cards-grid .financial-card h4 { font-size:20px; color:var(--neon-blue); margin-bottom:10px; }
+        /* hide front inline paragraphs but allow back content to show via override */
+        .financial-cards-grid .financial-card p { display:none; }
+        @media (max-width:980px) {
+            .financial-cards-grid { grid-template-columns:repeat(1,1fr); padding:0 18px; }
+            .financial-cards-grid .financial-card { max-width:100%; }
+        }
+    /* Override: show back-side paragraph content inside flipped cards */
+    .financial-cards-grid .financial-card .card-back p { display:block !important; max-height:640px; overflow:auto; font-size:18px; line-height:1.7; }
+    .financial-cards-grid .financial-card .card-back { display:flex; align-items:flex-start; justify-content:flex-start; padding:18px; box-sizing:border-box; }
+    .financial-cards-grid .financial-card .card-inner { min-height:220px; }
+        .financial-cards-grid .financial-card:hover, .financial-cards-grid .financial-card:focus {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 34px 80px rgba(0,160,220,0.16);
+            background: linear-gradient(180deg, rgba(0,212,255,0.06), rgba(0,212,255,0.02));
+        }
+        .financial-cards-grid .financial-card:hover h4, .financial-cards-grid .financial-card:focus h4 { color:#ffffff; }
+
+        /* Issues to Address section styles */
+        .issues-section { padding: 84px 0; background: linear-gradient(180deg, rgba(2,6,18,0.96), rgba(4,12,26,0.98)); }
+    .issues-grid { display: grid; grid-template-columns: 1fr; gap: 28px; align-items:start; margin-top: 20px; justify-items: center; }
+        .issues-list { background: rgba(255,255,255,0.03); padding: 24px; border-radius: 12px; border:1px solid rgba(0,212,255,0.04); }
+        .issue-item { padding: 12px 14px; border-radius: 8px; margin-bottom: 12px; background: linear-gradient(180deg, rgba(0,12,24,0.3), rgba(0,6,14,0.18)); box-shadow: 0 8px 28px rgba(0,8,20,0.45); }
+        .issue-item h4 { margin:0 0 6px 0; font-size:16px; color:#ffd; }
+        .issue-item p { margin:0; color:rgba(234,244,255,0.9); font-size:14px; line-height:1.45; }
+        /* Interactive behavior: lift and highlight when passing the mouse nearby */
+        .issue-item {
+            position: relative; /* needed so ::after can be positioned around the item */
+            overflow: visible; /* allow glow to extend beyond bounds */
+            transition: transform 260ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms ease, background 220ms ease, filter 220ms ease;
+            will-change: transform, box-shadow, filter;
+            transform: translateZ(0);
+            cursor: default;
+        }
+
+        .issue-item:hover,
+        .issue-item:focus-within {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 32px 90px rgba(0,32,80,0.55);
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(2,8,18,0.26));
+            filter: saturate(1.08) contrast(1.02);
+            outline: none;
+        }
+
+        /* subtle proximity glow driven by JS - fallback static ring on hover */
+        .issue-item::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 10px;
+            pointer-events: none;
+            box-shadow: 0 0 0 0 rgba(0,150,220,0.0);
+            transition: box-shadow 260ms ease, opacity 220ms ease;
+            opacity: 0;
+        }
+
+        .issue-item.hovered::after {
+            box-shadow: 0 0 40px 6px rgba(0,150,220,0.06);
+            opacity: 1;
+        }
+
+        /* keyboard-focus visible state */
+        .issue-item:focus {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 28px 70px rgba(0,40,100,0.45);
+            background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(2,8,18,0.22));
+        }
+        .issues-side { padding: 18px; border-radius:12px; background: linear-gradient(180deg, rgba(0,10,30,0.6), rgba(0,6,18,0.4)); border:1px solid rgba(255,255,255,0.02); }
+        .issues-side h4 { margin-top:0; color:#9fdcff; }
+        @media (max-width:980px){ .issues-grid{ grid-template-columns: 1fr; } }
         
         /* Data Stream Animation */
         .data-stream {
@@ -1181,7 +1437,259 @@
             .info-popup .info-badge {
                 display:inline-block;padding:6px 10px;border-radius:999px;background:linear-gradient(90deg,#ffb84d,#9aa3ff);color:#07101a;font-weight:700;margin-bottom:12px;
             }
+            /* Current Projects animated background */
+            .current-projects { position: relative; overflow: hidden; }
+            .current-projects .projects-bg {
+                position: absolute;
+                inset: 0;
+                z-index: 0;
+                pointer-events: none;
+                /* slightly darker base so "solid" feels denser */
+                background: rgba(6,10,16,0.98);
+                transition: opacity 220ms ease, transform 260ms ease;
+                will-change: opacity, background, transform;
+                /* lengthened pulse so the bright/solid phase occupies more of the cycle */
+                animation: projectsPulse 10s ease-in-out infinite;
+            }
+            @keyframes projectsPulse {
+                /* keep initial darker state for a longer ramp, then hold at full solidity
+                   between 50% and 80% before easing back */
+                0% { opacity: 0.96; }
+                30% { opacity: 0.96; }
+                50% { opacity: 1.00; }
+                80% { opacity: 1.00; }
+                100% { opacity: 0.96; }
+            }
+
+            /* CSS variables used by JS to position a radial soft-spot (transparent center) */
+            .current-projects .projects-bg {
+                --cx: 50%; --cy: 50%; --r: 220px;
+                /* increase outer alpha so the "solid" state is visually denser; slightly reduce the inner transparency
+                   so the soft-spot still reads but the whole overlay reads as more solid at peak. */
+                background: radial-gradient(circle var(--r) at var(--cx) var(--cy), rgba(6,10,16,0.40) 0%, rgba(6,10,16,0.98) 55%);
+            }
+
+            /* When a project card is hovered, reduce the overlay darkness to highlight the card area */
+            .current-projects .projects-bg.focused { animation-play-state: paused; }
+            .current-projects .financial-grid { position: relative; z-index: 2; }
+            .current-projects .financial-card { transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease; }
+            .current-projects .financial-card:hover { transform: translateY(-6px); box-shadow: 0 28px 80px rgba(0,0,0,0.6); }
+            /* Financial Impacts cost table styling */
+            .financial-costs { margin-top: 28px; max-width: 980px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(2,8,18,0.16)); border-radius: 12px; padding: 18px; border: 1px solid rgba(255,255,255,0.04); font-size:15px; }
+            .financial-costs .legend { color: #dff8ff; font-weight:700; margin-bottom: 12px; font-size:16px; }
+            .financial-costs table { width: 100%; border-collapse: collapse; color: #eaf4ff; font-size:15px; }
+            /* use orbital blue for table dividers to tie visually to the orbital chart color */
+            .financial-costs th, .financial-costs td { padding: 12px 14px; text-align: left; border-bottom: 1px solid rgba(24,194,213,0.12); }
+            .financial-costs th { color: #9fdcff; font-weight:700; font-size:14px; border-bottom: 2px solid rgba(24,194,213,0.18); }
+            .financial-costs td.numeric { text-align: right; font-family: 'JetBrains Mono', monospace; font-size:16px; font-weight:700; transition: transform 180ms cubic-bezier(.2,.9,.2,1), color 140ms ease; cursor: pointer; }
+            .financial-costs td.numeric:hover, .financial-costs td.numeric:focus { transform: translateY(-6px); color: #ffffff; outline: none; }
+
+            /* Summary row beneath the financial table (two-column) */
+            .financial-summary { display:flex; gap:20px; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid rgba(24,194,213,0.08); }
+            .financial-summary .left, .financial-summary .center, .financial-summary .right { display:flex; flex-direction:column; gap:6px; flex:1; }
+            .financial-summary .center { text-align:center; }
+            .financial-summary .right { text-align:right; }
+            .financial-summary .label { color: rgba(234,244,255,0.78); font-size:14px; font-weight:700; }
+            .financial-summary .value { font-family: 'JetBrains Mono', monospace; font-weight:900; font-size:20px; color:#ffffff; }
+            .financial-summary .secondary { color: rgba(234,244,255,0.72); font-size:13px; }
+
+            @media (max-width: 640px) {
+                .financial-summary { flex-direction:column; align-items:flex-start; gap:10px; }
+                .financial-summary .center, .financial-summary .right { text-align:left; }
+            }
+            /* Tooltip for numeric copy interactions */
+            .num-tooltip {
+                position: fixed;
+                pointer-events: none;
+                background: rgba(0,20,40,0.95);
+                color: #ffffff;
+                padding: 8px 10px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 700;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+                transform: translate(-50%, -100%);
+                transition: opacity 180ms ease, transform 160ms ease;
+                opacity: 0;
+                z-index: 4000;
+                white-space: nowrap;
+            }
+            /* Visually-hidden live region for screen reader confirmations */
+            .sr-live { position: absolute !important; left: -9999px !important; width: 1px !important; height: 1px !important; overflow: hidden !important; }
+
+            /* Glossary term highlight: bold + subtle pop-out on hover/focus */
+            .term-highlight {
+                font-weight: 800;
+                display: inline-block;
+                transition: transform 180ms cubic-bezier(.2,.9,.2,1), text-shadow 180ms ease;
+                will-change: transform, text-shadow;
+                cursor: pointer;
+                color: #ffffff;
+                border-bottom: 1px dashed rgba(255,255,255,0.06);
+                padding-bottom: 1px;
+            }
+            .term-highlight:focus { outline: none; }
+            .term-highlight:hover,
+            .term-highlight:focus {
+                transform: translateZ(12px) translateY(-4px) scale(1.04);
+                text-shadow: 0 12px 30px rgba(0,212,255,0.12);
+            }
+
+            .terms-left ul { margin-top:10px; }
+            .terms-left li { margin-top:8px; }
+            /* Popups for glossary terms and image — bigger, futuristic glass style */
+            .term-popup,
+            .definitions-popup {
+                position: absolute;
+                top: -8px;
+                left: 50%;
+                transform: translate(-50%, -6px) scale(1);
+                min-width: 420px;
+                max-width: 960px;
+                background: linear-gradient(180deg, rgba(4,12,28,0.96), rgba(2,18,40,0.94));
+                border-radius: 14px;
+                padding: 20px 22px;
+                box-shadow: 0 30px 90px rgba(0,12,30,0.75), 0 6px 30px rgba(0,212,255,0.06) inset;
+                color: #f6feff;
+                z-index: 4800;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 240ms ease, transform 240ms cubic-bezier(.2,.9,.2,1);
+                backdrop-filter: blur(10px) saturate(140%);
+                will-change: transform, opacity;
+                border: 1px solid rgba(0,220,255,0.08);
+            }
+            /* inner text styles — bigger, higher contrast */
+            .term-popup .term-popup-inner,
+            .definitions-popup .definitions-popup-inner { font-size: 18px; line-height: 1.5; font-weight: 600; color: #f8ffff; }
+            .term-popup .term-popup-inner p, .definitions-popup .definitions-popup-inner p { margin: 0; }
+            .term-popup.show, .definitions-popup.show { opacity: 1; transform: translate(-50%, -50%) scale(1.02); pointer-events: auto; }
+            /* position tweaks for left/right anchored popups (if present) */
+            #term-pop-right { left: calc(100% - 18px); transform: translate(-100%, -6px) scale(1); min-width: 360px; }
+            #term-pop-left { left: 18px; transform: translate(0, -6px) scale(1); }
+            /* definitions image-specific popup: center above image and larger */
+            /* center the popup inside the image */
+            .definitions-popup { min-width: 560px; max-width: 920px; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1); padding: 22px 26px; border-radius:16px; }
+
+            /* Neon gradient border accent via pseudo-element */
+            .definitions-popup::before,
+            .term-popup::before {
+                content: '';
+                position: absolute;
+                inset: -2px;
+                border-radius: 16px;
+                background: linear-gradient(90deg, rgba(0,212,255,0.35), rgba(0,255,136,0.25), rgba(255,177,77,0.22), rgba(154,163,255,0.28));
+                filter: blur(14px);
+                opacity: 0.55;
+                z-index: -1;
+            }
+            /* subtle animated shimmer for the neon accent */
+            @keyframes popupAccent {
+                0% { transform: translateX(-10%); }
+                50% { transform: translateX(10%); }
+                100% { transform: translateX(-10%); }
+            }
+            .definitions-popup::before { animation: popupAccent 8s linear infinite; }
+
+            /* Respect reduced motion by removing transitions/animations */
+            @media (prefers-reduced-motion: reduce) {
+                .term-popup, .definitions-popup, .term-highlight { transition: none !important; transform: none !important; }
+                .definitions-popup::before, .term-popup::before { animation: none !important; filter: blur(6px); }
+            }
     </style>
+        <style>
+            /* Financial card flip and scale animation */
+            /* Grid: two columns where possible; larger gaps to avoid overlap when cards expand */
+            .financial-cards-grid { display:grid; grid-template-columns:repeat(2,minmax(320px,1fr)); gap:36px; margin-top:18px; justify-items:center; align-items:start; max-width:980px; margin-left:auto; margin-right:auto; }
+            .financial-card { background:linear-gradient(180deg,#0f1724, #071028); color:#e6eef8; border-radius:12px; padding:22px; min-height:220px; display:block; cursor:pointer; box-shadow:0 6px 18px rgba(2,6,23,0.6); transition:transform 420ms cubic-bezier(.2,.9,.2,1), box-shadow 300ms; outline:none; position:relative; width:100%; }
+            .financial-card:focus { box-shadow:0 10px 26px rgba(2,6,23,0.75), 0 0 0 4px rgba(66,153,225,0.12); }
+            .financial-card .card-inner { position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform 560ms cubic-bezier(.18,.9,.32,1); }
+            .financial-card .card-front, .financial-card .card-back { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:12px; backface-visibility:hidden; border-radius:8px; }
+            .financial-card .card-front h4 { margin:0; font-size:22px; line-height:1.05; }
+            .financial-card .card-back { transform:rotateY(180deg); background:linear-gradient(180deg,#061426, #092036); color:#dceffb; text-align:left; padding:20px; font-size:18px; line-height:1.7; overflow:auto; }
+            .financial-card.active { z-index:60; }
+            /* reduce scale to limit visual overlap; when active we'll switch the back into the flow so the card grows instead of overflowing */
+            .financial-card.active .card-inner { transform:rotateY(180deg) scale(1.03); transform-origin:center center; }
+            /* subtle neon edge when active */
+            .financial-card.active { box-shadow:0 18px 40px rgba(3,9,30,0.8), 0 0 24px rgba(66,153,225,0.06); }
+            /* ensure back content is focusable */
+            .financial-card .card-back:focus { outline: 3px solid rgba(66,153,225,0.14); }
+            /* When a card is active, hide the absolute front and allow the back to be in-flow so the card expands and pushes others (prevents overlap) */
+            .financial-card.active .card-front { display:none; }
+            .financial-card.active .card-back { position:relative; transform:rotateY(180deg); backface-visibility:visible; }
+            .financial-card .card-front { position:relative; }
+            @media (max-width:980px) { .financial-cards-grid { grid-template-columns: 1fr; padding:0 18px; } }
+        </style>
+        <style>
+            /* Unified styling for remaining financial cards (Cost Comparison & Cost Savings) */
+            .financial-cards-grid .financial-card.cost-compare-card,
+            .financial-cards-grid .financial-card.cost-savings-card,
+            .financial-cards-grid .financial-card.roi-card {
+                background:#ffffff !important;
+                border:1px solid rgba(0,0,0,0.08) !important;
+                box-shadow:0 10px 26px rgba(2,6,23,0.18) !important;
+                color:#0b2342 !important;
+            }
+            /* Front/back surfaces consistent (white + dark text) */
+            .financial-cards-grid .financial-card.cost-compare-card .card-front,
+            .financial-cards-grid .financial-card.cost-compare-card .card-back,
+            .financial-cards-grid .financial-card.cost-savings-card .card-front,
+            .financial-cards-grid .financial-card.cost-savings-card .card-back,
+            .financial-cards-grid .financial-card.roi-card .card-front,
+            .financial-cards-grid .financial-card.roi-card .card-back {
+                background:#ffffff !important;
+                color:#0b2342 !important;
+            }
+            /* Headings: same size, weight, and alignment across all four */
+            .financial-cards-grid .financial-card.cost-compare-card h4,
+            .financial-cards-grid .financial-card.cost-savings-card h4,
+            .financial-cards-grid .financial-card.roi-card h4 {
+                color:#0b2342 !important;
+                text-align:center;
+                font-size:20px !important;
+                font-weight:800 !important;
+            }
+            /* Front layout: center content like the model cards */
+            .financial-cards-grid .financial-card.roi-card .card-front {
+                display:flex;
+                flex-direction:column;
+                align-items:center;
+                justify-content:center;
+                gap:12px;
+                min-height:220px;
+            }
+            /* Ensure back content starts at top (remove unintended vertical push) */
+            .financial-cards-grid .financial-card.roi-card .card-back {
+                display:flex;
+                flex-direction:column;
+                align-items:flex-start;
+                justify-content:flex-start !important;
+                padding-top:0; /* no blank space at the top */
+            }
+            /* Let ROI/Partnership cards grow/shrink exactly to back content when flipped */
+            .financial-cards-grid .financial-card.roi-card.active {
+                min-height: auto;
+            }
+            .financial-cards-grid .financial-card.roi-card.active .card-inner {
+                min-height: auto;
+                height: auto;
+            }
+            /* ROI/Partnership images: match size of model cards */
+            .financial-cards-grid .financial-card.roi-card .card-front img {
+                max-width: 320px;
+                width: 72%;
+                height: auto;
+                display: block;
+                border-radius: 8px;
+            }
+            /* Back text: unified weight and color */
+            .financial-cards-grid .financial-card.cost-compare-card .card-back p,
+            .financial-cards-grid .financial-card.cost-savings-card .card-back p,
+            .financial-cards-grid .financial-card.roi-card .card-back p {
+                color:#0b2342 !important;
+                font-weight:700 !important;
+            }
+        </style>
 <base target="_blank">
 </head>
 <body>
@@ -1219,8 +1727,12 @@
                     <span class="stat-label">Latency LEO</span>
                 </div>
             </div>
+            <!-- hero controls (WorldWind buttons removed per user request) -->
+            <!-- Explanatory caption removed from hero (moved to Financial Impacts) -->
+            <!-- Launch cost table removed from hero and relocated to Financial Impacts per layout request -->
         </div>
     </section>
+    <!-- Inline WorldWind embed container removed (WorldWind toggles removed) -->
     
     <!-- Abstract Section -->
     <section id="problem" class="abstract-section section">
@@ -1233,7 +1745,42 @@
             </div>
         </div>
     </section>
+    <script>
+        // WorldWind toggles removed. The three.js Earth hero remains the primary globe.
+    </script>
     
+    <!-- Terms to define: small split section placed before Current Data Center Challenges -->
+    <section class="terms-define section" aria-labelledby="terms-title">
+        <div class="container">
+            <div class="terms-split" style="display:flex;gap:0;align-items:center;justify-content:center;flex-wrap:wrap;flex-direction:column;">
+                <div style="width:100%;text-align:center;">
+                    <h3 id="terms-title" style="margin:0;color:#ffffff;font-size:32px;line-height:1.05;">Terms to define</h3>
+                    <p style="color:#ffffff;margin-top:10px;font-size:18px;">Quick glossary for key technical terms used in this poster.</p>
+                </div>
+                <div class="definitions-wrap" style="position:relative;width:100%;display:flex;align-items:center;justify-content:center;margin-top:18px;">
+                    <img id="definitions-image" class="definitions-image" src="AI Definitions.png" alt="Definitions" tabindex="0" style="max-width:100%;width:644px;height:auto;border-radius:10px;box-shadow:0 18px 48px rgba(0,0,0,0.6); will-change: transform;" />
+                    <!-- Centered image popup that shows the glossary when hovering/focusing the image -->
+                    <div id="definitions-popup" class="definitions-popup" aria-hidden="true" role="dialog" aria-label="Definitions popup">
+                        <div class="definitions-popup-inner">
+                            <ul style="margin:0;padding-left:20px;">
+                                <li style="margin-bottom:10px;">“Edge” computing — describes data processing <strong>on board</strong>. Only relevant insights are downlinked to ground stations.</li>
+                                <li>Orbital “Network” — describes a <strong>distributed network</strong> based on a <strong>constellation of small satellites</strong>. Each satellite is a node in the network.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- caption intentionally removed from here -->
+            <div class="terms-citation" aria-label="Reference citation" style="width:100%;max-width:760px;margin:34px auto 0;padding-top:14px;border-top:1px solid rgba(255,255,255,0.14);font-size:13px;line-height:1.4;color:rgba(255,255,255,0.72);letter-spacing:0.25px;font-weight:400;">
+                <p style="margin:0 0 6px;">
+                    <span style="font-weight:600;color:rgba(255,255,255,0.82);">Image AI Generated Inspired by Image from:</span>
+                    Aili, A., Choi, J., Ong, Y.S. <em>et al.</em> "The development of carbon-neutral data centres in space." <em>Nat Electron</em>. (2025).
+                </p>
+                <p style="margin:0;font-size:12.5px;color:rgba(255,255,255,0.55);">Placed here for attribution; styled subtly to avoid competing with glossary content.</p>
+            </div>
+        </div>
+    </section>
+
     <!-- Current Data Centers Challenges -->
     <section class="current-datacenters section">
         <div class="container">
@@ -1268,14 +1815,7 @@
                 </div>
             </div>
             
-            <!-- CAPEX Breakdown (donut) inserted per user request: medium-sized Chart.js doughnut -->
-            <div class="chart-container" style="max-width:720px; margin:36px auto;">
-                <h3 class="chart-title">CAPEX Breakdown of terrestrial datacenters</h3>
-                <div style="height:320px;">
-                    <canvas id="costChart" aria-label="CAPEX breakdown donut chart" role="img" style="width:100%;height:100%;display:block;"></canvas>
-                </div>
-                <p style="text-align:center;margin-top:12px;color:var(--gray-medium);font-size:13px;">CAPEX allocation (Electrical, Thermal, Shell, Network) — percentages of total capital expenditure.</p>
-            </div>
+            <!-- CAPEX Breakdown removed per user request -->
         </div>
     </section>
     
@@ -1286,7 +1826,7 @@
             
             <div class="orbital-visualization">
                 <!-- Dedicated canvas for a small 3D orbital viewer -->
-                <canvas id="orbitalCanvas" style="width:100%;height:100%;display:block;opacity:0;transition:opacity 420ms ease;"></canvas>
+                <canvas id="orbitalCanvas" style="width:100%;height:100%;display:block;opacity:1;transition:opacity 420ms ease;"></canvas>
 
                 <!-- Orbit labels removed per request -->
 
@@ -1346,33 +1886,379 @@
 
             <div class="tech-grid">
                 <div class="tech-card">
-                    <div class="tech-logo">SC</div>
-                    <h3>Starcloud</h3>
-                    <p>Launching NVIDIA H100 GPU into orbit with 100x more powerful compute than any previous space-based operation.</p>
+                    <div class="tech-logo idr-image" role="img" aria-label="AI Data Routing image" tabindex="0">
+                        <img class="tech-logo-img" src="./AI data routing.png" alt="AI Data Routing" />
+                    </div>
+                    <h3>Intelligent Data Routing</h3>
+                    <p>AI-based routing evaluates network load, satellite geometry, and demand distribution to steer traffic over the best inter-satellite and ground links, minimizing latency and congestion. Predictive models anticipate failures or interference and proactively reroute flows to maintain QoS.</p>
                 </div>
                 
                 <div class="tech-card">
-                    <div class="tech-logo">AS</div>
-                    <h3>Axiom Space</h3>
-                    <p>AxDCU-1 prototype testing orbital data center capabilities for cloud computing and AI/ML on ISS.</p>
+                    <div class="tech-logo dl-image" role="img" aria-label="AI Distributed Learning image" tabindex="0">
+                        <img class="tech-logo-img" src="./AI distributed learning.png" alt="AI Distributed Learning" />
+                    </div>
+                    <h3>Distributed Learning</h3>
+                    <p>Using federated/distributed learning, each node performs onboard inference/training and shares model updates (not raw data), cutting downlink volume by orders of magnitude and preserving data privacy. Inter-satellite links synchronize parameters so the constellation adapts in near-real time and improves global model performance.</p>
                 </div>
                 
-                <div class="tech-card">
-                    <div class="tech-logo">LS</div>
-                    <h3>Lonestar</h3>
-                    <p>First lunar data center payload successfully operated aboard Intuitive Machines' Athena Lunar Lander.</p>
+                <div class="tech-card center-card">
+                    <div class="tech-logo afr-image" role="img" aria-label="AI Fault Recognition image" tabindex="0">
+                        <img class="tech-logo-img" src="./AI fault recognition.png" alt="AI Fault Recognition" />
+                    </div>
+                    <h3>Autonomous Fault Recognition</h3>
+                    <p>Onboard models conduct anomaly detection and fault diagnosis, triggering autonomous failover and recovery without waiting for ground intervention. In constellation architectures this enables seconds-scale service restoration and graceful degradation, supported by ECC/TMR and redundancy (N+3–N+5).</p>
                 </div>
                 
-                <div class="tech-card">
-                    <div class="tech-logo">G</div>
-                    <h3>Google</h3>
-                    <p>Project Suncatcher exploring solar-powered satellite constellations for AI data centers in space.</p>
-                </div>
+            
+            </div>
+
+            
             </div>
         </div>
     </section>
     
+    <!-- Sustainability Impacts Section -->
+    <section id="sustainability" class="sustainability-section section">
+        <div class="container">
+            <h2 class="section-title">Sustainability Impacts</h2>
+
+            <div class="sustain-grid">
+                <div class="sustain-main" role="region" aria-labelledby="sustain-env-title">
+                    <h3 id="sustain-env-title" class="sustain-heading">Environmental</h3>
+
+                    <div class="sustain-cubes">
+                        <div class="sustain-cube" tabindex="0" data-subtitle="Power Generation">
+                            <div class="cube-inner">
+                                <h4>Power Generation</h4>
+                                <p>Ground Stations consume 4% of all electricity worldwide. Orbital Networks use clean solar energy.</p>
+                            </div>
+                        </div>
+
+                        <div class="sustain-cube" tabindex="0" data-subtitle="Water Consumption">
+                            <div class="cube-inner">
+                                <h4>Water Consumption</h4>
+                                <p>Ground stations consume 450k gallons per day to cool processors. Orbital Networks leverage 3K space temperature to employ radiative cooling.</p>
+                            </div>
+                        </div>
+
+                        <div class="sustain-cube" tabindex="0" data-subtitle="Greenhouse Emissions">
+                            <div class="cube-inner">
+                                <h4>Greenhouse Emissions</h4>
+                                <p>Ground stations rely partly on fossil fuels (1-5% of total emissions) for energy production.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="sustain-side" role="region" aria-labelledby="sustain-soc-title">
+                    <h3 id="sustain-soc-title" class="sustain-heading">Societal</h3>
+                    <div class="sustain-cube single" tabindex="0" data-subtitle="Open Access to Computing">
+                        <div class="cube-inner">
+                            <h4>Open Access to Computing</h4>
+                            <p>Anyone in the world can access networks. Resource-constrained areas are lifted up.</p>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </section>
+
+    <!-- Temperature Stability & Cooling Performance -->
+    <section id="temp-stability" class="section">
+        <div class="container">
+            <h2 class="section-title">Temperature Stability & Cooling Performance</h2>
+
+            <div class="chart-container" style="max-width:980px;margin:28px auto;">
+                <h3 class="chart-title">Temperature Stability & Cooling Performance</h3>
+                <div style="width:100%;display:flex;justify-content:center;">
+                    <canvas id="tempChart" width="900" height="540" role="img" aria-label="Horizontal grouped bar chart showing temperature stability and cooling performance for Terrestrial, Orbital, and Moon systems" style="max-width:100%;height:auto;display:block;border-radius:8px;overflow:hidden;background:transparent;"></canvas>
+                </div>
+                <!-- Units legend (prominent) -->
+                <div class="chart-units" style="text-align:center;margin-top:6px;color:#ffffff;font-size:15px;font-weight:600;">Performance (°C or W/m²)</div>
+                <p style="text-align:center;margin-top:8px;color:var(--gray-medium);font-size:13px;">Note: X-axis is logarithmic.</p>
+                <!-- Accessible data fallback: values in a table for screen readers and if chart fails -->
+                <details open style="margin-top:12px;color:var(--gray-medium);font-size:13px;" class="data-fallback">
+                    <summary style="cursor:pointer;color:var(--white);">Show data table (visible fallback)</summary>
+                    <div style="overflow:auto;margin-top:8px;">
+                        <table style="width:100%;border-collapse:collapse;color:var(--white);font-size:13px;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;padding:8px;border-bottom:1px solid rgba(255,255,255,0.06);">Category</th>
+                                    <th style="text-align:right;padding:8px;border-bottom:1px solid rgba(255,255,255,0.06);">Terrestrial</th>
+                                    <th style="text-align:right;padding:8px;border-bottom:1px solid rgba(255,255,255,0.06);">Orbital</th>
+                                    <th style="text-align:right;padding:8px;border-bottom:1px solid rgba(255,255,255,0.06);">Moon</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding:8px;border-top:1px solid rgba(255,255,255,0.02);">Radiator Eff (W/m²)</td>
+                                    <td style="padding:8px;text-align:right;border-top:1px solid rgba(255,255,255,0.02);">100</td>
+                                    <td style="padding:8px;text-align:right;border-top:1px solid rgba(255,255,255,0.02);">1300</td>
+                                    <td style="padding:8px;text-align:right;border-top:1px solid rgba(255,255,255,0.02);">—</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px;border-top:1px solid rgba(255,255,255,0.02);">Daily Temp Fluct (°C)</td>
+                                    <td style="padding:8px;text-align:right;border-top:1px solid rgba(255,255,255,0.02);">5</td>
+                                    <td style="padding:8px;text-align:right;border-top:1px solid rgba(255,255,255,0.02);">0.001</td>
+                                    <td style="padding:8px;text-align:right;border-top:1px solid rgba(255,255,255,0.02);">150</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px;border-top:1px solid rgba(255,255,255,0.02);">Annual Temp Var (°C)</td>
+                                    <td style="padding:8px;text-align:right;border-top:1px solid rgba(255,255,255,0.02);">12</td>
+                                    <td style="padding:8px;text-align:right;border-top:1px solid rgba(255,255,255,0.02);">0.024</td>
+                                    <td style="padding:8px;text-align:right;border-top:1px solid rgba(255,255,255,0.02);">0.1</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
     <!-- AI Role Section -->
+    <!-- Issues to Address Section -->
+    <!-- Financial Impacts Section -->
+    <section id="financial-impacts" class="financial-section section">
+        <div class="container">
+            <h2 class="section-title">Financial Impacts</h2>
+
+            <!-- Financial charts placeholders: two pie/donut charts side-by-side -->
+            <div class="financial-charts" role="region" aria-labelledby="financial-impacts-title" style="display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:flex-start;">
+                <div class="chart-card" role="img" aria-label="Total Cost (Including Launch) pie chart" style="flex:1 1 480px;max-width:780px;background:rgba(255,255,255,0.03);border-radius:10px;padding:18px;box-sizing:border-box;">
+                    <h4 style="font-size:20px;margin:0 0 12px;color:#ffffff;">Total Cost (USD 800M) Including Launch</h4>
+                    <div class="chart-placeholder" style="height:390px;display:flex;align-items:center;justify-content:center;">
+                        <canvas id="costChartIncluding" aria-label="Pie chart: Total Cost including launch" role="img" style="max-width:100%;height:330px;width:330px;"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card" role="img" aria-label="Total Cost (Excluding Launch) pie chart" style="flex:1 1 480px;max-width:780px;background:rgba(255,255,255,0.03);border-radius:10px;padding:18px;box-sizing:border-box;">
+                    <h4 style="font-size:20px;margin:0 0 12px;color:#ffffff;">Total Cost (USD 30M) Excluding Launch</h4>
+                    <div class="chart-placeholder" style="height:390px;display:flex;align-items:center;justify-content:center;">
+                        <canvas id="costChartExcluding" aria-label="Pie chart: Total Cost excluding launch" role="img" style="max-width:100%;height:330px;width:330px;"></canvas>
+                    </div>
+                </div>
+            </div>
+             <!-- Explanatory caption under charts -->
+                    <div class="financial-charts-caption" role="note" aria-live="polite" id="financial-charts-caption" style="max-width:980px;margin:18px auto 0;color:#ffffff;font-size:18px;line-height:1.6;text-align:center;position:relative;z-index:5;">
+                        <p style="margin:0;padding:0;text-shadow:0 1px 2px rgba(0,0,0,0.6);">This is the cost breakdown of the costs associated with launching a singular datacenter in space. Even with the rapid cost reduction of rocket launches with SpaceX and Falcon 9, launch costs remain the primary barrier to entry into this new market segment.</p>
+                    </div>       
+            <!-- Medium-sized interactive cards -->
+            <style>
+                /* Special styling for the Cost Comparison card */
+                .financial-cards-grid .financial-card.cost-compare-card {
+                    background:#ffffff !important;
+                    border:1px solid rgba(0,0,0,0.08) !important;
+                    box-shadow:0 10px 26px rgba(2,6,23,0.18) !important;
+                    color:#0b2342 !important;
+                }
+                .financial-cards-grid .financial-card.cost-savings-card {
+                    background:#ffffff !important;
+                    border:1px solid rgba(0,0,0,0.08) !important;
+                    box-shadow:0 10px 26px rgba(2,6,23,0.18) !important;
+                    color:#0b2342 !important;
+                }
+                .financial-cards-grid .financial-card.roi-card {
+                    background:#ffffff !important;
+                    border:1px solid rgba(0,0,0,0.08) !important;
+                    box-shadow:0 10px 26px rgba(2,6,23,0.18) !important;
+                    color:#0b2342 !important;
+                }
+                .financial-cards-grid .financial-card.cost-compare-card .card-front,
+                .financial-cards-grid .financial-card.cost-compare-card .card-back,
+                .financial-cards-grid .financial-card.cost-savings-card .card-front,
+                .financial-cards-grid .financial-card.cost-savings-card .card-back,
+                .financial-cards-grid .financial-card.roi-card .card-front,
+                .financial-cards-grid .financial-card.roi-card .card-back {
+                    background:#ffffff !important;
+                    color:#0b2342 !important;
+                }
+                .financial-cards-grid .financial-card.cost-compare-card h4,
+                .financial-cards-grid .financial-card.cost-savings-card h4,
+                .financial-cards-grid .financial-card.roi-card h4 { color:#0b2342 !important; text-align:center; }
+                .cost-compare-card .card-front,
+                .cost-savings-card .card-front { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+                .roi-card .card-front { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+                .cost-compare-card .cost-compare-image,
+                .cost-savings-card .cost-savings-image,
+                .roi-card .roi-image { max-width: 320px; width:72%; height:auto; display:block; border-radius:8px; }
+                .cost-compare-card .card-back p,
+                .cost-savings-card .card-back p,
+                .roi-card .card-back p { color:#0b2342 !important; font-weight:700; }
+                /* Ensure ROI back content starts flush at the very top with no blank gap */
+                .financial-cards-grid .financial-card.roi-card .card-back {
+                    display:flex;
+                    flex-direction:column;
+                    align-items:flex-start;
+                    justify-content:flex-start !important;
+                    padding: 0 18px 18px 18px; /* remove top padding entirely */
+                }
+                /* Remove reserved min-height so ROI can shrink/grow exactly to content */
+                .financial-cards-grid .financial-card.roi-card .card-inner { min-height:auto; }
+                /* Adaptive height for ROI when active */
+                .financial-cards-grid .financial-card.roi-card.active { min-height:auto; }
+                .financial-cards-grid .financial-card.roi-card.active .card-inner { min-height:auto; height:auto; }
+            </style>
+                    <div class="financial-cards-grid" role="list" aria-label="Financial impact topics" style="max-width:980px;margin:20px auto 0;">
+                        <div class="financial-card cost-compare-card" role="listitem" tabindex="0" aria-expanded="false">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <h4>Cost comparisons with terrestrial datacenters</h4>
+                                    <img class="cost-compare-image" src="./Cost%20comparision.png" alt="Cost comparison: Space vs. Earth — split circle graphic showing terrestrial vs orbital" />
+                                </div>
+                                <div class="card-back" tabindex="0" aria-hidden="true">
+                                    <p style="margin:0;text-align:left;font-size:18px;">Space is significantly more expensive, for a datacenter of similar size, due to launch logistics and the need for radiation-hardened, space-grade components. This card summarizes the high-level comparison.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="financial-card cost-savings-card" role="listitem" tabindex="0" aria-expanded="false">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <h4>Cost Savings</h4>
+                                    <img class="cost-savings-image" src="./Cost%20savings.png" alt="Cost savings graphic" />
+                                </div>
+                                <div class="card-back" tabindex="0" aria-hidden="true">
+                                    <p style="margin:0;text-align:left;font-size:18px;">Although there is significant upfront cost in building a datacenter that is functional in space, there is also significant savings. A terrestrial datacenter of the same size can require around USD 44 million a year in operational costs, when considering AI training costs and saving approximately 700 million for the total lifetime of a datacenter project along with the environmental impacts.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="financial-card cost-savings-card" role="listitem" tabindex="0" aria-expanded="false">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <h4>ROI</h4>
+                                    <img class="cost-savings-image" src="./ROI.png" alt="Cost savings graphic" />
+                                </div>
+                                <div class="card-back" tabindex="0" aria-hidden="true">
+                                    <p style="margin:0;text-align:left;font-size:18px;">Since datacenters in space offer a wider range of connectivity, and anybody with an antenna can connect to one, there is a broader, and wider range of people that can end up becoming customers and users of a space datacenter. Therefore, the profit potential is not limited to just corporations training to utilize their newest AI technologies, but regular, run of the mill people can become customers as well.
+  
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+
+                        
+                        <!-- Partnerships card removed per user request -->
+                        <div class="financial-card cost-savings-card" role="listitem" tabindex="0" aria-expanded="false">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <h4>Partnership</h4>
+                                    <img class="cost-savings-image" src="./Partnership.png" alt="Cost savings graphic" />
+                                </div>
+                                <div class="card-back" tabindex="0" aria-hidden="true">
+                                    <p style="margin:0;text-align:left;font-size:18px;">Strategic partnerships can also work to reduce costs in developing a space based datacenter. If partnered with an organization that launches rockets, the costs could be reduced down to just the cost of fuel and labor, which would significantly reduce the cost. 
+                                       </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                   
+        </div>
+    </section>
+    <!-- Current Projects Section -->
+    <section id="current-projects" class="current-projects section">
+        <div class="projects-bg" aria-hidden="true"></div>
+        <div class="container">
+            <h2 class="section-title">Current Projects</h2>
+
+            <div class="financial-grid" role="list" aria-label="Current projects list">
+                <div class="financial-card" tabindex="0" role="listitem">
+                    <h4>Orbital Radiators Pilot</h4>
+                    <p>Demonstration mission testing deployable radiator arrays and passive radiative cooling at 700–1300 W/m². Focus: thermal performance and long-duration material survivability.</p>
+                </div>
+
+                <div class="financial-card" tabindex="0" role="listitem">
+                    <h4>LEO Edge Compute Node</h4>
+                    <p>Small-satellite cluster for on-orbit inference and federated learning. Objectives: validate low-latency routing, energy budgets, and autonomous workload placement.</p>
+                </div>
+
+                <div class="financial-card" tabindex="0" role="listitem">
+                    <h4>Launch & Financing Study</h4>
+                    <p>Economic model comparing launch amortization, public-private finance mechanisms, and shared infrastructure partnerships to reduce CapEx barriers.</p>
+                </div>
+
+                <div class="financial-card" tabindex="0" role="listitem">
+                    <h4>Ground Integration Testbed</h4>
+                    <p>Terrestrial testbed replicating thermal vac conditions, power management, and AI orchestration to accelerate flight qualification and ops procedures.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="issues" class="issues-section section">
+        <div class="container">
+            <h2 class="section-title">Space Data Center Hazards &amp; Mitigations</h2>
+
+            <div class="issues-grid">
+                <!-- arrange as 3x2 grid, shorter cards so all fit on one screen */ -->
+                <div class="issues-list" style="display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));grid-auto-rows:130px;gap:20px;justify-content:center;justify-items:center;align-items:stretch;margin:0 auto;max-width:1200px;">
+                    <div class="issue-item" role="article" aria-labelledby="iss1" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss1" style="font-size:18px;margin:0;">🌌 Radiation</h4>
+                    </div>
+
+                    <div class="issue-item" role="article" aria-labelledby="iss2" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss2" style="font-size:18px;margin:0;">🌡️ Thermal Cycling</h4>
+                    </div>
+
+                    <div class="issue-item" role="article" aria-labelledby="iss3" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss3" style="font-size:18px;margin:0;">☀️ Power Generation</h4>
+                    </div>
+
+                    <div class="issue-item" role="article" aria-labelledby="iss4" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss4" style="font-size:18px;margin:0;">📡 Data Transmission</h4>
+                    </div>
+
+                    <div class="issue-item" role="article" aria-labelledby="iss5" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss5" style="font-size:18px;margin:0;">🛠️ Maintenance</h4>
+                    </div>
+
+                    <div class="issue-item" role="article" aria-labelledby="iss6" tabindex="0" style="min-height:120px;display:flex;align-items:center;justify-content:center;padding:18px 16px;text-align:center;">
+                        <h4 id="iss6" style="font-size:18px;margin:0;">☄️ Debris Impact</h4>
+                    </div>
+                </div>
+
+                <style>
+                /* responsive adjustments for the 3x2 layout */
+                @media (max-width: 1100px) {
+                    .issues-list { grid-template-columns: repeat(2, minmax(220px,1fr)); grid-auto-rows:120px; }
+                }
+                @media (max-width: 640px) {
+                    .issues-list { grid-template-columns: 1fr; grid-auto-rows:100px; }
+                }
+                .issues-list .issue-item { transition: transform 180ms ease, box-shadow 180ms ease; }
+                .issues-list .issue-item:focus, .issues-list .issue-item:hover { transform: translateY(-6px); box-shadow: 0 18px 48px rgba(0,20,60,0.45); }
+                </style>
+            </div>
+
+            <!-- Shared issue detail popup (futuristic glass card) -->
+            <div id="issuePopup" class="issue-popup" aria-hidden="true" role="dialog" aria-modal="true">
+                <div class="issue-popup-inner" role="document">
+                    <button class="issue-popup-close" aria-label="Close issue details">✕</button>
+                    <header class="issue-popup-header">
+                        <h3 id="issuePopupTitle">Title</h3>
+                    </header>
+                    <div id="issuePopupBody" class="issue-popup-body"></div>
+                </div>
+            </div>
+
+            <style>
+            /* Popup styles: futuristic glass card centered on screen */
+            .issue-popup { position: fixed; left: 0; top: 0; right: 0; bottom: 0; display:none; align-items:center; justify-content:center; z-index:120; }
+            .issue-popup.show { display:flex; }
+            .issue-popup::before { content: ''; position: absolute; inset:0; background: rgba(2,6,18,0.56); backdrop-filter: blur(6px) saturate(120%); }
+            .issue-popup-inner { position:relative; background: linear-gradient(180deg, rgba(8,18,34,0.92), rgba(4,10,22,0.86)); border: 1px solid rgba(80,200,255,0.06); padding:22px; width: min(820px, 94%); max-height: 82vh; overflow:auto; border-radius:14px; box-shadow: 0 30px 80px rgba(0,18,40,0.6); transform: translateY(-8px); transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease; color: #eaf4ff; }
+            .issue-popup.show .issue-popup-inner { transform: translateY(0); }
+            .issue-popup-close { position:absolute; right:12px; top:12px; background:transparent; border:0; color:#bfeeff; font-size:20px; cursor:pointer; padding:6px; border-radius:8px; }
+            .issue-popup-close:focus { outline: 3px solid rgba(66,153,225,0.12); }
+            .issue-popup-header h3 { margin:0 0 12px 0; font-size:20px; color:var(--neon-blue, #9fdcff); }
+            .issue-popup-body ul { margin:0 0 0 18px; padding:0; line-height:1.6; font-size:16px; }
+            .issue-popup-body li { margin-bottom:8px; }
+            .issue-popup-body .label { font-weight:700; color:#dff8ff; margin-right:6px; }
+            @media (max-width:640px){ .issue-popup-inner { padding:16px; width:94%; } .issue-popup-header h3 { font-size:18px; } }
+            </style>
+        </div>
+    </section>
     <section id="ai" class="ai-section section">
         <div class="container">
             <h2 class="section-title">The Critical Role of AI</h2>
@@ -1414,6 +2300,9 @@
         </div>
     </footer>
     
+    <!-- three.js loaders for OBJ/MTL (used for high-res Earth model) -->
+    <script src="https://threejs.org/examples/js/loaders/MTLLoader.js"></script>
+    <script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
     <!-- Core JavaScript -->
     <script src="main.js"></script>
     <!-- Fallback/init helper: ensure CAPEX donut renders even if Chart.js initialization timing or resize prevented it -->
@@ -1459,6 +2348,102 @@
             console.error('Failed to initialize CAPEX donut chart:', err);
         }
     });
+    </script>
+    <script>
+    // Issue boxes -> shared popup interactions
+    (function(){
+        const details = {
+            iss1: {
+                title: '🌌 Radiation',
+                risks: 'Bit flips, logic errors, system degradation',
+                mitigation: 'Use radiation-hardened electronics, ECC RAM, and redundancy to ensure reliable operation.'
+            },
+            iss2: {
+                title: '🌡️ Thermal Cycling',
+                risks: 'Expansion/contraction fatigue due to extreme temperature changes',
+                mitigation: 'Employ passive or active thermal control and low-CTE (Coefficient of Thermal Expansion) materials.'
+            },
+            iss3: {
+                title: '☀️ Power Generation',
+                risks: 'Solar panel efficiency varies with distance and orientation',
+                mitigation: 'Utilize adaptive solar arrays with hybrid RTG (Radioisotope Thermoelectric Generator) backup for consistent power.'
+            },
+            iss4: {
+                title: '📡 Data Transmission',
+                risks: 'Signal latency and packet loss in deep-space communication',
+                mitigation: 'Implement Delay-Tolerant Networking (DTN) and edge caching to maintain data integrity.'
+            },
+            iss5: {
+                title: '🛠️ Maintenance',
+                risks: 'Repair and upgrades are challenging beyond LEO (Low Earth Orbit)',
+                mitigation: 'Design modular self-repair mechanisms and integrate robotic servicing systems.'
+            },
+            iss6: {
+                title: '☄️ Debris Impact',
+                risks: 'Micrometeoroid and fragment collisions',
+                mitigation: 'Apply Whipple shielding and predictive AI systems for impact avoidance.'
+            }
+        };
+
+        let lastFocused = null;
+        const popup = document.getElementById('issuePopup');
+        const popupTitle = document.getElementById('issuePopupTitle');
+        const popupBody = document.getElementById('issuePopupBody');
+        const closeBtn = popup && popup.querySelector('.issue-popup-close');
+
+        function buildList(d){
+            return `<ul><li><span class="label">Risks:</span> ${d.risks}</li><li><span class="label">Mitigation:</span> ${d.mitigation}</li></ul>`;
+        }
+
+        function openPopup(id){
+            const d = details[id];
+            if (!d || !popup) return;
+            lastFocused = document.activeElement;
+            popupTitle.textContent = d.title;
+            popupBody.innerHTML = buildList(d);
+            popup.setAttribute('aria-hidden','false');
+            popup.classList.add('show');
+            // trap focus loosely
+            if (closeBtn) closeBtn.focus();
+            document.addEventListener('keydown', onKeydown);
+        }
+
+        function closePopup(){
+            if (!popup) return;
+            popup.setAttribute('aria-hidden','true');
+            popup.classList.remove('show');
+            document.removeEventListener('keydown', onKeydown);
+            if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+        }
+
+        function onKeydown(e){ if (e.key === 'Escape') closePopup(); }
+
+        // attach handlers to issue items
+        function init(){
+            const items = Array.from(document.querySelectorAll('.issues-list .issue-item'));
+            if (!items.length) return;
+            items.forEach(it=>{
+                it.addEventListener('click', ()=>{
+                    const h4 = it.querySelector('h4');
+                    if (!h4) return;
+                    openPopup(h4.id);
+                });
+                it.addEventListener('keydown', (e)=>{
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const h4 = it.querySelector('h4'); if (h4) openPopup(h4.id); }
+                });
+            });
+
+            if (popup){
+                // close button
+                if (closeBtn) closeBtn.addEventListener('click', closePopup);
+                // click outside to close
+                popup.addEventListener('click', (e)=>{ if (e.target === popup) closePopup(); });
+            }
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+        else init();
+    })();
     </script>
     <script>
     // Parallax for the abstract: subtle parent rotation + per-term parallax
@@ -1523,6 +2508,129 @@
     })();
     </script>
     <script>
+    // Init interactivity for Issues to Address: pointer proximity lift + hover/focus affordances
+    (function(){
+        function initIssueInteractions(){
+            const container = document.querySelector('.issues-list');
+            if (!container) return;
+            const items = Array.from(container.querySelectorAll('.issue-item'));
+            const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            // Add pointer handlers to give a subtle proximity-based lift
+            function onPointerMove(e){
+                const clientX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || 0;
+                const clientY = e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY) || 0;
+
+                items.forEach(it => {
+                    const r = it.getBoundingClientRect();
+                    const cx = r.left + r.width/2;
+                    const cy = r.top + r.height/2;
+                    const dx = clientX - cx;
+                    const dy = clientY - cy;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const max = Math.max(120, Math.min(window.innerWidth, 360));
+                    const proximity = Math.max(0, 1 - dist / max); // 0..1
+
+                    if (prefersReduced) return; // no proximity motion if reduced-motion
+
+                    // subtle transform and shadow based on proximity
+                    const translate = -6 * proximity;
+                    const scale = 1 + 0.01 * proximity;
+                    const shadowStrength = 0.18 + 0.42 * proximity;
+
+                    it.style.transform = `translateY(${translate}px) scale(${scale})`;
+                    it.style.boxShadow = `0 ${16 + 30*proximity}px ${28 + 60*proximity}px rgba(0,${32 + 40*proximity},${80 + 40*proximity},${0.35 + 0.35*proximity})`;
+
+                    if (proximity > 0.25) it.classList.add('hovered'); else it.classList.remove('hovered');
+                });
+            }
+
+            function resetItems(){
+                items.forEach(it=>{
+                    it.style.transform = '';
+                    it.style.boxShadow = '';
+                    it.classList.remove('hovered');
+                });
+            }
+
+            container.addEventListener('pointermove', onPointerMove, {passive:true});
+            container.addEventListener('pointerleave', resetItems);
+            container.addEventListener('touchmove', onPointerMove, {passive:true});
+            container.addEventListener('touchend', resetItems);
+
+            // keyboard accessibility: ensure focus/blur apply visible styles
+            items.forEach(it=>{
+                it.setAttribute('tabindex', it.getAttribute('tabindex') || '0');
+                it.addEventListener('focus', ()=> it.classList.add('hovered'));
+                it.addEventListener('blur', ()=> it.classList.remove('hovered'));
+            });
+        }
+
+        // Auto-init on DOM ready
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initIssueInteractions);
+        else initIssueInteractions();
+    })();
+    </script>
+    <script>
+    // Init interactivity for Financial Impacts: pointer proximity lift + keyboard focus handling
+    (function(){
+        function initFinancialProximity(){
+            const container = document.querySelector('#financial-impacts .financial-grid');
+            if (!container) return;
+            const items = Array.from(container.querySelectorAll('.financial-card'));
+            const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            function onPointerMove(e){
+                const clientX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || 0;
+                const clientY = e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY) || 0;
+
+                items.forEach(it => {
+                    const r = it.getBoundingClientRect();
+                    const cx = r.left + r.width/2;
+                    const cy = r.top + r.height/2;
+                    const dx = clientX - cx;
+                    const dy = clientY - cy;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const max = Math.max(120, Math.min(window.innerWidth, 420));
+                    const proximity = Math.max(0, 1 - dist / max);
+
+                    if (prefersReduced) return;
+
+                    const translate = -8 * proximity;
+                    const scale = 1 + 0.02 * proximity;
+
+                    it.style.transform = `translateY(${translate}px) scale(${scale})`;
+                    it.style.boxShadow = `0 ${18 + 40*proximity}px ${30 + 70*proximity}px rgba(0,${40 + 40*proximity},${90 + 40*proximity},${0.18 + 0.36*proximity})`;
+
+                    if (proximity > 0.25) it.classList.add('hovered'); else it.classList.remove('hovered');
+                });
+            }
+
+            function resetItems(){
+                items.forEach(it=>{
+                    it.style.transform = '';
+                    it.style.boxShadow = '';
+                    it.classList.remove('hovered');
+                });
+            }
+
+            container.addEventListener('pointermove', onPointerMove, {passive:true});
+            container.addEventListener('pointerleave', resetItems);
+            container.addEventListener('touchmove', onPointerMove, {passive:true});
+            container.addEventListener('touchend', resetItems);
+
+            items.forEach(it=>{
+                it.setAttribute('tabindex', it.getAttribute('tabindex') || '0');
+                it.addEventListener('focus', ()=> it.classList.add('hovered'));
+                it.addEventListener('blur', ()=> it.classList.remove('hovered'));
+            });
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initFinancialProximity);
+        else initFinancialProximity();
+    })();
+    </script>
+    <script>
     // Section enter observer: when #solution scrolls into view, add .in to trigger the blue gradient effect
     (function(){
         try {
@@ -1546,5 +2654,49 @@
         }
     })();
     </script>
+    <script>
+    // ensure Temperature chart is attempted again on load as a last-resort fallback
+    window.addEventListener('load', function() {
+        try {
+            setTimeout(function(){
+                if (!window._tempStabilityChart && typeof initTemperatureChart === 'function') {
+                    try { initTemperatureChart(); console.debug('[tempChart] deferred initTemperatureChart called on load'); } catch(e){ console.warn('[tempChart] deferred init failed', e); }
+                }
+            }, 160);
+        } catch (e) { console.warn('deferred temp chart boot failed', e); }
+    });
+    </script>
+    <!-- References Section (muted, compact) -->
+    <section id="references" class="references-section" aria-labelledby="references-title" style="padding:46px 0 60px;background:linear-gradient(180deg,rgba(2,6,16,0.94),rgba(0,4,10,0.96));">
+        <div class="container" style="max-width:1180px;margin:0 auto;">
+            <h2 id="references-title" style="margin:0 0 18px;font-size:22px;font-weight:600;letter-spacing:0.5px;color:rgba(255,255,255,0.55);text-transform:uppercase;">References</h2>
+            <ol style="margin:0;padding-left:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px 28px;font-size:12.5px;line-height:1.45;color:rgba(220,232,242,0.48);">
+                <li style="min-width:0;">Chien, S., Candela, A., Swope, J., <em>et al.</em> (2023). Towards space edge computing and on-board AI for real-time processing: IEEE LEO SatS workshop report. Jet Propulsion Laboratory, California Institute of Technology.</li>
+                <li style="min-width:0;">Cushman &amp; Wakefield. (n.d.). Data Center Development Cost Guide 2025. <a class="ref-link" href="https://cushwake.cld.bz/Data-Center-Development-Cost-Guide-2025" target="_blank" rel="noopener noreferrer">https://cushwake.cld.bz/Data-Center-Development-Cost-Guide-2025</a></li>
+                <li style="min-width:0;">European Central Bank. (2025, July 23). Payments statistics: Second half of 2024 [Press release]. <a class="ref-link" href="https://www.ecb.europa.eu/press/stats/paysec/html/ecb.pis2024h2~5ada0087d2.en.html" target="_blank" rel="noopener noreferrer">https://www.ecb.europa.eu/press/stats/paysec/html/ecb.pis2024h2~5ada0087d2.en.html</a></li>
+                <li style="min-width:0;">European Space Agency, Advanced Concepts Team. (2021). Cybersecurity in space missions: Threats and countermeasures.</li>
+                <li style="min-width:0;">Hane, J. S. (2012). A fault-tolerant computer architecture for space vehicle applications (Master’s thesis, Montana State University). <a class="ref-link" href="https://s3vi.ndc.nasa.gov/ssri-kb/static/resources/student_007_HaneJ0512.pdf" target="_blank" rel="noopener noreferrer">https://s3vi.ndc.nasa.gov/ssri-kb/static/resources/student_007_HaneJ0512.pdf</a></li>
+                <li style="min-width:0;">NASA. (2016). Radiation effects and mitigation in space electronics (NASA/TP–2016–219182).</li>
+                <li style="min-width:0;">Rensberg, J., Zhang, S., Zhou, Y., McLeod, A. S., Schwartzberg, A. M., Ramanathan, S., Basov, D. N., &amp; Polman, A. (2019). Active optical control of thin-film thermal emitters based on VO₂ phase transition. <em>Nature Electronics, 2(9)</em>, 576–583.</li>
+                <li style="min-width:0;">Smart radiator devices for CubeSat thermal control. (2019). Proceedings of the AIAA/USU Conference on Small Satellites. <a class="ref-link" href="https://digitalcommons.usu.edu/smallsat/2019/all2019/56/" target="_blank" rel="noopener noreferrer">https://digitalcommons.usu.edu/smallsat/2019/all2019/56/</a></li>
+                <li style="min-width:0;">Sterling, T. (2025, February 2). European data centre space shortage expected in 2025 as AI booms. <em>Reuters</em>. Retrieved November 12, 2025, from <a class="ref-link" href="https://www.reuters.com/technology/european-data-centre-space-shortage-expected-2025-ai-booms-2025-02-05/" target="_blank" rel="noopener noreferrer">https://www.reuters.com/technology/european-data-centre-space-shortage-expected-2025-ai-booms-2025-02-05/</a></li>
+                <li style="min-width:0;">Tsougka, A., &amp; Warso, Z. (2025, September). From innovation to overshoot: How data centre expansion risks derailing climate goals. Environmental Coalition on Standards (ECOS) &amp; Open Future Foundation.</li>
+                <li style="min-width:0;">U.S. Environmental Protection Agency. (2025, March 24). Statistics and facts. WaterSense. <a class="ref-link" href="https://www.epa.gov/watersense/statistics-and-facts" target="_blank" rel="noopener noreferrer">https://www.epa.gov/watersense/statistics-and-facts</a></li>
+                <li style="min-width:0;">U.S. Geological Survey. (n.d.). Domestic water use. U.S. Department of the Interior. Retrieved November 12, 2025, from <a class="ref-link" href="https://www.usgs.gov/mission-areas/water-resources/science/domestic-water-use" target="_blank" rel="noopener noreferrer">https://www.usgs.gov/mission-areas/water-resources/science/domestic-water-use</a></li>
+                <li style="min-width:0;">Wall, M. (2022, March 23). SpaceX raises launch and Starlink prices, citing inflation. <em>Space.com</em>. <a class="ref-link" href="https://www.space.com/spacex-raises-prices-launch-starlink-inflation" target="_blank" rel="noopener noreferrer">https://www.space.com/spacex-raises-prices-launch-starlink-inflation</a></li>
+                <li style="min-width:0;">Yañez-Barnuevo, M. (2025, June 25). Data centers and water consumption. Environmental and Energy Study Institute. <a class="ref-link" href="https://www.eesi.org/articles/view/data-centers-and-water-consumption" target="_blank" rel="noopener noreferrer">https://www.eesi.org/articles/view/data-centers-and-water-consumption</a></li>
+                <li style="min-width:0;">Falcon 9 payload users guide. (2015, October 21). Studylib. Retrieved November 12, 2025, from <a class="ref-link" href="https://studylib.net/doc/18443166/falcon-9-user-s-guide" target="_blank" rel="noopener noreferrer">https://studylib.net/doc/18443166/falcon-9-user-s-guide</a></li>
+            </ol>
+            <p style="margin:26px 0 0;font-size:11px;letter-spacing:0.8px;color:rgba(200,230,244,0.32);text-align:center;text-transform:uppercase;">End of Poster</p>
+        </div>
+    </section>
+    <style>
+        /* references: ensure long links wrap and layout stays compact without overlap */
+        #references ol { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important; }
+        #references ol li { min-width:0; break-inside: avoid; }
+        #references .ref-link { color: rgba(180,242,255,0.55); text-decoration: none; overflow-wrap: anywhere; word-break: break-word; }
+        #references .ref-link:hover { color: rgba(210,250,255,0.75); text-decoration: underline dotted; }
+        @media (max-width:640px){ #references ol { grid-template-columns:1fr !important; } }
+    </style>
 </body>
 </html>

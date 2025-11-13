@@ -1,9 +1,386 @@
 // Global variables
-let scene, camera, renderer, earth;
+let scene, camera, renderer, earth, earthClouds, emissiveOverlay, heroSun;
+// Hero material lock: keep the hero sphere as a solid blue at all times
+const HERO_SOLID_COLOR = 0x2b6cff;
+let heroMaterialFinalized = false;
+// Toggle: when true attempt to replace sphere with world.obj; keep false to use textured sphere
+const USE_OBJ_MODEL = false;
+// If true, apply high-resolution world textures; set to false to keep a stable flat-colored sphere
+const APPLY_TEXTURES = false;
 let satellites = [];
+// connections between satellites (visual network lines)
+let satelliteConnections = [];
 // reusable vector for projecting satellite positions to screen coords
 let _satProj = new THREE.Vector3();
 let mouseX = 0, mouseY = 0;
+// only respond to mouse when hovering the hero canvas
+let heroMouseActive = false;
+
+function enforceHeroSolidMaterial(){
+    try{
+        if(!earth || !earth.material) return;
+        const mat = earth.material;
+        // force solid blue, no transparency, no map
+        mat.color && mat.color.setHex(HERO_SOLID_COLOR);
+        mat.map = null;
+        mat.needsUpdate = true;
+        mat.transparent = false;
+        mat.opacity = 1.0;
+        mat.depthWrite = true;
+        // remove emissive glow
+        if(mat.emissive) mat.emissive.setHex(0x000000);
+        mat.emissiveIntensity = 0;
+        // hide overlays
+        if(earthClouds) { try{ earthClouds.visible = false; }catch(e){} }
+        if(emissiveOverlay) { try{ emissiveOverlay.visible = false; }catch(e){} }
+        heroMaterialFinalized = true;
+    }catch(e){ console.warn('enforceHeroSolidMaterial failed', e); }
+}
+
+/* Financial Impacts spotlight: creates an overlay that follows the mouse and makes the
+   surrounding area visually solid (radial mask). Respects prefers-reduced-motion. */
+function initFinancialSpotlight(){
+    try{
+        const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if(prefersReduced) return; // don't create motion-heavy effects
+
+        const section = document.getElementById('financial-impacts') || document.querySelector('.financial-section');
+        if(!section) return;
+
+        // ensure container ordering (content sits above the spotlight)
+        let overlay = section.querySelector('.financial-spotlight');
+        if(!overlay){
+            overlay = document.createElement('div');
+            overlay.className = 'financial-spotlight';
+            section.appendChild(overlay);
+        }
+
+        let rafId = null;
+        let lastPos = {x: 0, y: 0, radius: 200};
+
+        function updateOverlay(){
+            rafId = null;
+            const {x,y,radius} = lastPos;
+            // clamp radius for very small/large sections
+            overlay.style.background = `radial-gradient(circle ${radius}px at ${x}px ${y}px, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0) 60%)`;
+            overlay.style.opacity = '1';
+        }
+
+        function scheduleUpdate(clientX, clientY){
+            const rect = section.getBoundingClientRect();
+            // compute coordinates relative to section
+            const x = Math.round(Math.max(0, Math.min(rect.width, clientX - rect.left)));
+            const y = Math.round(Math.max(0, Math.min(rect.height, clientY - rect.top)));
+            const base = Math.max(rect.width, rect.height);
+            const radius = Math.round(Math.max(140, Math.min(420, Math.floor(base * 0.22))));
+            lastPos = {x, y, radius};
+            if(rafId) return;
+            rafId = requestAnimationFrame(updateOverlay);
+        }
+
+        function onMouseMove(e){
+            scheduleUpdate(e.clientX, e.clientY);
+        }
+
+        function onTouchMove(e){
+            if(!e.touches || e.touches.length === 0) return;
+            const t = e.touches[0];
+            scheduleUpdate(t.clientX, t.clientY);
+        }
+
+        function onLeave(){
+            if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+            overlay.style.opacity = '0';
+        }
+
+        // Wire events on the section
+        section.addEventListener('mousemove', onMouseMove, {passive:true});
+        section.addEventListener('touchmove', onTouchMove, {passive:true});
+        section.addEventListener('mouseleave', onLeave);
+        section.addEventListener('touchend', onLeave);
+        section.addEventListener('touchcancel', onLeave);
+
+        // Responsive / resize handling
+        const ro = new ResizeObserver(()=>{
+            // On resize, reset overlay background center to center and hide until next move
+            overlay.style.opacity = '0';
+        });
+        ro.observe(section);
+
+        // Cleanup reference (in case single-page nav unmounts)
+        // attach to section for potential cleanup later
+        section._financialSpotlight = {overlay, ro};
+    }catch(err){
+        console.error('[financialSpotlight] init error', err);
+    }
+}
+
+// Financial cards: flip/scale on click, keyboard accessible
+function initFinancialCardInteractions(){
+    try{
+        const container = document.querySelector('.financial-cards-grid');
+        if(!container) return;
+        let active = null;
+        const cards = Array.from(container.querySelectorAll('.financial-card'));
+        const closeActive = () => {
+            if(!active) return;
+            active.classList.remove('active');
+            active.setAttribute('aria-expanded','false');
+            const back = active.querySelector('.card-back');
+            if(back) back.setAttribute('aria-hidden','true');
+            active = null;
+        };
+
+        function activate(card){
+            if(active && active !== card) closeActive();
+            card.classList.add('active');
+            card.setAttribute('aria-expanded','true');
+            const back = card.querySelector('.card-back');
+            if(back) back.setAttribute('aria-hidden','false');
+            active = card;
+            // move focus to the back content for screen readers
+            if(back && typeof back.focus === 'function') back.focus({preventScroll:true});
+        }
+        function toggle(card){
+            if(card.classList.contains('active')){
+                card.classList.remove('active');
+                card.setAttribute('aria-expanded','false');
+                const back = card.querySelector('.card-back');
+                if(back) back.setAttribute('aria-hidden','true');
+                if(active === card) active = null;
+            } else {
+                activate(card);
+            }
+        }
+
+        cards.forEach(card => {
+            // ensure roles/aria
+            card.setAttribute('role','button');
+            card.setAttribute('tabindex','0');
+            card.setAttribute('aria-expanded','false');
+            const back = card.querySelector('.card-back');
+            if(back) back.setAttribute('aria-hidden','true');
+
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggle(card);
+            });
+            card.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(card); }
+                if(e.key === 'Escape') { closeActive(); }
+            });
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if(!container.contains(e.target)) closeActive();
+        });
+
+        // Close on escape at document level
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape') closeActive();
+        });
+    }catch(err){
+        console.error('initFinancialCardInteractions error', err);
+    }
+}
+
+// Run the card interactions once DOM is ready
+if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initFinancialCardInteractions);
+} else {
+    initFinancialCardInteractions();
+}
+
+    // Initialize the "Including Launch" cost doughnut here so it runs with other charts
+    (function createIncludingLaunchChart(){
+        try{
+            const el = document.getElementById('costChartIncluding');
+            if (!el || typeof Chart === 'undefined') return;
+
+            // destroy previous instance if present
+            try{ const prev = Chart.getChart ? Chart.getChart(el) : null; if (prev) prev.destroy(); } catch(e){}
+
+            const ctx = el.getContext('2d');
+            const labels = [
+                'Protective Shell',
+                'Server Development',
+                'Networking',
+                'Thermals',
+                'Launch Cost'
+            ];
+            const values = [
+                4500000,   // Protective Shell
+                10500000,  // Server Development
+                4500000,   // Networking
+                10500000,  // Thermals
+                770000000  // Launch Cost
+            ];
+            const colors = ['#7adcff','#00ff88','#00d4ff','#ffd166','#ff6b35'];
+            const total = values.reduce((a,b)=>a+b,0);
+            const nf = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
+
+            const centerPlugin = {
+                id: 'centerText_costIncluding_initCharts',
+                afterDraw: function(/* chart */){
+                    return; // noop: center text intentionally disabled
+                }
+            };
+            // Register plugin (noop) to avoid duplicate registration errors
+            try{ Chart.register(centerPlugin); }catch(e){}
+
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, hoverOffset: 12, borderWidth: 0 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, padding: 12 } },
+                        tooltip: {
+                            callbacks: {
+                                    label: function(ctx){
+                                        const v = ctx.raw;
+                                        const lbl = ctx.label || '';
+                                        const pct = (total && total > 0) ? (v / total * 100) : 0;
+                                        return lbl + ': ' + nf.format(v) + ' (' + pct.toFixed(2) + '%)';
+                                    },
+                                footer: function(){ return 'Total: ' + nf.format(total); }
+                            },
+                            backgroundColor: 'rgba(0,20,84,0.92)', titleColor: '#ffffff', bodyColor: '#ffffff', footerColor: '#ffffff', displayColors: true
+                        }
+                    }
+                }
+            });
+            window._costChartIncluding = chart;
+        }catch(err){ console.error('[createIncludingLaunchChart] failed', err); }
+    })();
+
+    // Create the "Excluding Launch" cost doughnut (right-side) — same style as the left chart
+    (function createExcludingLaunchChart(){
+        try{
+            const el = document.getElementById('costChartExcluding');
+            if (!el || typeof Chart === 'undefined') return;
+
+            try{ const prev = Chart.getChart ? Chart.getChart(el) : null; if (prev) prev.destroy(); } catch(e){}
+
+            const ctx = el.getContext('2d');
+            // Updated categories (excluding launch) — matches $30M total
+            const labels = [
+                'Protective Shell',
+                'Server Development',
+                'Networking',
+                'Thermals'
+            ];
+            const values = [
+                4500000,   // Protective Shell
+                10500000,  // Server Development
+                4500000,   // Networking
+                10500000   // Thermals
+            ];
+            const colors = ['#7adcff','#00ff88','#00d4ff','#ffd166'];
+            const total = values.reduce((a,b)=>a+b,0);
+            const nf = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
+
+            const centerPlugin = { id: 'centerText_costExcluding_init', afterDraw: function(/*chart*/){ return; } };
+            try{ Chart.register(centerPlugin); }catch(e){}
+
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, hoverOffset: 12, borderWidth: 0 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, padding: 12 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx){ const v = ctx.raw; const lbl = ctx.label || ''; const pct = (total && total>0) ? (v/total*100) : 0; return lbl + ': ' + nf.format(v) + ' (' + pct.toFixed(2) + '%)'; },
+                                footer: function(){ return 'Total: ' + nf.format(total); }
+                            },
+                            backgroundColor: 'rgba(0,20,84,0.92)', titleColor: '#ffffff', bodyColor: '#ffffff', footerColor: '#ffffff', displayColors: true
+                        }
+                    }
+                }
+            });
+            window._costChartExcluding = chart;
+        }catch(err){ console.error('[createExcludingLaunchChart] failed', err); }
+    })();
+
+// Current Projects animated background + interactivity
+function initProjectsBackground(){
+    try{
+        const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const section = document.getElementById('current-projects') || document.querySelector('.current-projects');
+        if(!section) return;
+
+        // create overlay if missing
+        let overlay = section.querySelector('.projects-bg');
+        if(!overlay){
+            overlay = document.createElement('div');
+            overlay.className = 'projects-bg';
+            section.insertBefore(overlay, section.firstChild);
+        }
+
+        // If reduced motion, keep a static subtle overlay
+        if (prefersReduced) {
+            overlay.style.animation = 'none';
+            overlay.style.opacity = '0.92';
+            return;
+        }
+
+        let raf = null;
+        let last = {x: '50%', y: '50%', r: 220};
+
+        function update(){
+            raf = null;
+            overlay.style.setProperty('--cx', typeof last.x === 'number' ? last.x + 'px' : last.x);
+            overlay.style.setProperty('--cy', typeof last.y === 'number' ? last.y + 'px' : last.y);
+            overlay.style.setProperty('--r', last.r + 'px');
+        }
+
+        function schedule(x, y){
+            const rect = section.getBoundingClientRect();
+            const px = Math.round(Math.max(0, Math.min(rect.width, x - rect.left)));
+            const py = Math.round(Math.max(0, Math.min(rect.height, y - rect.top)));
+            const base = Math.max(160, Math.min(rect.width, rect.height));
+            const r = Math.round(Math.max(120, Math.min(420, Math.floor(base * 0.28))));
+            last = { x: px, y: py, r };
+            if (raf) return;
+            raf = requestAnimationFrame(update);
+        }
+
+        function onMouseMove(e){ schedule(e.clientX, e.clientY); }
+        function onTouchMove(e){ if(!e.touches || !e.touches.length) return; schedule(e.touches[0].clientX, e.touches[0].clientY); }
+        function onLeave(){ overlay.style.setProperty('--cx','50%'); overlay.style.setProperty('--cy','50%'); overlay.style.setProperty('--r','220px'); }
+
+        section.addEventListener('mousemove', onMouseMove, { passive: true });
+        section.addEventListener('touchmove', onTouchMove, { passive: true });
+        section.addEventListener('mouseleave', onLeave);
+        section.addEventListener('touchend', onLeave);
+
+        // When a specific project card is hovered, make the overlay slightly lighter and pause the pulse
+        const cards = Array.from(section.querySelectorAll('.financial-card'));
+        cards.forEach(c => {
+            c.addEventListener('mouseenter', () => { overlay.classList.add('focused'); overlay.style.opacity = '0.72'; });
+            c.addEventListener('mouseleave', () => { overlay.classList.remove('focused'); overlay.style.opacity = ''; });
+            // Also on focus for keyboard users
+            c.addEventListener('focus', () => { overlay.classList.add('focused'); overlay.style.opacity = '0.72'; });
+            c.addEventListener('blur', () => { overlay.classList.remove('focused'); overlay.style.opacity = ''; });
+        });
+
+        // responsive: hide pulse on small screens to save battery
+        const mq = window.matchMedia('(max-width:720px)');
+        function handleMq(){ if(mq.matches){ overlay.style.animationPlayState = 'paused'; overlay.style.opacity = '0.92'; } else { overlay.style.animationPlayState = ''; } }
+        mq.addEventListener && mq.addEventListener('change', handleMq);
+        handleMq();
+
+        // store for cleanup if needed
+        section._projectsBg = { overlay };
+    }catch(err){ console.error('[projectsBg] init error', err); }
+}
 
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -13,11 +390,202 @@ document.addEventListener('DOMContentLoaded', function() {
     init3DEarth();
     initOrbitalViewer();
     initCharts();
+    initTemperatureChart();
     initAIIntegrationBackground();
+    initAIBoxModels();
+    initTechCardParallax();
+    initSustainabilitySection();
+    initFinancialSpotlight();
+    initProjectsBackground();
     initInteractiveElements();
+    initFinancialNumberInteractions();
     initSphereIdleMotion();
     initSmoothScrolling();
 });
+
+    // Make Financial Impacts texts/cards interactive based on mouse proximity and focus
+    function initFinancialInteractions(){
+        try{
+            const section = document.getElementById('financial-impacts') || document.querySelector('.financial-section');
+            if(!section) return;
+            const cards = Array.from(section.querySelectorAll('.financial-card'));
+            if(!cards.length) return;
+
+            // Respect reduced motion preference
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                // wire basic focus/hover class toggles for keyboard users
+                cards.forEach(c => {
+                    c.addEventListener('mouseenter', () => c.classList.add('interactive'));
+                    c.addEventListener('mouseleave', () => c.classList.remove('interactive'));
+                    c.addEventListener('focus', () => c.classList.add('interactive'));
+                    c.addEventListener('blur', () => c.classList.remove('interactive'));
+                });
+                return;
+            }
+
+            let raf = null;
+
+            function applyProximity(mx, my){
+                // compute distance to card centers and set intensity
+                const maxDist = Math.max(220, Math.min(window.innerWidth, 520));
+                cards.forEach(c => {
+                    const r = c.getBoundingClientRect();
+                    const cx = r.left + r.width/2;
+                    const cy = r.top + r.height/2;
+                    const dx = cx - mx;
+                    const dy = cy - my;
+                    const d = Math.sqrt(dx*dx + dy*dy);
+                    const intensity = Math.max(0, 1 - (d / maxDist)); // 0..1
+
+                    // Smooth visual mapping
+                    const ty = -8 * intensity; // translate up to -8px
+                    const scale = 1 + 0.03 * intensity;
+                    const shadowAlpha = 0.06 + 0.14 * intensity;
+
+                    c.style.transform = `translateY(${ty.toFixed(2)}px) scale(${scale.toFixed(3)})`;
+                    c.style.boxShadow = intensity > 0.03 ? `0 ${Math.round(18 + intensity*30)}px ${Math.round(40 + intensity*60)}px rgba(0,160,220,${shadowAlpha.toFixed(3)})` : '';
+                    c.style.filter = `saturate(${(1 + intensity*0.18).toFixed(3)})`;
+
+                    // text emphasis
+                    const h = c.querySelector('h4');
+                    const p = c.querySelector('p');
+                    if(h) h.style.color = intensity > 0.12 ? '#ffffff' : '#9fdcff';
+                    if(p) p.style.color = `rgba(255,255,255,${(0.92 + intensity*0.08).toFixed(2)})`;
+                });
+            }
+
+            function onMove(e){
+                const mx = e.clientX;
+                const my = e.clientY;
+                if (raf) cancelAnimationFrame(raf);
+                raf = requestAnimationFrame(()=>{ applyProximity(mx, my); raf = null; });
+            }
+
+            function onLeave(){
+                // reset styles
+                cards.forEach(c => {
+                    c.style.transform = '';
+                    c.style.boxShadow = '';
+                    c.style.filter = '';
+                    const h = c.querySelector('h4'); if(h) h.style.color = '';
+                    const p = c.querySelector('p'); if(p) p.style.color = '';
+                });
+            }
+
+            section.addEventListener('mousemove', onMove, { passive: true });
+            section.addEventListener('touchmove', (e)=>{ if(e.touches && e.touches[0]) onMove(e.touches[0]); }, { passive: true });
+            section.addEventListener('mouseleave', onLeave);
+            section.addEventListener('touchend', onLeave);
+
+            // keyboard and pointer accessibility: also toggle persistent class on focus/hover
+            cards.forEach(c => {
+                c.addEventListener('mouseenter', () => c.classList.add('interactive'));
+                c.addEventListener('mouseleave', () => c.classList.remove('interactive'));
+                c.addEventListener('focus', () => c.classList.add('interactive'));
+                c.addEventListener('blur', () => c.classList.remove('interactive'));
+            });
+
+            // store for possible cleanup
+            section._financialInteractions = { cards };
+        }catch(err){ console.error('[financialInteractions] init error', err); }
+    }
+
+// Make numeric financial values interactive: hover/focus tooltip, keyboard support, click/Enter to copy, accessible confirmation
+function initFinancialNumberInteractions(){
+    try{
+        const section = document.querySelector('.financial-section') || document.getElementById('financial-impacts');
+        if(!section) return;
+
+    // select any element in the financial section with class "numeric" (table cells and our prominent totals)
+    const numericCells = Array.from(section.querySelectorAll('.numeric'));
+    // keep selecting summary values specifically as well (older markup)
+    const summaryValues = Array.from(section.querySelectorAll('.financial-summary .value'));
+        if(!numericCells.length && !summaryValues.length) return;
+
+        // Create tooltip element (single shared) and hidden live region
+        let tooltip = document.querySelector('.num-tooltip');
+        if (!tooltip) { tooltip = document.createElement('div'); tooltip.className = 'num-tooltip'; document.body.appendChild(tooltip); }
+        let live = document.querySelector('.sr-live');
+        if (!live) { live = document.createElement('div'); live.className = 'sr-live'; live.setAttribute('aria-live','polite'); document.body.appendChild(live); }
+
+        function showTooltip(target, text){
+            try{
+                const r = target.getBoundingClientRect();
+                tooltip.textContent = text;
+                const left = Math.round(r.left + (r.width/2));
+                const top = Math.round(r.top - 8);
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+                tooltip.style.opacity = '1';
+                tooltip.style.transform = 'translate(-50%, -100%)';
+                clearTimeout(tooltip._hide);
+                tooltip._hide = setTimeout(()=>{ tooltip.style.opacity = '0'; }, 1600);
+            }catch(e){}
+        }
+
+        function hideTooltip(){ if(tooltip) { tooltip.style.opacity = '0'; } }
+
+        function copyText(text){
+            if (!text) return Promise.resolve(false);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text).then(()=>true).catch(()=>false);
+            }
+            // fallback
+            return new Promise((resolve)=>{
+                try{
+                    const ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); resolve(true);
+                }catch(e){ resolve(false); }
+            });
+        }
+
+        function activateElement(el){
+            // prefer a stable data-copy attribute if present (so animated text doesn't affect copied value)
+            const stable = el.getAttribute('data-copy') || el.dataset.copy || el.textContent.trim();
+            copyText(stable).then(ok => {
+                if(ok){
+                    live.textContent = stable + ' copied to clipboard';
+                    showTooltip(el, 'Copied: ' + stable);
+                } else {
+                    live.textContent = 'Copy failed';
+                    showTooltip(el, 'Copy failed');
+                }
+            });
+        }
+
+        function makeInteractive(el){
+            if(!el) return;
+            if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex','0');
+            el.setAttribute('role','button');
+            // set a helpful aria-label (preserve existing if present)
+            const baseLabel = el.getAttribute('aria-label') || '';
+            const label = baseLabel + ' Value ' + el.textContent.trim() + '. Press Enter or Space to copy.';
+            el.setAttribute('aria-label', label.trim());
+
+            el.addEventListener('click', (ev) => { ev.preventDefault(); activateElement(el); });
+            el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); activateElement(el); } });
+            el.addEventListener('focus', ()=> showTooltip(el, 'Press Enter to copy: ' + el.textContent.trim()));
+            el.addEventListener('blur', ()=> hideTooltip());
+            el.addEventListener('mouseenter', ()=> showTooltip(el, 'Click to copy: ' + el.textContent.trim()));
+            el.addEventListener('mouseleave', ()=> hideTooltip());
+        }
+
+        numericCells.forEach(el => {
+            makeInteractive(el);
+            // store stable copy value (final formatted text) so animations can update visible text
+            try { el.dataset.copy = el.textContent.trim(); } catch(e){}
+        });
+        summaryValues.forEach(el => {
+            makeInteractive(el);
+            try { el.dataset.copy = el.textContent.trim(); } catch(e){}
+        });
+
+        // Animate prominent totals if present
+        requestAnimationFrame(() => {
+            try { animateFinancialTotals(); } catch(e){}
+        });
+
+    }catch(err){ console.warn('[financialNumbers] init failed', err); }
+}
 
 // Subtle idle motion for benefit spheres (in-place, small offsets)
 function initSphereIdleMotion() {
@@ -64,7 +632,8 @@ function initSphereIdleMotion() {
         window._sphereIdleRaf = requestAnimationFrame(loop);
 
         // cleanup when navigating away or if spheres removed
-        window.addEventListener('beforeunload', () => { try { cancelAnimationFrame(window._sphereIdleRaf); } catch(e){} });
+        
+                window.addEventListener('beforeunload', () => { try { cancelAnimationFrame(window._sphereIdleRaf); } catch(e){} });
     } catch (e) { console.warn('initSphereIdleMotion failed', e); }
 }
 
@@ -84,54 +653,119 @@ function initOrbitalViewer() {
     orbitalRenderer.setPixelRatio(window.devicePixelRatio || 1);
     orbitalRenderer.setSize(container.clientWidth, container.clientHeight);
     orbitalRenderer.setClearColor(0x000000, 0);
+    // Ensure the orbital viewer is visible immediately so it runs around the principal sphere
+    try { orbitalRenderer.domElement.style.opacity = '1'; } catch(e){}
 
     // Create a small group to rotate
     orbitalGroup = new THREE.Group();
     orbitalScene.add(orbitalGroup);
 
-    // Earth / Datacenter sphere (starts as image; morphs into textured sphere on scroll)
-    const earthGeo = new THREE.SphereGeometry(1.0, 32, 32);
-    const datacenterImage = document.getElementById('datacenterImage');
-    let dataTexture = null;
-    const earthMat = new THREE.MeshStandardMaterial({ color: 0x2255ff, emissive: 0x001122, metalness: 0.1, roughness: 0.7 });
+    // Earth sphere: match hero Earth visual style using synchronous canvas texture (avoid async flash)
+    const earthGeo = new THREE.SphereGeometry(1.0, 64, 64);
+    const earthTex = createEarthTexture(1024, 512);
+    try { earthTex.encoding = THREE.sRGBEncoding; } catch(e){}
+    earthTex.needsUpdate = true;
+    const earthMat = new THREE.MeshStandardMaterial({
+        map: earthTex,
+        color: 0xffffff,
+        metalness: 0.06,
+        roughness: 0.42,
+        emissive: 0x0a1018,
+        emissiveIntensity: 0.06,
+        envMapIntensity: 0.6
+    });
     const orbitalEarth = new THREE.Mesh(earthGeo, earthMat);
-    // start scaled down so it can 'grow' during the morph
-    orbitalEarth.scale.setScalar(0.28);
+    orbitalEarth.scale.setScalar(0.28); // initial morph scale
     orbitalGroup.add(orbitalEarth);
+    let dataTexture = null; // preserve variable name for existing morph logic (will be unused unless later replaced)
+    
+            // Cost chart: "Including Launch" (interactive doughnut)
+            function initCostChartIncluding(){
+                try{
+                    const el = document.getElementById('costChartIncluding');
+                    if(!el || typeof Chart === 'undefined') return;
 
-    // If a datacenter image exists, create a Three texture from it when loaded
-    if (datacenterImage) {
-        console.debug('[orbital] datacenterImage element found, complete=', datacenterImage.complete);
-        if (datacenterImage.complete && datacenterImage.naturalWidth) {
-            try {
-                dataTexture = new THREE.Texture(datacenterImage);
-                dataTexture.needsUpdate = true;
-                earthMat.map = dataTexture;
-                earthMat.needsUpdate = true;
-                console.debug('[orbital] created texture from datacenter image (synchronous)');
-            } catch (e) {
-                console.warn('Failed to create texture from datacenter image (sync):', e);
+                    // destroy previous instance if present
+                    try{ const prev = Chart.getChart ? Chart.getChart(el) : null; if(prev) prev.destroy(); } catch(e){}
+
+                    const ctx = el.getContext('2d');
+                            const labels = [
+                                'Protective Shell',
+                                'Server Development',
+                                'Networking',
+                                'Thermals',
+                                'Launch Cost'
+                            ];
+                            const values = [
+                                4500000,   // Protective Shell
+                                10500000,  // Server Development
+                                4500000,   // Networking
+                                10500000,  // Thermals
+                                770000000  // Launch Cost
+                            ];
+                            const colors = ['#7adcff','#00ff88','#00d4ff','#ffd166','#ff6b35'];
+                    const total = values.reduce((a,b)=>a+b,0);
+                    const nf = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+
+                    // center text plugin (disabled) — removed center total per user request
+                    const centerPlugin = {
+                        id: 'centerTextPlugin_costIncluding',
+                        afterDraw: function(/* chart */){
+                            return; // intentionally noop to avoid drawing center text
+                        }
+                    };
+                    try{ Chart.register(centerPlugin); }catch(e){}
+
+                    const chart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, hoverOffset: 12, borderWidth: 0 }] },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '60%',
+                            plugins: {
+                                legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, padding: 12 } },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx){
+                                            const v = ctx.raw;
+                                            const lbl = ctx.label || '';
+                                            const pct = (total && total > 0) ? (v / total * 100) : 0;
+                                            return lbl + ': ' + nf.format(v) + ' (' + pct.toFixed(2) + '%)';
+                                        },
+                                        footer: function(){ return 'Total: ' + nf.format(total); }
+                                    },
+                                    backgroundColor: 'rgba(0,20,84,0.92)',
+                                    titleColor: '#ffffff',
+                                    bodyColor: '#ffffff',
+                                    footerColor: '#ffffff',
+                                    displayColors: true
+                                }
+                            }
+                        }
+                    });
+
+                    // expose for debugging
+                    window._costChartIncluding = chart;
+                }catch(err){ console.error('[costChartIncluding] init failed', err); }
             }
-        } else {
-            datacenterImage.addEventListener('load', function() {
-                try {
-                    dataTexture = new THREE.Texture(datacenterImage);
-                    dataTexture.needsUpdate = true;
-                    earthMat.map = dataTexture;
-                    earthMat.needsUpdate = true;
-                    console.debug('[orbital] created texture from datacenter image (onload)');
-                } catch (e) {
-                    console.warn('Failed to create texture from datacenter image (onload):', e);
-                }
-            });
-        }
-    }
 
-    // Ambient + rim light
-    orbitalScene.add(new THREE.AmbientLight(0xffffff, 0.35));
-    const rim = new THREE.DirectionalLight(0xffffff, 0.9);
-    rim.position.set(5, 3, 5);
+    // Call cost chart initializer (ensure it runs regardless of datacenter image load state)
+    try{ initCostChartIncluding(); }catch(e){ console.warn('[costChartIncluding] deferred init failed', e); }
+
+    // Lighting: brighten to match hero Earth appearance
+    orbitalScene.add(new THREE.AmbientLight(0xffffff, 0.65));
+    const key = new THREE.DirectionalLight(0xffffff, 0.85);
+    key.position.set(4, 3, 6);
+    orbitalScene.add(key);
+    const hemi = new THREE.HemisphereLight(0x9fdcff, 0x101020, 0.5);
+    orbitalScene.add(hemi);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.18);
+    rim.position.set(-4, 2, -5);
     orbitalScene.add(rim);
+    const fill = new THREE.PointLight(0xffffff, 0.18, 10);
+    fill.position.set(0, 2, 2);
+    orbitalScene.add(fill);
 
     // Rings for LEO, MEO, GEO using TorusGeometry for a subtle 3D look
     const ringMaterial = new THREE.MeshBasicMaterial({ color: 0x00d4ff, opacity: 0.14, transparent: true, side: THREE.DoubleSide });
@@ -149,7 +783,8 @@ function initOrbitalViewer() {
         // reuse the same concept as hero satellites but smaller
         const g = new THREE.Group();
         const body = new THREE.SphereGeometry(0.06 * scale, 12, 12);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0fffe0, emissive: 0x00ffd0, emissiveIntensity: 0.55, metalness: 0.2, roughness: 0.25 });
+    // brighten orbital viewer satellites so they read clearly (still avoid additive peaks)
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0fffe0, emissive: 0x00ffd0, emissiveIntensity: 0.9, metalness: 0.2, roughness: 0.25 });
         const bodyMesh = new THREE.Mesh(body, bodyMat);
         g.add(bodyMesh);
 
@@ -166,7 +801,9 @@ function initOrbitalViewer() {
             const c = document.createElement('canvas'); const s = 48; c.width = s; c.height = s; const cx = c.getContext('2d');
             const gg = cx.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2); gg.addColorStop(0,'rgba(0,255,220,0.7)'); gg.addColorStop(0.2,'rgba(0,255,220,0.18)'); gg.addColorStop(1,'rgba(0,0,0,0)'); cx.fillStyle = gg; cx.fillRect(0,0,s,s);
         const _satProj = new THREE.Vector3();
-            const tex = new THREE.CanvasTexture(c); return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, blending: THREE.AdditiveBlending }));
+            const tex = new THREE.CanvasTexture(c);
+            const sprMat = new THREE.SpriteMaterial({ map: tex, transparent: true, blending: THREE.NormalBlending, opacity: 0.95, depthWrite: false });
+            return new THREE.Sprite(sprMat);
         })();
         spr.scale.set(0.45 * scale, 0.45 * scale, 1);
         g.add(spr);
@@ -175,14 +812,20 @@ function initOrbitalViewer() {
     }
     for (let i = 0; i < 9; i++) {
         const sat = buildOrbitalSat(0.7);
-                const baseSpeed = 0.01 + (i % 3) * 0.005;
-                satellite.userData = {
-                    radius: radius,
-                    angle: angle,
-                    baseSpeed: baseSpeed * 0.1, // run much slower by default
-                    currentSpeed: baseSpeed * 0.1,
-                    originalY: height
-                };
+        const radius = 2.0 + (i % 3) * 0.6;
+        const angle = (i / 9) * Math.PI * 2;
+        const height = Math.sin(i * 0.7) * 0.3;
+        sat.position.set(Math.cos(angle) * radius, height, Math.sin(angle) * radius);
+        const baseSpeed = 0.01 + (i % 3) * 0.005;
+        sat.userData = {
+            radius,
+            angle,
+            baseSpeed: baseSpeed * 0.1,
+            currentSpeed: baseSpeed * 0.1,
+            originalY: height
+        };
+        orbitalSatellites.push(sat);
+        orbitalGroup.add(sat);
     }
 
     // Camera position
@@ -199,9 +842,9 @@ function initOrbitalViewer() {
         // map a sweet spot into 0..1 (start ~0.18, end ~0.78)
         const t = clamp((progress - 0.18) / 0.6, 0, 1);
 
-    // crossfade image and canvas
+    // keep orbital viewer visible from the start (principal sphere) and crossfade image if present
     if (datacenterImage) datacenterImage.style.opacity = (1 - t).toFixed(3);
-    try { orbitalRenderer.domElement.style.opacity = t.toFixed(3); } catch(e){}
+    try { orbitalRenderer.domElement.style.opacity = '1'; } catch(e){}
 
     // debug
     if (window.__orbital_debug) console.debug('[orbital] morph t=', t.toFixed(3), 'progress=', progress.toFixed(3));
@@ -228,8 +871,6 @@ function initOrbitalViewer() {
 
     // Simple drag-to-rotate controls
     let isDragging = false;
-                const baseSpeed = 0.008 + (i % 3) * 0.002;
-                sat.userData = { radius: radius, angle: angle, baseSpeed: baseSpeed * 0.1, currentSpeed: baseSpeed * 0.1 };
     container.addEventListener('mousedown', (e) => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
     window.addEventListener('mouseup', () => { isDragging = false; });
     window.addEventListener('mousemove', (e) => {
@@ -597,62 +1238,106 @@ function init3DEarth() {
     renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
-
-    // Create Earth with a stylized canvas texture so it reads as 'Earth' (green land on blue ocean)
-    const geometry = new THREE.SphereGeometry(2, 64, 64);
-    let earthTexture;
+    // Use sRGB output for more accurate colors with PBR materials
+    if (THREE && THREE.Color) renderer.outputEncoding = THREE.sRGBEncoding;
+    // Use physically correct lights and gentle ACES tone mapping for richer highlights
     try {
-        earthTexture = createEarthTexture(2048, 1024);
-    } catch (e) {
-        // fallback to solid color
-        earthTexture = null;
-    }
+        renderer.physicallyCorrectLights = true;
+        if (THREE.ACESFilmicToneMapping) renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        // Slightly raise exposure so the PBR materials read brighter on most displays
+        renderer.toneMappingExposure = 1.25;
+        renderer.shadowMap.enabled = false; // keep perf friendly; shadows are not critical here
+    } catch (e) {}
 
-    const materialOptions = {
-        emissive: 0x080a12,
-        shininess: 12,
-        specular: 0x223344
-    };
-    if (earthTexture) materialOptions.map = earthTexture;
-    else materialOptions.color = 0x2233ff;
-
-    const material = new THREE.MeshPhongMaterial(materialOptions);
-    earth = new THREE.Mesh(geometry, material);
-    scene.add(earth);
-
-    // subtle atmosphere halo to make Earth read better against the starfield
+    // Create a stylized Earth mesh at the center so satellites have a body to orbit.
     try {
-        const atmosphereGeo = new THREE.SphereGeometry(2.06, 48, 48);
-        const atmosphereMat = new THREE.MeshBasicMaterial({ color: 0x7ec8ff, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, side: THREE.BackSide });
-        const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
-        scene.add(atmosphere);
+        const geometry = new THREE.SphereGeometry(2, 128, 128);
+        // use the synchronous canvas-based texture generator to avoid async flashing
+        const tex = createEarthTexture(2048, 1024);
+        try { tex.encoding = THREE.sRGBEncoding; } catch (e) {}
+        tex.needsUpdate = true;
+        // Brighter material settings: slightly lower roughness, small metalness, and a tiny emissive so highlights read whiter
+        const mat = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, metalness: 0.06, roughness: 0.42, emissive: 0x0a1018, emissiveIntensity: 0.06, envMapIntensity: 0.6 });
+        earth = new THREE.Mesh(geometry, mat);
+        earth.castShadow = false;
+        earth.receiveShadow = true;
+        scene.add(earth);
+        // no clouds/emissive overlay by default for a clean look
+        earthClouds = null;
+        emissiveOverlay = null;
+        // mark finalized so we don't force a solid color over the textured Earth
+        heroMaterialFinalized = true;
     } catch (e) {
-        // non-fatal: if atmosphere creation fails, continue without it
+        console.warn('Failed to create Earth mesh, falling back to no-sphere', e);
+        earth = null;
+        earthClouds = null;
+        emissiveOverlay = null;
+        heroMaterialFinalized = true;
     }
-
-    // Add satellites
-    createSatellites();
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+    // stronger ambient to ensure base visibility (brightened slightly for the Earth)
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.9);
     scene.add(ambientLight);
-    
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 3, 5);
-    scene.add(directionalLight);
+
+    // directional light used as the sun for shading / day-night terminator
+    // gentle stable key light to provide subtle sculpting without flashing
+    // increase to brighten the top-of-page highlight
+    heroSun = new THREE.DirectionalLight(0xffffff, 0.9);
+    heroSun.position.set(5, 3, 5);
+    heroSun.castShadow = false;
+    scene.add(heroSun);
+
+    // subtle hemisphere fill light for soft top/bottom separation (no animation)
+    try {
+    const hemi = new THREE.HemisphereLight(0x9fdcff, 0x101020, 0.45);
+        scene.add(hemi);
+    } catch (e) { /* non-fatal if HemisphereLight unavailable */ }
+
+    // additional soft top fill to ensure the lit hemisphere reads clearly
+    const topFill = new THREE.DirectionalLight(0xffffff, 0.14);
+    topFill.position.set(-2, 4, 1);
+    scene.add(topFill);
+
+    // subtle rim/back light to bring out edges and make the globe read against the background
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.12);
+    rimLight.position.set(-5, 2, -4);
+    scene.add(rimLight);
+
+    // small camera-attached point light so satellites and small meshes catch a bit of light
+    try {
+    const camLight = new THREE.PointLight(0xffffff, 0.12, 20);
+        camera.add(camLight);
+        scene.add(camera);
+    } catch (e) {}
 
     // Camera position
     camera.position.z = 6;
 
-    // Mouse interaction
-    document.addEventListener('mousemove', onMouseMove);
+    // Mouse interaction: only track when pointer is over the hero canvas to avoid global motion
+    const heroCanvas = document.getElementById('heroCanvas');
+    if (heroCanvas) {
+        heroCanvas.addEventListener('mouseenter', () => { heroMouseActive = true; });
+        heroCanvas.addEventListener('mouseleave', () => { heroMouseActive = false; });
+        heroCanvas.addEventListener('mousemove', onMouseMove, { passive: true });
+    } else {
+        // fallback to entire document if canvas missing
+        document.addEventListener('mousemove', onMouseMove);
+    }
     
-    // Animation loop
+    // Recreate rotating satellites (data-center markers)
+    try { createSatellites(scene); } catch (e) { /* non-fatal */ }
+    // create visual connections between them
+    try { createConnections(scene); } catch (e) { /* non-fatal */ }
+
+    // Start animation loop
     animate();
 }
 
-// Create orbiting satellites
-function createSatellites() {
+// Create orbiting satellites. Accept an optional parent (THREE.Object3D) so satellites
+// can be added to the main hero scene or to a separate group. Defaults to `scene`.
+function createSatellites(parent) {
+    parent = parent || scene;
     // Helper: create glow sprite for subtle bloom around satellites
     function createGlowSprite(size = 64, color = 'rgba(0,212,255,0.9)') {
         const c = document.createElement('canvas');
@@ -666,9 +1351,10 @@ function createSatellites() {
         g.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = g;
         ctx.fillRect(0,0,s,s);
-        const tex = new THREE.CanvasTexture(c);
-        const mat = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending });
-        return new THREE.Sprite(mat);
+    const tex = new THREE.CanvasTexture(c);
+    // make hero satellite glows brighter but keep NormalBlending to avoid additive flashes
+    const mat = new THREE.SpriteMaterial({ map: tex, color: 0xffffff, transparent: true, blending: THREE.NormalBlending, opacity: 0.95, depthWrite: false });
+    return new THREE.Sprite(mat);
     }
 
     // Helper: construct a stylized futuristic satellite group
@@ -676,21 +1362,23 @@ function createSatellites() {
         const group = new THREE.Group();
 
         // central body - rounded capsule using cylinder + sphere caps
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x121826, emissive: 0x00374d, metalness: 0.6, roughness: 0.2 });
+    // increase emissive intensity so satellites read brighter (kept without pulsing)
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1b2a33, emissive: 0x005f7f, emissiveIntensity: 0.9, metalness: 0.5, roughness: 0.22 });
         const cyl = new THREE.CylinderGeometry(0.06 * scale, 0.06 * scale, 0.2 * scale, 12);
         const body = new THREE.Mesh(cyl, bodyMat);
         body.rotation.z = Math.PI / 2;
         group.add(body);
 
         // small front plate with emissive window
-        const windowMat = new THREE.MeshStandardMaterial({ color: 0x00e6ff, emissive: 0x00e6ff, emissiveIntensity: 0.8, metalness: 0.1, roughness: 0.3 });
+    // brighten window emissive for legibility at small sizes
+    const windowMat = new THREE.MeshStandardMaterial({ color: 0x66f0ff, emissive: 0x66f0ff, emissiveIntensity: 1.6, metalness: 0.12, roughness: 0.28 });
         const win = new THREE.BoxGeometry(0.04 * scale, 0.02 * scale, 0.02 * scale);
         const winMesh = new THREE.Mesh(win, windowMat);
         winMesh.position.set(0.12 * scale, 0, 0);
         group.add(winMesh);
 
         // solar panels (thin boxes) on either side
-        const panelMat = new THREE.MeshStandardMaterial({ color: 0x072033, emissive: 0x003344, emissiveIntensity: 0.15, metalness: 0.1, roughness: 0.45 });
+    const panelMat = new THREE.MeshStandardMaterial({ color: 0x041820, emissive: 0x004d66, emissiveIntensity: 0.26, metalness: 0.08, roughness: 0.4 });
         const panelGeo = new THREE.BoxGeometry(0.0015 * scale, 0.12 * scale, 0.06 * scale);
         const leftPanel = new THREE.Mesh(panelGeo, panelMat);
         leftPanel.position.set(-0.02 * scale, 0, 0.12 * scale);
@@ -700,7 +1388,7 @@ function createSatellites() {
         group.add(rightPanel);
 
         // small antenna
-        const antMat = new THREE.MeshStandardMaterial({ color: 0x99f6ff, emissive: 0x66ffff, emissiveIntensity: 0.5, metalness: 0.4, roughness: 0.3 });
+    const antMat = new THREE.MeshStandardMaterial({ color: 0xbfefff, emissive: 0x99f6ff, emissiveIntensity: 0.9, metalness: 0.4, roughness: 0.28 });
         const antStem = new THREE.CylinderGeometry(0.005 * scale, 0.005 * scale, 0.12 * scale, 6);
         const stem = new THREE.Mesh(antStem, antMat);
         stem.position.set(-0.12 * scale, 0, 0);
@@ -711,8 +1399,8 @@ function createSatellites() {
         dish.position.set(-0.18 * scale, 0, 0);
         group.add(dish);
 
-        // subtle glow sprite behind the satellite
-        const glow = createGlowSprite(80 * Math.max(0.6, scale), 'rgba(0,212,255,0.55)');
+    // subtle glow sprite behind the satellite (stronger inner alpha for higher apparent brightness)
+    const glow = createGlowSprite(80 * Math.max(0.6, scale), 'rgba(0,212,255,0.95)');
         glow.scale.set(0.6 * scale, 0.6 * scale, 1);
         glow.position.set(0, 0, 0);
         group.add(glow);
@@ -744,7 +1432,48 @@ function createSatellites() {
         };
 
         satellites.push(satellite);
-        scene.add(satellite);
+        try { parent.add(satellite); } catch(e){ scene.add(satellite); }
+    }
+}
+
+// Create visual connections between satellites (curved lines). We'll connect each sat to its next neighbor
+// and a short-chord partner to create a web-like network. Lines are updated each frame to follow
+// satellite motion. Opacity increases when the mouse is near the line midpoint to create a "WOW" effect.
+function createConnections(parent) {
+    parent = parent || scene;
+    // clear existing
+    satelliteConnections.forEach(c => { try{ if(c.line && c.line.parent) c.line.parent.remove(c.line); }catch(e){} });
+    satelliteConnections = [];
+    const n = satellites.length;
+    if (n < 2) return;
+
+    // helper to build a connection object between two satellite indices
+    function buildConnection(i, j) {
+        const a = satellites[i];
+        const b = satellites[j];
+        const p0 = new THREE.Vector3(); const p2 = new THREE.Vector3();
+        a.getWorldPosition(p0); b.getWorldPosition(p2);
+        // compute an upward control point so the line arcs nicely
+        const mid = new THREE.Vector3().addVectors(p0, p2).multiplyScalar(0.5);
+        const up = Math.max(0.5, mid.length() * 0.08);
+        mid.y += up;
+
+        const curve = new THREE.QuadraticBezierCurve3(p0, mid, p2);
+        const points = curve.getPoints(48);
+        const geom = new THREE.BufferGeometry().setFromPoints(points);
+        const mat = new THREE.LineBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.16 });
+        const line = new THREE.Line(geom, mat);
+        line.frustumCulled = false;
+        parent.add(line);
+        satelliteConnections.push({ line, geom, mat, aIndex: i, bIndex: j });
+    }
+
+    // connect neighbors in ring and short chords (i -> i+1 and i -> i+2)
+    for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n;
+        buildConnection(i, j);
+        const k = (i + 2) % n;
+        if (k !== i && k !== j) buildConnection(i, k);
     }
 }
 
@@ -758,103 +1487,124 @@ function onMouseMove(event) {
 function animate() {
     requestAnimationFrame(animate);
 
+    // If the earth mesh exists, update it; otherwise skip earth-specific work
     if (earth) {
+        // one-time enforcement in case something changed material after init
+        if(!heroMaterialFinalized) enforceHeroSolidMaterial();
         // Rotate Earth
         earth.rotation.y += 0.005;
-        
-        // Mouse interaction
-        earth.rotation.x = mouseY * 0.1;
-        earth.rotation.z = mouseX * 0.1;
-        
-        // Animate satellites
-        satellites.forEach((satellite, index) => {
-            // proximity-based speed modulation (hero scene)
-            let target = satellite.userData.baseSpeed;
-            // compute mouse position in screen pixels
-            const mx = (mouseX + 1) / 2 * window.innerWidth;
-            const my = (1 - mouseY) / 2 * window.innerHeight;
-            // project satellite to screen
-            satellite.getWorldPosition(_satProj);
-            _satProj.project(camera);
-            const sx = (_satProj.x + 1) / 2 * window.innerWidth;
-            const sy = (1 - _satProj.y) / 2 * window.innerHeight;
-            const dx = sx - mx;
-            const dy = sy - my;
-            const d = Math.sqrt(dx*dx + dy*dy);
-            const thresh = 160;
-            if (d < thresh) {
-                const factor = (thresh - d) / thresh; // 0..1
-                target = satellite.userData.baseSpeed * (1 + factor * 6); // up to ~7x
-            }
-            // smooth toward target
-            satellite.userData.currentSpeed += (target - satellite.userData.currentSpeed) * 0.12;
+        // Rotate cloud layer if present (slightly faster than the planet)
+        if (earthClouds) earthClouds.rotation.y += 0.0065;
 
-            satellite.userData.angle += satellite.userData.currentSpeed;
-            satellite.position.x = Math.cos(satellite.userData.angle) * satellite.userData.radius;
-            satellite.position.z = Math.sin(satellite.userData.angle) * satellite.userData.radius;
-            satellite.position.y = satellite.userData.originalY + Math.sin(Date.now() * 0.001 + index) * 0.2;
-
-            // small rotation to make them feel alive
-            satellite.rotation.y += 0.05;
-        });
-        
-        // Camera movement based on mouse
-        camera.position.x = mouseX * 0.5;
-        camera.position.y = mouseY * 0.5;
-        camera.lookAt(scene.position);
+        // Mouse interaction: smoothly follow mouse when hovering, otherwise relax back to neutral
+        const targetRx = heroMouseActive ? (mouseY * 0.1) : 0;
+        const targetRz = heroMouseActive ? (mouseX * 0.1) : 0;
+        // smooth interpolation
+        earth.rotation.x += (targetRx - earth.rotation.x) * 0.08;
+        earth.rotation.z += (targetRz - earth.rotation.z) * 0.08;
     }
+
+    // Animate satellites regardless of whether an earth sphere exists
+    satellites.forEach((satellite, index) => {
+        // proximity-based speed modulation (hero scene)
+        let target = satellite.userData.baseSpeed;
+        // compute mouse position in screen pixels
+        const mx = (mouseX + 1) / 2 * window.innerWidth;
+        const my = (1 - mouseY) / 2 * window.innerHeight;
+        // project satellite to screen
+        satellite.getWorldPosition(_satProj);
+        _satProj.project(camera);
+        const sx = (_satProj.x + 1) / 2 * window.innerWidth;
+        const sy = (1 - _satProj.y) / 2 * window.innerHeight;
+        const dx = sx - mx;
+        const dy = sy - my;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        const thresh = 160;
+        if (d < thresh) {
+            const factor = (thresh - d) / thresh; // 0..1
+            target = satellite.userData.baseSpeed * (1 + factor * 6); // up to ~7x
+        }
+        // smooth toward target
+        satellite.userData.currentSpeed += (target - satellite.userData.currentSpeed) * 0.12;
+
+        satellite.userData.angle += satellite.userData.currentSpeed;
+        satellite.position.x = Math.cos(satellite.userData.angle) * satellite.userData.radius;
+        satellite.position.z = Math.sin(satellite.userData.angle) * satellite.userData.radius;
+        satellite.position.y = satellite.userData.originalY + Math.sin(Date.now() * 0.001 + index) * 0.2;
+
+        // small rotation to make them feel alive
+        satellite.rotation.y += 0.05;
+    });
+
+    // Camera movement: subtle follow only when hovering
+    const camTargetX = heroMouseActive ? (mouseX * 0.5) : 0;
+    const camTargetY = heroMouseActive ? (mouseY * 0.5) : 0;
+    camera.position.x += (camTargetX - camera.position.x) * 0.06;
+    camera.position.y += (camTargetY - camera.position.y) * 0.06;
+    camera.lookAt(scene.position);
+
+    // Update connection geometries so lines follow satellites and respond to mouse proximity
+    try {
+        const mx = (mouseX + 1) / 2 * window.innerWidth;
+        const my = (1 - mouseY) / 2 * window.innerHeight;
+        satelliteConnections.forEach(conn => {
+            try {
+                const a = satellites[conn.aIndex];
+                const b = satellites[conn.bIndex];
+                if (!a || !b) return;
+                const p0 = new THREE.Vector3(); const p2 = new THREE.Vector3();
+                a.getWorldPosition(p0); b.getWorldPosition(p2);
+                const mid = new THREE.Vector3().addVectors(p0, p2).multiplyScalar(0.5);
+                const up = Math.max(0.5, mid.length() * 0.08);
+                mid.y += up;
+                const curve = new THREE.QuadraticBezierCurve3(p0, mid, p2);
+                const pts = curve.getPoints(48);
+                // update geometry positions
+                const pos = conn.geom.attributes && conn.geom.attributes.position ? conn.geom.attributes.position.array : null;
+                if (pos && pos.length === pts.length * 3) {
+                    for (let i = 0; i < pts.length; i++) {
+                        pos[i*3+0] = pts[i].x;
+                        pos[i*3+1] = pts[i].y;
+                        pos[i*3+2] = pts[i].z;
+                    }
+                    conn.geom.attributes.position.needsUpdate = true;
+                } else {
+                    conn.geom.setFromPoints(pts);
+                }
+
+                // compute screen-space midpoint proximity to mouse and adjust opacity smoothly
+                const midScreen = mid.clone().project(camera);
+                const sx = (midScreen.x + 1) / 2 * window.innerWidth;
+                const sy = (1 - midScreen.y) / 2 * window.innerHeight;
+                const dx = sx - mx; const dy = sy - my; const d = Math.sqrt(dx*dx + dy*dy);
+                const thresh = 180;
+                const factor = Math.max(0, 1 - d / thresh); // 0..1
+                const base = 0.16;
+                const target = base + factor * 0.5; // brightens up near cursor
+                conn.mat.opacity += (target - conn.mat.opacity) * 0.12;
+            } catch (e) {}
+        });
+    } catch (e) {}
+
+    // Update emissive overlay sun direction (no pulsing) — overlay kept hidden per user preference
+    try {
+        if (emissiveOverlay && emissiveOverlay.material && emissiveOverlay.material.uniforms && heroSun) {
+            const sd = new THREE.Vector3();
+            sd.copy(heroSun.position).normalize();
+            emissiveOverlay.material.uniforms.sunDirection.value.copy(sd);
+            // ensure no animated pulsing: keep emissiveIntensity constant
+            if (emissiveOverlay.material.uniforms.emissiveIntensity) {
+                emissiveOverlay.material.uniforms.emissiveIntensity.value = 0.0;
+            }
+        }
+    } catch (e) { /* non-fatal */ }
 
     renderer.render(scene, camera);
 }
 
 // Initialize charts
 function initCharts() {
-    // Cost Structure Chart
-    const costCtx = document.getElementById('costChart');
-        if (costCtx) {
-        new Chart(costCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Electrical (35%)', 'Thermal (35%)', 'Shell (15%)', 'Network (15%)'],
-                datasets: [{
-                    data: [35, 35, 15, 15],
-                    backgroundColor: [
-                        '#00d4ff',
-                        '#00ff88',
-                        '#ff6b35',
-                        '#ff35a6'
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                                color: '#ffffff',
-                                padding: 12,
-                                boxWidth: 10,
-                                usePointStyle: true,
-                                font: {
-                                    size: 12
-                                }
-                            }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 20, 84, 0.9)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#ffffff',
-                        borderColor: '#00d4ff',
-                        borderWidth: 1
-                    }
-                }
-            }
-        });
-    }
+    // Cost Structure Chart removed per user request
 
     // Benefits Comparison Chart
     const benefitsCtx = document.getElementById('benefitsChart');
@@ -928,6 +1678,243 @@ function initCharts() {
     }
 }
 
+// Temperature Stability & Cooling Performance chart
+function initTemperatureChart(){
+    try{
+        const el = document.getElementById('tempChart');
+        if (!el || typeof Chart === 'undefined') return;
+
+        // If the canvas has no layout size yet (e.g. created while offscreen or before CSS applied), wait until it's measurable.
+        function whenSized(cb){
+            const rect = el.getBoundingClientRect();
+            if (rect.width > 8 && rect.height > 8) return cb();
+            // use ResizeObserver when available
+            if (window.ResizeObserver){
+                const ro = new ResizeObserver(() => {
+                    const r2 = el.getBoundingClientRect();
+                    if (r2.width > 8 && r2.height > 8){ ro.disconnect(); cb(); }
+                });
+                ro.observe(el);
+                // also fallback to load event
+                window.addEventListener('load', function onl(){ window.removeEventListener('load', onl); setTimeout(()=>{ try{ ro.disconnect(); }catch(e){} }, 100); });
+            } else {
+                window.addEventListener('load', function onl(){ window.removeEventListener('load', onl); setTimeout(cb, 80); });
+                // final timeout to avoid never initializing
+                setTimeout(cb, 1200);
+            }
+        }
+
+        const labels = [
+            'Radiator Eff (W/m²)',
+            'Daily Temp Fluct (°C)',
+            'Annual Temp Var (°C)'
+        ];
+
+    const datasets = [
+            // Order: [Radiator Eff, Daily Temp Fluct, Annual Temp Var]
+            // Updated per user: Radiator Eff -> terrestrial 100, orbital 1300, moon no bar (null)
+            // Daily Temp Fluct -> terrestrial 5, orbital 0.001, moon 150
+            // Annual Temp Var -> terrestrial 12, orbital 0.024, moon 0.1
+            { label: 'Terrestrial', data: [100, 5, 12], backgroundColor: '#0B7A75' },
+            // Ensure orbital radiator efficiency is the full 1300 W/m² (not 13)
+            { label: 'Orbital', data: [1300, 0.001, 0.024], backgroundColor: '#18C2D5' },
+            // use null for the missing radiator-eff bar for Moon so Chart.js leaves that slot empty
+            { label: 'Moon', data: [null, 150, 0.1], backgroundColor: '#2E7D32' }
+        ];
+
+    // only show these explicit tick marks per user request
+    // include 2000 so orbital radiator-eff values (e.g. 1300) are within the axis domain
+    // include 1000 and larger marks; add 3000 so very large bars are comfortably visible
+    const tickValues = [0.001, 0.01, 0.1, 1, 10, 100, 1000, 2000, 3000];
+
+        function formatNumber(n){
+            const num = Number(n);
+            if (!isFinite(num)) return String(n);
+            // avoid scientific notation: use fixed then trim
+            // choose decimal places: up to 6 for small values, 0 for ints
+            const abs = Math.abs(num);
+            let decimals = 0;
+            if (abs > 0 && abs < 0.01) decimals = 6;
+            else if (abs < 0.1) decimals = 5;
+            else if (abs < 1) decimals = 4;
+            else if (abs < 10) decimals = 3;
+            else if (abs < 100) decimals = 2;
+            else if (abs < 1000) decimals = 1;
+            else decimals = 0;
+            let s = num.toFixed(decimals);
+            // strip trailing zeros and optional dot
+            s = s.replace(/\.?(0+)$/,'');
+            s = s.replace(/\.$/, '');
+            return s;
+        }
+
+        // plugin: draw numeric labels at the end of each horizontal bar
+                const dataLabelPlugin = {
+            id: 'tempDataLabels',
+            afterDatasetsDraw(chart){
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.font = '12px Inter, Arial, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textBaseline = 'middle';
+
+                chart.data.datasets.forEach((dataset, dsIndex) => {
+                    const meta = chart.getDatasetMeta(dsIndex);
+                    meta.data.forEach((bar, i) => {
+                        // bar.x is the pixel location of the bar end for horizontal bars
+                        try{
+                                    const val = dataset.data[i];
+                                    if (val === null || val === undefined) return; // skip missing values
+                            const x = bar.x || (bar.getProps && bar.getProps(['x']).x) || 0;
+                            const y = bar.y || (bar.getProps && bar.getProps(['y']).y) || 0;
+                            const label = formatNumber(val);
+                            const padding = 8;
+                            // draw label to the right of the bar with a small padding
+                            ctx.textAlign = 'left';
+                            ctx.fillText(label, x + padding, y);
+                        }catch(e){}
+                    });
+                });
+
+                ctx.restore();
+            }
+        };
+
+        // plugin: draw major gridlines at the provided tickValues (subtle); disable Chart.js x-grid
+        const majorGridPlugin = {
+            id: 'majorLogGrid',
+            beforeDraw(chart){
+                const xScale = chart.scales['x'];
+                if (!xScale) return;
+                const ctx = chart.ctx;
+                ctx.save();
+                // draw white vertical gridlines for strong contrast against the dark card
+                ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+                ctx.lineWidth = 1.25;
+                tickValues.forEach(v => {
+                    // only draw if within scale domain
+                    if (v < xScale.min || v > xScale.max) return;
+                    const px = xScale.getPixelForValue(v);
+                    ctx.beginPath();
+                    ctx.moveTo(px, chart.chartArea.top);
+                    ctx.lineTo(px, chart.chartArea.bottom);
+                    ctx.stroke();
+                });
+                ctx.restore();
+            }
+        };
+
+        function createChart(){
+            try{
+                console.debug('[tempChart] createChart: canvas rect before sizing', el.getBoundingClientRect());
+                // ensure canvas is visible and has a usable height; some layouts collapse height when using height:auto
+                el.style.display = el.style.display || 'block';
+                if (!el.style.width) el.style.width = '100%';
+                const crect = el.getBoundingClientRect();
+                if (crect.height < 40) {
+                    // force a reasonable pixel height so Chart.js doesn't render into a collapsed canvas
+                    el.style.height = '540px';
+                }
+                const ctx = el.getContext('2d');
+                // Normalize dataset values to numbers (preserve nulls) to avoid accidental string/scale bugs
+                const normalizedDatasets = datasets.map(d => ({
+                    label: d.label,
+                    backgroundColor: d.backgroundColor,
+                    data: (d.data || []).map(v => (v === null || v === undefined) ? null : Number(v))
+                }));
+                console.debug('[tempChart] normalizedDatasets', normalizedDatasets);
+                console.debug('[tempChart] tickValues', tickValues, 'xMax', 3000);
+                // clear previous chart if exists
+                try{ const prev = Chart.getChart ? Chart.getChart(el) : null; if (prev) { console.debug('[tempChart] destroying previous chart instance'); prev.destroy(); } } catch(e){ console.warn('[tempChart] error destroying prev chart', e); }
+
+                const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: normalizedDatasets.map(d => ({
+                    label: d.label,
+                    data: d.data,
+                    backgroundColor: d.backgroundColor,
+                    hoverBackgroundColor: (function(col){
+                        // convert hex to rgba with opacity 0.95
+                        const r = parseInt(col.substr(1,2),16);
+                        const g = parseInt(col.substr(3,2),16);
+                        const b = parseInt(col.substr(5,2),16);
+                        return `rgba(${r},${g},${b},0.95)`;
+                    })(d.backgroundColor),
+                    borderRadius: 4,
+                    barThickness: 22
+                }))
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', align: 'start', labels: { color: '#ffffff' } },
+                    tooltip: {
+                        mode: 'nearest',
+                        intersect: true,
+                        callbacks: {
+                            label: function(ctx){
+                                const v = ctx.raw;
+                                const cat = ctx.chart.data.labels[ctx.dataIndex] || '';
+                                const m = cat.match(/\(([^)]+)\)/);
+                                const unit = m ? (' ' + m[1]) : '';
+                                if (v === null || v === undefined) return ctx.dataset.label + ': —';
+                                return ctx.dataset.label + ': ' + formatNumber(v) + unit;
+                            }
+                        },
+                        backgroundColor: 'rgba(0,20,84,0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff'
+                    }
+                },
+                scales: {
+                        x: {
+                        type: 'logarithmic',
+                        position: 'bottom',
+                        min: 0.001,
+                        // expand max to 3000 so orbital radiator-eff (1300 W/m²) is comfortably visible
+                        max: 3000,
+                        // Force tick positions to our explicit values so labels show 1000, 2000, 3000 (not 1,2,3)
+                        afterBuildTicks: function(scale){
+                            try{
+                                const vals = tickValues.filter(v => v >= scale.min && v <= scale.max);
+                                scale.ticks = vals.map(v => ({ value: v }));
+                            }catch(e){}
+                        },
+                        ticks: {
+                            callback: function(val){
+                                // val is the actual value for the logarithmic scale
+                                return formatNumber(val);
+                            },
+                            autoSkip: false,
+                            maxTicksLimit: tickValues.length,
+                            color: '#ffffff'
+                        },
+                        grid: { display: false }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#ffffff' }
+                    }
+                },
+                datasets: { bar: { categoryPercentage: 0.7, barPercentage: 0.85 } }
+            },
+            plugins: [dataLabelPlugin, majorGridPlugin]
+        });
+
+            // expose for debugging
+            window._tempStabilityChart = chart;
+            }catch(err){ console.error('[tempChart] createChart error', err); }
+        }
+
+        // Ensure chart is created only once sizes are available
+        whenSized(createChart);
+    }catch(e){ console.warn('initTemperatureChart failed', e); }
+}
+
 // Interactive elements
 function initInteractiveElements() {
     // Data center cards hover effects
@@ -968,6 +1955,56 @@ function initInteractiveElements() {
             this.style.transform = 'translateY(0) scale(1)';
         });
     });
+}
+
+// Animate the prominent financial totals with a count-up while keeping a stable copy value
+function animateFinancialTotals(){
+    const els = Array.from(document.querySelectorAll('.financial-totals .amount'));
+    if (!els.length) return;
+    // Respect reduced motion
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+        els.forEach(el => el.classList.remove('pulsing'));
+        return;
+    }
+
+    els.forEach(el => el.classList.add('pulsing'));
+
+    const duration = 900; // ms
+    const start = performance.now();
+
+    // parse a numeric target from data-copy or textContent (strip $ and commas)
+    const targets = els.map(el => {
+        const stable = el.getAttribute('data-copy') || el.dataset.copy || el.textContent.trim();
+        // remove anything except digits, dot, minus
+        const num = Number((stable || '').replace(/[^0-9.\-]/g,''));
+        return isFinite(num) ? num : 0;
+    });
+
+    function fmt(n){
+        // format with thousands separators and two decimals when needed
+        const abs = Math.abs(n);
+        if (Math.round(n) === n) return '$' + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return '$' + n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+
+    function step(now){
+        const t = Math.min(1, (now - start) / duration);
+        // easeOutCubic
+        const ease = 1 - Math.pow(1 - t, 3);
+        els.forEach((el, i) => {
+            const val = Math.round(targets[i] * ease * 100) / 100;
+            el.textContent = fmt(val);
+            // keep stable copy attribute at final target
+            try { el.dataset.copy = fmt(targets[i]); } catch(e){}
+        });
+        if (t < 1) requestAnimationFrame(step);
+        else {
+            // ensure final values set exactly
+            els.forEach((el, i) => { el.textContent = fmt(targets[i]); try { el.dataset.copy = fmt(targets[i]); } catch(e){} });
+        }
+    }
+
+    requestAnimationFrame(step);
 }
 
 // Show detailed information for data center cards
@@ -1286,6 +2323,74 @@ const additionalStyles = `
     .orbit-details strong {
         color: #00ff88;
     }
+    /* Financial table alignment and highlighted totals */
+    .financial-costs .legend { text-align: center; }
+    .financial-costs table th,
+    .financial-costs table td {
+        text-align: center;
+        padding: 8px 10px;
+        white-space: nowrap;
+    }
+    .financial-summary { display:flex; gap:18px; justify-content:space-between; align-items:center; }
+    .financial-summary .left,
+    .financial-summary .center,
+    .financial-summary .right { text-align:center; }
+    .financial-totals { display:flex; gap:28px; justify-content:center; margin-top:12px; align-items:baseline; }
+    .financial-totals .label { font-size:15px; font-weight:800; color: #ffd166; letter-spacing:0.2px; }
+    .financial-totals .amount { font-size:36px; font-weight:900; color: #ffd166; }
+    /* subtle pulse animation for the amounts */
+    @keyframes totalsPulse {
+        0% { transform: translateY(0) scale(1); filter: drop-shadow(0 6px 12px rgba(0,0,0,0.45)); }
+        50% { transform: translateY(-6px) scale(1.02); filter: drop-shadow(0 12px 20px rgba(0,0,0,0.55)); }
+        100% { transform: translateY(0) scale(1); filter: drop-shadow(0 6px 12px rgba(0,0,0,0.45)); }
+    }
+    .financial-totals .amount.pulsing { animation: totalsPulse 2200ms ease-in-out infinite; }
+    /* Ensure numeric table cells get a pointer cursor to indicate interactivity */
+    .financial-costs td.numeric, .financial-summary .value, .financial-totals .amount { cursor: pointer; }
+    /* Falling datacenters overlay in AI Integration */
+    #falling-datacenters {
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2; /* above canvas */
+        overflow: visible;
+    }
+    .datacenter-fall {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #00d4ff 70%, #0a0a0a 100%);
+        box-shadow: 0 8px 24px rgba(0,212,255,0.18);
+        border-radius: 14px;
+        opacity: 0.88;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #fff;
+        font-size: 15px;
+        border: 2px solid #00ff88;
+        animation: fall-datacenter 1.8s linear forwards;
+        will-change: transform, opacity;
+        /* Enforce a 1:1 aspect ratio so elements render as squares even if CSS/transform quirks occur */
+        aspect-ratio: 1 / 1;
+        box-sizing: border-box;
+    }
+    @keyframes fall-datacenter {
+        0% {
+            transform: translateY(-40px) scale(0.85) rotate(-12deg);
+            opacity: 0;
+        }
+        12% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(110vh) scale(1.12) rotate(8deg);
+            opacity: 0.37;
+        }
+    }
 `;
 
 // Inject additional styles
@@ -1410,6 +2515,262 @@ document.head.appendChild(styleSheet);
         });
     });
 })();
+
+// Small 3D models for AI Integration boxes (minimal, performant, respects prefers-reduced-motion)
+function initAIBoxModels() {
+    try {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            // render a single frame for each canvas (no animation)
+            ['ai-box-routing','ai-box-distributed','ai-box-fault'].forEach(id => {
+                const canvas = document.getElementById(id);
+                if (!canvas) return;
+                try {
+                    const scene = new THREE.Scene();
+                    const cam = new THREE.PerspectiveCamera(45, canvas.clientWidth / Math.max(120, canvas.clientHeight), 0.1, 1000);
+                    cam.position.set(0, 0.6, 2.6);
+                    const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+                    renderer.setPixelRatio(window.devicePixelRatio || 1);
+                    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+                    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+                    // directional lighting disabled to avoid flashing
+                    const dir = new THREE.DirectionalLight(0xffffff, 0.0); dir.position.set(5,3,5); scene.add(dir);
+                    // simple placeholder geometry depending on id
+                    let mesh;
+                    if (id === 'ai-box-routing') {
+                        mesh = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.08, 16, 64), new THREE.MeshStandardMaterial({ color: 0x00d4ff, metalness: 0.2, roughness: 0.35 }));
+                        mesh.rotation.x = Math.PI * 0.5;
+                    } else if (id === 'ai-box-distributed') {
+                        mesh = new THREE.Group();
+                        const nmat = new THREE.MeshStandardMaterial({ color: 0x00ff88, metalness:0.2, roughness:0.4 });
+                        const nodes = [new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), nmat), new THREE.Mesh(new THREE.SphereGeometry(0.10, 12, 12), nmat), new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), nmat)];
+                        nodes[0].position.set(-0.36, 0, 0); nodes[1].position.set(0.18, 0.18, 0); nodes[2].position.set(0.18, -0.18, 0);
+                        mesh.add(...nodes);
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints([nodes[0].position, nodes[1].position, nodes[2].position]);
+                        mesh.add(new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0x88ffd8, linewidth: 1 })));
+                    } else {
+                        // fault recognition: box + small rotating torus to imply repair
+                        const g = new THREE.Group();
+                        const box = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.28,0.18), new THREE.MeshStandardMaterial({ color: 0xff6b35, metalness:0.3, roughness:0.35 }));
+                        const tor = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.04, 10, 40), new THREE.MeshStandardMaterial({ color:0xffd8b6, metalness:0.1, roughness:0.45 }));
+                        tor.rotation.x = Math.PI/2; tor.position.set(0, 0.02, 0.1);
+                        g.add(box); g.add(tor); mesh = g;
+                    }
+                    scene.add(mesh);
+                    renderer.render(scene, cam);
+                    // dispose quickly
+                    try { renderer.dispose && renderer.dispose(); } catch(e){}
+                } catch(e) { console.warn('aiBox reduced-motion render failed for', id, e); }
+            });
+            return;
+        }
+
+        // active animation mode: create lightweight scenes per canvas
+        window._aiBoxModels = window._aiBoxModels || [];
+        const configs = [
+            { id: 'ai-box-routing' },
+            { id: 'ai-box-distributed' },
+            { id: 'ai-box-fault' }
+        ];
+
+        configs.forEach(cfg => {
+            const canvas = document.getElementById(cfg.id);
+            if (!canvas) return;
+            try {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / Math.max(120, canvas.clientHeight), 0.1, 1000);
+                camera.position.set(0, 0.6, 2.6);
+                const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+                renderer.setPixelRatio(window.devicePixelRatio || 1);
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+                scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+                // directional lighting disabled to avoid flashing
+                const dir = new THREE.DirectionalLight(0xffffff, 0.0); dir.position.set(5,3,5); scene.add(dir);
+
+                let group = new THREE.Group();
+                scene.add(group);
+
+                if (cfg.id === 'ai-box-routing') {
+                    const tor = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.08, 12, 64), new THREE.MeshStandardMaterial({ color: 0x00d4ff, metalness:0.2, roughness:0.4 }));
+                    tor.rotation.x = Math.PI/2; group.add(tor);
+                    const pulseMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive:0x00ffcc, emissiveIntensity:0.6, metalness:0.1, roughness:0.45 });
+                    const orb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 10), pulseMat); orb.position.set(0.45, 0, 0); group.add(orb);
+                    // store for animation
+                    cfg._anim = (t)=>{ orb.position.x = Math.cos(t*1.6) * 0.45; orb.position.z = Math.sin(t*1.6) * 0.18; group.rotation.z = t * 0.08; };
+                } else if (cfg.id === 'ai-box-distributed') {
+                    const nodeMat = new THREE.MeshStandardMaterial({ color: 0x00ff88, metalness:0.15, roughness:0.45 });
+                    const n1 = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), nodeMat);
+                    const n2 = new THREE.Mesh(new THREE.SphereGeometry(0.10, 10, 10), nodeMat);
+                    const n3 = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 10), nodeMat);
+                    n1.position.set(-0.36, 0, 0); n2.position.set(0.18, 0.18, 0); n3.position.set(0.18, -0.18, 0);
+                    group.add(n1, n2, n3);
+                    const geo = new THREE.BufferGeometry().setFromPoints([n1.position, n2.position, n3.position, n1.position]);
+                    const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x88ffd8 }));
+                    group.add(line);
+                    cfg._anim = (t)=>{ group.rotation.y = Math.sin(t*0.6) * 0.22; };
+                } else {
+                    const box = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.28,0.18), new THREE.MeshStandardMaterial({ color: 0xff6b35, metalness:0.25, roughness:0.38 }));
+                    const tor = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.04, 10, 40), new THREE.MeshStandardMaterial({ color:0xffd8b6, metalness:0.08, roughness:0.5 }));
+                    tor.rotation.x = Math.PI/2; tor.position.set(0, 0.02, 0.12);
+                    group.add(box); group.add(tor);
+                    cfg._anim = (t)=>{ tor.rotation.z = t * 1.6; box.rotation.y = Math.sin(t*0.4) * 0.12; };
+                }
+
+                // resize handler
+                function resize() {
+                    const w = canvas.clientWidth || 120;
+                    const h = canvas.clientHeight || 120;
+                    camera.aspect = w / Math.max(120, h);
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(w, h, false);
+                }
+                window.addEventListener('resize', resize);
+
+                let start = performance.now();
+                let rafId = null;
+                function animate() {
+                    const now = performance.now();
+                    const t = (now - start) / 1000;
+                    try {
+                        if (cfg._anim) cfg._anim(t);
+                        group.rotation.x += 0.002;
+                        renderer.render(scene, camera);
+                    } catch (e) {}
+                    rafId = requestAnimationFrame(animate);
+                }
+                // initial draw + start loop
+                resize();
+                renderer.render(scene, camera);
+                rafId = requestAnimationFrame(animate);
+
+                // push to global for potential cleanup
+                window._aiBoxModels.push({ id: cfg.id, canvas, scene, camera, renderer, rafId, resizeHandler: resize });
+            } catch (e) {
+                console.warn('initAIBoxModels: failed to init', cfg.id, e);
+            }
+        });
+
+        // cleanup on page unload
+        window.addEventListener('beforeunload', function(){
+            try {
+                (window._aiBoxModels || []).forEach(m => {
+                    try { cancelAnimationFrame(m.rafId); } catch(e){}
+                    try { window.removeEventListener('resize', m.resizeHandler); } catch(e){}
+                    try { m.renderer && m.renderer.dispose && m.renderer.dispose(); } catch(e){}
+                });
+            } catch(e){}
+        });
+    } catch (e) {
+        console.warn('initAIBoxModels failed', e);
+    }
+}
+
+// Parallax-on-scroll for tech cards and AI boxes inside the Technology section
+function initTechCardParallax(){
+    try{
+        // respect reduced motion
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const section = document.querySelector('.technology-section');
+        if (!section) return;
+        const cards = Array.from(section.querySelectorAll('.tech-card, .ai-box-card'));
+        if (!cards.length) return;
+
+        // Provide per-card defaults and allow overrides via data attributes:
+        // data-parallax-speed (multiplier 0..1+), data-parallax-strength (px max), data-parallax-ease (0..1)
+        cards.forEach((c, i)=>{
+            const defaultSpeed = 0.20 + (i % 4) * 0.06; // varied pace per card
+            const defaultStrength = 60; // px max translate (stronger than before)
+            const defaultEase = 0.12 + ((i % 3) * 0.04); // smoothing per card
+            if (!c.dataset.parallaxSpeed) c.dataset.parallaxSpeed = String(defaultSpeed);
+            if (!c.dataset.parallaxStrength) c.dataset.parallaxStrength = String(defaultStrength);
+            if (!c.dataset.parallaxEase) c.dataset.parallaxEase = String(defaultEase);
+            // keep an internal current value for smooth lerp
+            c._parallaxCurrentY = 0;
+        });
+
+        let ticking = false;
+        function onScroll(){ if (!ticking){ ticking = true; window.requestAnimationFrame(()=>{ update(); ticking=false; }); } }
+
+        function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+        function update(){
+            const rect = section.getBoundingClientRect();
+            const vh = window.innerHeight || document.documentElement.clientHeight;
+            // normalized center offset: -1..1 where 0 = section centered in viewport
+            const centerOffset = (rect.top + rect.height/2) - (vh/2);
+            const max = (vh/2 + rect.height/2) || 1;
+            const n = clamp(centerOffset / max, -1, 1);
+
+            cards.forEach((c)=>{
+                const speed = parseFloat(c.dataset.parallaxSpeed || '0.2');
+                const strength = parseFloat(c.dataset.parallaxStrength || '60');
+                const ease = parseFloat(c.dataset.parallaxEase || '0.14');
+                // target Y opposing scroll (gives depth) scaled by speed & strength
+                const targetY = -n * speed * strength;
+                // smooth toward target (lerp)
+                c._parallaxCurrentY = (c._parallaxCurrentY || 0) + (targetY - (c._parallaxCurrentY || 0)) * ease;
+                try { c.style.setProperty('--parallax-y', `${c._parallaxCurrentY.toFixed(2)}px`); } catch(e){}
+            });
+        }
+
+        // initial update & listeners
+        update();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+
+        // cleanup when unloading
+        window.addEventListener('beforeunload', ()=>{
+            try{ window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); }catch(e){}
+        });
+    }catch(e){ console.warn('initTechCardParallax failed', e); }
+}
+
+// Init interactive tilt/move for Sustainability cubes
+function initSustainabilitySection(){
+    try{
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const cubes = Array.from(document.querySelectorAll('.sustain-cube'));
+        if (!cubes.length) return;
+
+        cubes.forEach(c => {
+            let rafId = null;
+            function onPointerMove(e){
+                const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+                const clientY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+                const r = c.getBoundingClientRect();
+                const x = (clientX - r.left) / Math.max(1, r.width);
+                const y = (clientY - r.top) / Math.max(1, r.height);
+                const rx = ( (y - 0.5) * -14 );
+                const ry = ( (x - 0.5) * 14 );
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(()=>{
+                    try{
+                        c.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+                        c.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+                        c.style.setProperty('--tz', '18px');
+                    }catch(e){}
+                });
+            }
+            function onEnter(){ c.classList.add('hover'); }
+            function onLeave(){ c.classList.remove('hover'); c.style.setProperty('--rx','0deg'); c.style.setProperty('--ry','0deg'); c.style.setProperty('--tz','0px'); }
+
+            c.addEventListener('pointerenter', onEnter);
+            c.addEventListener('pointermove', onPointerMove, { passive: true });
+            c.addEventListener('pointerleave', onLeave);
+            c.addEventListener('focus', onEnter);
+            c.addEventListener('blur', onLeave);
+
+            // keyboard affordances
+            // Note: do NOT toggle hover on Enter/Space — interaction should be hover-based.
+            // Keep arrow keys to nudge the visual tilt for keyboard users.
+            c.addEventListener('keydown', function(ev){
+                if (ev.key === 'ArrowLeft') { ev.preventDefault(); c.style.setProperty('--ry','10deg'); }
+                if (ev.key === 'ArrowRight') { ev.preventDefault(); c.style.setProperty('--ry','-10deg'); }
+                if (ev.key === 'ArrowUp') { ev.preventDefault(); c.style.setProperty('--rx','8deg'); }
+                if (ev.key === 'ArrowDown') { ev.preventDefault(); c.style.setProperty('--rx','-8deg'); }
+            });
+        });
+    }catch(e){ console.warn('initSustainabilitySection failed', e); }
+}
 
 // AI Integration background: interactive node network for the Technology/AI Integration section
 (function(){
@@ -1650,7 +3011,8 @@ document.head.appendChild(styleSheet);
 
             // lights
             scene.add(new THREE.AmbientLight(0x404040, 0.6));
-            const dir = new THREE.DirectionalLight(0xffffff, 1.0); dir.position.set(5,3,5); scene.add(dir);
+            // directional lighting disabled to avoid flashing
+            const dir = new THREE.DirectionalLight(0xffffff, 0.0); dir.position.set(5,3,5); scene.add(dir);
 
             // simple stars background using a large points cloud (cheap)
             const starsGeo = new THREE.BufferGeometry();
@@ -1882,3 +3244,170 @@ document.head.appendChild(styleSheet);
         // also attach global close function
         window.closeEarthModal = closeEarthModal;
     }
+
+    // Falling datacenters: disabled by request
+    (function(){
+        return; // disabled: do not spawn falling figures
+
+        document.addEventListener('DOMContentLoaded', function(){
+            const container = document.getElementById('falling-datacenters');
+            if (!container) return;
+
+            let intervalId = null;
+            let io = null;
+
+            function spawnOne(){
+                try{
+                    const el = document.createElement('div');
+                    el.className = 'datacenter-fall';
+                    // random horizontal start
+                    el.style.left = (Math.random() * 92 + 4) + '%';
+                    // vary size a bit
+                    const size = 36 + Math.floor(Math.random() * 38); // 36..74
+                    el.style.width = size + 'px';
+                    el.style.height = size + 'px';
+                    el.style.borderRadius = (8 + Math.floor(Math.random()*12)) + 'px';
+                    // random tiny label (optional) — keep empty for now
+                    // el.textContent = 'DC';
+                    // staggered animation timing
+                    el.style.animationDuration = (5 + Math.random() * 6).toFixed(2) + 's';
+                    el.style.animationDelay = (Math.random() * 1.25).toFixed(2) + 's';
+                    container.appendChild(el);
+                    // remove after animation ends
+                    const onEnd = function(){ try{ el.removeEventListener('animationend', onEnd); }catch(e){}; try{ if (el.parentNode) el.parentNode.removeChild(el); }catch(e){} };
+                    el.addEventListener('animationend', onEnd);
+                    // safety: remove after a hard timeout in case animationend didn't fire
+                    setTimeout(()=>{ if (el.parentNode) el.parentNode.removeChild(el); }, 14000);
+                }catch(e){ /* non-fatal */ }
+            }
+
+            function startSpawning(){ if (intervalId) return; intervalId = setInterval(spawnOne, 650); }
+            function stopSpawning(){ if (!intervalId) return; clearInterval(intervalId); intervalId = null; }
+
+            // Start only when the container is visible (intersection observer)
+            if ('IntersectionObserver' in window){
+                io = new IntersectionObserver((entries)=>{
+                    entries.forEach(en => {
+                        if (en.isIntersecting) startSpawning(); else stopSpawning();
+                    });
+                }, { threshold: 0.08 });
+                io.observe(container);
+            } else {
+                // fallback: start spawning once page loads and container in viewport
+                if (container.getBoundingClientRect().top < window.innerHeight) startSpawning();
+                window.addEventListener('scroll', function onS(){ if (container.getBoundingClientRect().top < window.innerHeight){ startSpawning(); window.removeEventListener('scroll', onS); } }, { passive: true });
+            }
+
+            // cleanup when navigating away
+            window.addEventListener('beforeunload', function(){ try{ if (io) io.disconnect(); stopSpawning(); }catch(e){} });
+        });
+    })();
+
+// Floating Definitions image: subtle bob + pointer-based parallax for #definitions-image
+(function(){
+    function init(){
+        try{
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            const img = document.getElementById('definitions-image');
+            if (!img) return;
+
+            let rafId = null;
+            let tx = 0, ty = 0, px = 0, py = 0;
+            let start = performance.now();
+
+            function onPointer(e){
+                const rect = img.getBoundingClientRect();
+                const cx = rect.left + rect.width/2;
+                const cy = rect.top + rect.height/2;
+                const mx = (e.touches && e.touches[0]) ? e.touches[0].clientX : (e.clientX || cx);
+                const my = (e.touches && e.touches[0]) ? e.touches[0].clientY : (e.clientY || cy);
+                // small normalized offsets based on element size
+                tx = (mx - cx) / Math.max(120, rect.width) * 12; // px
+                ty = (my - cy) / Math.max(80, rect.height) * 8;  // px
+            }
+
+            function animate(now){
+                const t = (now - start) / 1000;
+                // base bobbing motion
+                const bobY = Math.sin(t * 1.15) * 6; // px
+                const bobX = Math.sin(t * 0.6) * 2.5; // px
+                // smooth toward pointer target
+                px += (tx - px) * 0.08;
+                py += (ty - py) * 0.08;
+                const rot = Math.sin(t * 0.9) * 1.5 + (px * 0.02);
+                img.style.transform = `translate3d(${(bobX + px).toFixed(2)}px, ${(bobY + py).toFixed(2)}px, 0) rotate(${rot.toFixed(2)}deg)`;
+                rafId = requestAnimationFrame(animate);
+            }
+
+            document.addEventListener('mousemove', onPointer, { passive:true });
+            document.addEventListener('touchmove', onPointer, { passive:true });
+            rafId = requestAnimationFrame(animate);
+
+            window.addEventListener('beforeunload', function(){ try{ cancelAnimationFrame(rafId); }catch(e){} });
+        }catch(e){ console.warn('definitions image init failed', e); }
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+// Glossary popups: show futuristic dialog on hover/focus for left/right columns and image
+(function(){
+    function initTermPopups(){
+        try{
+            const left = document.querySelector('.terms-left');
+            const right = document.querySelector('.terms-right');
+            const img = document.getElementById('definitions-image');
+            const popLeft = document.getElementById('term-pop-left');
+            const popRight = document.getElementById('term-pop-right');
+            const defPop = document.getElementById('definitions-popup');
+            if (!left && !right && !img) return;
+
+            const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            function show(el){ if(!el) return; el.classList.add('show'); el.setAttribute('aria-hidden','false'); }
+            function hide(el){ if(!el) return; el.classList.remove('show'); el.setAttribute('aria-hidden','true'); }
+
+            if (left){
+                left.addEventListener('mouseenter', ()=> show(popLeft), {passive:true});
+                left.addEventListener('mouseleave', ()=> hide(popLeft));
+                left.addEventListener('focusin', ()=> show(popLeft));
+                left.addEventListener('focusout', ()=> hide(popLeft));
+                left.addEventListener('touchstart', (e)=>{ show(popLeft); e.stopPropagation(); }, {passive:true});
+            }
+
+            if (right){
+                right.addEventListener('mouseenter', ()=> show(popRight), {passive:true});
+                right.addEventListener('mouseleave', ()=> hide(popRight));
+                right.addEventListener('focusin', ()=> show(popRight));
+                right.addEventListener('focusout', ()=> hide(popRight));
+                right.addEventListener('touchstart', (e)=>{ show(popRight); e.stopPropagation(); }, {passive:true});
+            }
+
+            if (img){
+                img.addEventListener('mouseenter', ()=> show(defPop), {passive:true});
+                img.addEventListener('mouseleave', ()=> hide(defPop));
+                img.addEventListener('focus', ()=> show(defPop));
+                img.addEventListener('blur', ()=> hide(defPop));
+                img.addEventListener('click', ()=>{ if(defPop) defPop.classList.toggle('show'); });
+                img.addEventListener('touchstart', (e)=>{ if(defPop){ defPop.classList.toggle('show'); } e.stopPropagation(); }, {passive:true});
+            }
+
+            // Hide when clicking outside
+            document.addEventListener('click', function(e){
+                try{
+                    if (left && !left.contains(e.target)) hide(popLeft);
+                    if (right && !right.contains(e.target)) hide(popRight);
+                    if (img && e.target !== img && defPop && !defPop.contains(e.target)) hide(defPop);
+                }catch(e){}
+            }, {passive:true});
+
+            // Auto-hide after short timeout for touch users
+            let autoHideTimer = null;
+            function scheduleAutoHide(){ clearTimeout(autoHideTimer); autoHideTimer = setTimeout(()=>{ hide(popLeft); hide(popRight); hide(defPop); }, 3200); }
+            ['mouseenter','focusin','touchstart'].forEach(evt => { if(left) left.addEventListener(evt, scheduleAutoHide); if(right) right.addEventListener(evt, scheduleAutoHide); if(img) img.addEventListener(evt, scheduleAutoHide); });
+
+            if (prefersReduced){ [popLeft, popRight, defPop].forEach(p => { if(p) p.style.transition = 'none'; }); }
+        }catch(e){ console.warn('initTermPopups failed', e); }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTermPopups); else initTermPopups();
+})();
