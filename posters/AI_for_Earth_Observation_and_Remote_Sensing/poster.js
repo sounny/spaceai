@@ -69,7 +69,7 @@ function initTimelineCubes3D() {
   scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
 
   // Camera
-  const camera = new BABYLON.ArcRotateCamera('camera', BABYLON.Vector3.Zero(), scene);
+  const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 3, 15, BABYLON.Vector3.Zero(), scene);
   camera.attachControl(canvas, true);
   camera.lowerRadiusLimit = 10;
   camera.upperRadiusLimit = 10;
