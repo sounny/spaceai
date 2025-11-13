@@ -70,9 +70,9 @@ function initTimelineCubes3D() {
 
   // Camera
   const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 3, 15, BABYLON.Vector3.Zero(), scene);
-  camera.attachControl(canvas, false);
+  camera.attachControl(canvas, true);
   camera.lowerRadiusLimit = 10;
-  camera.upperRadiusLimit = 10;
+  camera.upperRadiusLimit = 25;
 
   // Lighting
   const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene);
@@ -89,47 +89,13 @@ function initTimelineCubes3D() {
   const spacing = 8;
 
   milestones.forEach((milestone, i) => {
-    // Create satellite-like structure with main body and solar panels
-    const satelliteGroup = new BABYLON.TransformNode('satellite' + i, scene);
+    const box = BABYLON.MeshBuilder.CreateBox('cube' + i, { size: 2 }, scene);
+    box.position.x = (i - milestones.length / 2 + 0.5) * spacing;
     
-    // Main body (rectangular)
-    const mainBody = BABYLON.MeshBuilder.CreateBox('mainBody' + i, { width: 1.5, height: 2, depth: 1 }, scene);
-    mainBody.parent = satelliteGroup;
-    
-    // Solar panels (thin rectangles on sides)
-    const solarPanel1 = BABYLON.MeshBuilder.CreateBox('panel1_' + i, { width: 0.1, height: 2.5, depth: 1.5 }, scene);
-    solarPanel1.position.x = -1.2;
-    solarPanel1.parent = satelliteGroup;
-    
-    const solarPanel2 = BABYLON.MeshBuilder.CreateBox('panel2_' + i, { width: 0.1, height: 2.5, depth: 1.5 }, scene);
-    solarPanel2.position.x = 1.2;
-    solarPanel2.parent = satelliteGroup;
-    
-    // Communication antenna (small cylinder on top)
-    const antenna = BABYLON.MeshBuilder.CreateCylinder('antenna' + i, { height: 0.8, diameter: 0.1 }, scene);
-    antenna.position.y = 1.4;
-    antenna.parent = satelliteGroup;
-    
-    // Position the satellite group
-    satelliteGroup.position.x = (i - milestones.length / 2 + 0.5) * spacing;
-    
-    // Materials
-    const bodyMaterial = new BABYLON.StandardMaterial('bodyMat' + i, scene);
-    bodyMaterial.diffuseColor = milestone.color;
-    bodyMaterial.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-    mainBody.material = bodyMaterial;
-    
-    const panelMaterial = new BABYLON.StandardMaterial('panelMat' + i, scene);
-    panelMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.7, 1.0); // Light blue for solar panels
-    panelMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.8);
-    solarPanel1.material = panelMaterial;
-    solarPanel2.material = panelMaterial;
-    
-    const antennaMaterial = new BABYLON.StandardMaterial('antennaMat' + i, scene);
-    antennaMaterial.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8); // Light gray for antenna
-    antenna.material = antennaMaterial;
-    
-    const box = satelliteGroup; // Keep reference for animations
+    const material = new BABYLON.StandardMaterial('mat' + i, scene);
+    material.diffuseColor = milestone.color;
+    material.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+    box.material = material;
 
     // Animation
     scene.registerBeforeRender(() => {
