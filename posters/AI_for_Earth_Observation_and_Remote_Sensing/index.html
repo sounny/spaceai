@@ -61,12 +61,10 @@
 
 <p>Furthermore, threats imposed on agricultural yield (productivity) due to weather extremes and unpredictability, as a result of climate change, makes achieving food security ever more difficult. Hence the region is in great need of adoption of proper mitigation and adaptation strategies.</p>
 
+<img src="./assets/VinayImage.png" alt="Vinay Image" style="max-width: 100%; height: auto; display: block; margin: 1.5rem auto;">
+
 <p>Mitigation: by accessing high resolution data on vegetation health, one can build early warning systems and provide intervention strategies.</p>
 <p>Adaptation: prepare for the unavoidable. Develop strategies in which will help to adapt to the new environment.</p>
-
-<p>Providing up-to-date valuable information on vegetation health would accelerate and help the development of mitigation and adaptation measures. Earth observation (EO) satellites could provide the relevant information needed. However, existing methods lack spatial and temporal precision.</p>
-
-<p>Interpreting the enormous amount of down-link data from the EO satellites quickly is key. That is where AI becomes crucial. If trained well, such technology can provide the local communities with valuable up-to-date information on vegetation health. Therefore, farmers could move away from always reacting to unpredictable vegetation health, and therefore crop yield, to preventive measures (precision agriculture).</p>
 
 <p style="color: white; font-size: 20px; font-weight: bold;">Our goal is to help these regions by analyzing free accessible satellite data with the help of AI. Currently, the European Copernicus program offers the highest resolution multispectral earth observation data via its Sentinel constellation. We aim to utilize Sentinel 2 in specific, coupled with free accessible data engines (Google Earth Engine) and AI. With this, our team would like to showcase that one can help local farmers in need, only by utilizing freely accessible data coming from European capabilities. It is crucial that the data is translated into valuable information to be able to develop preventive actions and countermeasures on time. If proven successful, the project could be scaled up to further regions in Africa and elsewhere around the world.</p>
 </div></div>
@@ -80,7 +78,7 @@
 
 
       <!-- Image Toggle Component -->
-      <div class="section-box" id="section-analysis"><h2>Bugarama Valley, Rwanda</h2>
+            <div class="section-box"><h2>Bugarama Valley, Rwanda</h2>
         <div class="section-body" style="text-align: center;">
           <img id="toggle-image" src="./assets/1_BugaramaValleyCVI.png" alt="Bugarama Valley CVI" style="max-width: 100%; height: auto; cursor: pointer; display: block; margin: 0 auto;">
           <p style="text-align: center; color: var(--muted); font-size: 14px; margin-top: 0.5rem;">
@@ -92,7 +90,7 @@
     
           </p>
       </div>
-      <div class="section-box" id="section-video"><h2>Seasonal Vegetation Health Analysis</h2>
+            <div class="section-box" id="section-analysis"><h2>Seasonal Vegetation Health Analysis</h2>
         <div class="section-body" style="display: block;">
           <div style="position: relative; width: 100%; margin-bottom: 1rem;">
             <video controls loop autoplay muted style="width: 100%; max-width: 100%; height: auto; display: block;">
@@ -109,7 +107,7 @@
       
       <div class="section-box" id="section-methodology"><h2>Methodology</h2><div class="section-body">Literature review was performed and Rwanda in Africa was selected as the region of interest. AI was incorporated for generating the main input dataset to give agricultural areas of interest in Rwanda. Simultaneously, rigorous cloud masking and atmospheric correction was also done to ensure data quality and reliability. Images from the Copernicus Sentinel-2 satellite were processed within the Google Earth Engine (GEE) to ensure scalability and efficient access to vast archives of Earth Observation data. Computation using the EVI formula and its visualization for Rwanda in Google Earth Engine was performed using Sentinel-2 data by selection of the correct spectral bands [B2 (Blue, 490 nm), B4 (Red, 665nm), B8 (NIR, 842 nm)]. Healthy vegetation had an EVI value closer to 1, while the stressed vegetation had EVI closer to 0. Using the EVI value obtained, an interactive web-app with a split-panel map was developed to represent vegetation health and classify it as 'healthy', 'moderate', 'stressed', and 'bare'. The analysis was made for a period covering 2020 to 2024 and seasonally over Q1 (Jan-Mar) till Q4 (Oct-Dec) aligning with Rwanda's bimodal agricultural calendar.<br><br><img src="./assets/AI Poster Methodology.png" alt="Methodology diagram" style="max-width: 100%; height: auto;"></div></div>
       
-      <div class="section-box" style="border: none; background: transparent;">
+      <div class="section-box" id="section-dashboard"><h2>Google Earth Engine EVI Dashboard</h2>
         <div class="section-body" style="text-align: center; display: block;">
           <video controls loop autoplay muted style="width: 100%; height: auto; display: block; margin: 0 auto 1rem auto;">
             <source src="./assets/Dashboard EVI.mp4" type="video/mp4">
@@ -220,6 +218,7 @@
     <a href="#section-background" class="nav-point" data-label="Background"></a>
     <a href="#section-methodology" class="nav-point" data-label="Methodology"></a>
     <a href="#section-analysis" class="nav-point" data-label="Analysis"></a>
+    <a href="#section-dashboard" class="nav-point" data-label="Dashboard"></a>
     <a href="#section-conclusion" class="nav-point" data-label="Conclusion"></a>
     <a href="#section-wayforward" class="nav-point" data-label="Way Forward"></a>
 
