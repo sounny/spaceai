@@ -1,0 +1,2512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI for Astrophysics & Planetary Science</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" integrity="sha384-sN/2sA2xmaDsnvReeN1bN3i23i4/13W2sCr23C_sHStE+ODlEtZ09s6oT3uGmShf" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" integrity="sha384-hIoebJnpMNGYbra82_i5kaL2L2Nswlcv2pG1zY/bMvL5/3f2rEWxCNbM4K2a2yN5" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/Gf1u3wI4klO4BSEeik+sKEoT6BavlaHBEUPoV+2e6Ci055l4" crossorigin="anonymous" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\(', right: '\\)', display: false}, {left: '\\[', right: '\\]', display: true}]});"></script>
+    <script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.181.0/examples/jsm/",
+    "three/": "https://aistudiocdn.com/three@^0.181.0/"
+  }
+}
+</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --isu-blue: rgb(0, 20, 84);
+            --glass-bg: rgba(10, 15, 30, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-primary: #f0f0f0;
+            --text-secondary: #d1d5db;
+            --accent-blue: #3b82f6;
+            --accent-green: #4dff91;
+            --accent-red: #ff4d4d;
+            --accent-purple: #a78bfa;
+            --accent-yellow: #ffe81f;
+            --panel-header-bg: rgba(59, 130, 246, 0.15);
+            --scroll-bg: #0a0a14;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', Calibri, Arial, sans-serif;
+            background-color: #000;
+            color: var(--text-primary);
+            margin: 0;
+            user-select: none;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        #three-canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        #page-content-wrapper {
+            position: relative;
+            z-index: 1;
+            /* CRITICAL: Creates scroll space to fade out the landing screen before content appears */
+            padding-top: 100vh;
+        }
+
+        .glass-panel {
+            background-color: rgba(10, 15, 30, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--accent-blue);
+            border-radius: 6px;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            position: relative;
+        }
+        
+        .glass-panel::before, .glass-panel::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--accent-blue);
+            border-style: solid;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .glass-panel.glass-panel-green::before,
+        .glass-panel.glass-panel-green::after {
+            border-color: var(--accent-green);
+        }
+
+        .glass-panel.glass-panel-green {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 15px rgba(77, 255, 145, 0.3);
+        }
+        
+        .glass-panel.glass-panel-red::before,
+        .glass-panel.glass-panel-red::after {
+            border-color: var(--accent-red);
+        }
+
+        .glass-panel.glass-panel-red {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.3);
+        }
+        
+        .glass-panel.glass-panel-purple::before,
+        .glass-panel.glass-panel-purple::after {
+            border-color: var(--accent-purple);
+        }
+
+        .glass-panel.glass-panel-purple {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 15px rgba(167, 139, 250, 0.3);
+        }
+
+        .glass-panel.glass-panel-yellow::before,
+        .glass-panel.glass-panel-yellow::after {
+            border-color: var(--accent-yellow);
+        }
+
+        .glass-panel.glass-panel-yellow {
+            border-color: var(--accent-yellow);
+            box-shadow: 0 0 15px rgba(255, 232, 31, 0.3);
+        }
+
+        .glass-panel::before {
+            top: -2px;
+            left: -2px;
+            border-width: 2px 0 0 2px;
+            border-top-left-radius: 6px;
+        }
+
+        .glass-panel::after {
+            bottom: -2px;
+            right: -2px;
+            border-width: 0 2px 2px 0;
+            border-bottom-right-radius: 6px;
+        }
+
+        .draggable-panel:hover::before, .draggable-panel:hover::after {
+            width: 25px;
+            height: 25px;
+            opacity: 1;
+        }
+
+        #landing-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* This is the key change */
+            align-items: center;
+            text-align: center;
+            color: white;
+            z-index: 15;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+            transition: opacity 0.5s ease-out;
+            padding: 2rem 1rem 0; /* Adjusted padding */
+        }
+        
+        #landing-top-content {
+            position: relative; /* For glow effect */
+        }
+
+        #landing-top-content::before {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            left: 50%;
+            top: 50%;
+            width: 70vw;
+            max-width: 700px;
+            height: 70vw;
+            max-height: 700px;
+            background-image: conic-gradient(
+                from 90deg at 50% 50%,
+                hsl(0, 100%, 50%), 
+                hsl(60, 100%, 50%), 
+                hsl(120, 100%, 50%), 
+                hsl(180, 100%, 50%), 
+                hsl(240, 100%, 50%), 
+                hsl(300, 100%, 50%), 
+                hsl(360, 100%, 50%)
+            );
+            border-radius: 50%;
+            filter: blur(160px);
+            opacity: 0.25;
+            animation: rotate 30s linear infinite;
+        }
+
+        #landing-top-content, #landing-bottom-content {
+            opacity: 0;
+            animation: fadeInSlideUp 2s 0.5s ease-out forwards;
+            width: 100%;
+        }
+
+        #landing-bottom-content {
+            animation-delay: 0.8s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @keyframes fadeInSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        #landing-screen h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1.5px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2), 0 0 40px rgba(255, 255, 255, 0.6), 0 0 80px rgba(255, 255, 255, 0.4);
+            line-height: 1.1;
+            color: white;
+        }
+
+        #landing-screen p {
+            font-size: clamp(0.9rem, 2.2vw, 1.15rem);
+            color: #e5e7eb;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+            max-width: 60ch;
+            margin: 0 auto;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        
+        .creators-list {
+            margin-bottom: 1rem; /* Changed from margin-top */
+            max-width: 90ch;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .creators-list p {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: rgba(209, 213, 219, 0.85);
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+        }
+        
+        .creator {
+            white-space: nowrap;
+        }
+
+        .creator-flag {
+            width: 1.4em;
+            height: 1em;
+            margin-right: 0.5em;
+            vertical-align: -0.1em;
+            border-radius: 2px;
+            display: inline-block;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            object-fit: cover;
+        }
+
+        .scroll-arrow {
+            /* position: absolute; removed */
+            /* bottom: 3rem; removed */
+            padding-bottom: 1.5rem; /* Added padding to create space from bottom */
+            animation: bounce 2s ease-in-out infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .scroll-prompt {
+            font-weight: 700;
+            color: var(--text-primary);
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        header, #kepler-story-section, footer, .panel-tab {
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+
+        header.visible, #kepler-story-section.visible, footer.visible, .panel-tab.visible {
+            opacity: 1;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            height: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            left: 50%;
+            top: 50%;
+            width: 150vw;
+            height: 250px;
+            background-image: conic-gradient(
+                from 90deg at 50% 50%,
+                hsl(0, 100%, 50%), 
+                hsl(60, 100%, 50%), 
+                hsl(120, 100%, 50%), 
+                hsl(180, 100%, 50%), 
+                hsl(240, 100%, 50%), 
+                hsl(300, 100%, 50%), 
+                hsl(360, 100%, 50%)
+            );
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: rotate 40s linear infinite;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-icon {
+            color: var(--accent-blue);
+            filter: drop-shadow(0 0 5px var(--accent-blue));
+            opacity: 0.8;
+            flex-shrink: 0;
+        }
+
+        header h1 {
+            transition: opacity 0.3s ease-out;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(120deg, #a2c6ff 0%, var(--text-primary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-fill-color: transparent;
+        }
+
+        header h1.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        #site-logo {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 25;
+            transition: transform 0.3s ease;
+        }
+        #site-logo img {
+            height: 50px;
+            width: auto;
+        }
+        #site-logo:hover, #site-logo:focus-visible {
+            transform: scale(1.1);
+        }
+
+        #interactive-viewport {
+            height: 100vh;
+            position: relative;
+        }
+
+        #kepler-story-section {
+            position: relative;
+            height: 320vh; /* MODIFIED: Reduced height to remove TESS gap */
+            z-index: 5;
+        }
+        
+        #jwst-story-section {
+            position: relative;
+            height: 350vh;
+            z-index: 6;
+        }
+
+        .sticky-wrapper {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 50vh;
+            transform: translateY(-50%);
+            width: 100%;
+            display: grid;
+            grid-template-areas: "panel-area";
+            justify-items: flex-start;
+            align-items: center;
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        .sticky-wrapper.align-right {
+            justify-items: flex-end;
+            z-index: 7;
+        }
+        
+        /* --- MODIFIED INFO PANEL STYLES --- */
+        #kepler-info-panel, #transit-info-panel, #jwst-intro-panel, #spectroscopy-info-panel {
+            grid-area: panel-area;
+            width: 400px;
+            max-width: 90vw;
+            padding: 1.5rem;
+            opacity: 0;
+            pointer-events: auto;
+            margin: 0 2rem;
+        }
+        
+        #jwst-intro-panel {
+            margin-right: 12vw;
+        }
+        
+        #transit-info-panel, #spectroscopy-info-panel {
+            width: 600px;
+            max-width: 95vw;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh; /* Retain max-height for interactive panels */
+        }
+
+        #transit-controls-container, #atmosphere-controls-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-top: 1.5rem;
+            padding-right: 1rem;
+        }
+        
+        #atmosphere-controls-container {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        /* --- NEW SPECTROSCOPY PANEL LAYOUT --- */
+        #spectroscopy-info-panel {
+            width: 900px; /* Wider frame */
+            max-width: 95vw;
+            flex-direction: column; /* Change to column for new layout */
+            padding: 0; /* Remove padding from main panel to give it to children */
+        }
+
+        .spectroscopy-controls {
+            flex: 0 0 280px; /* Fixed width for controls column */
+            padding: 1.5rem;
+            overflow-y: auto;
+            border-right: 1px solid var(--glass-border);
+            background-color: rgba(0,0,0,0.1);
+        }
+        
+        .spectroscopy-controls h4 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .spectroscopy-main-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0; /* Fix flexbox overflow issues */
+        }
+
+        .spectroscopy-controls::-webkit-scrollbar {
+            width: 8px;
+        }
+        .spectroscopy-controls::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        .spectroscopy-controls::-webkit-scrollbar-thumb {
+            background-color: var(--accent-green);
+            border-radius: 4px;
+        }
+
+        .spectroscopy-vertical-layout {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+        .spectroscopy-header-content {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .spectroscopy-header-content h3 {
+            font-size: 1.7rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            color: var(--accent-green);
+            text-shadow: 0 0 10px rgba(77, 255, 145, 0.5);
+        }
+        .spectroscopy-header-content p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+        }
+        .spectroscopy-interactive-area {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+            min-height: 0; /* Fix flexbox overflow */
+        }
+        /* --- END SPECTROSCOPY PANEL LAYOUT --- */
+
+        .mystic-text {
+            position: fixed;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            max-width: 800px;
+            text-align: center;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 12px rgba(59, 130, 246, 0.8), 0 0 24px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
+            z-index: 10;
+        }
+
+        .transition-text {
+            position: fixed;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            max-width: 800px;
+            text-align: center;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 12px rgba(77, 255, 145, 0.8), 0 0 24px rgba(77, 255, 145, 0.6), 0 0 40px rgba(77, 255, 145, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
+            z-index: 10;
+        }
+
+        #candidate-text-top {
+            top: 30%; 
+        }
+
+        #candidate-text-bottom {
+            top: 70%;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 400;
+            color: var(--text-secondary);
+            text-shadow: 0 0 10px rgba(77, 255, 145, 0.5);
+        }
+
+        #kepler-info-panel h3, #transit-info-panel h3, #jwst-intro-panel h3 {
+            font-size: 1.7rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            color: var(--accent-blue);
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        
+        #jwst-intro-panel h3 {
+            color: var(--accent-green);
+            text-shadow: 0 0 10px rgba(77, 255, 145, 0.5);
+        }
+
+        #kepler-info-panel p, #transit-info-panel p, #jwst-intro-panel p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+
+        .panel-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            object-position: center;
+            margin-top: 1.5rem;
+            border-radius: 6px;
+        }
+        
+        .panel-content {
+            padding: 1rem;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+        .control-group label {
+            display: flex;
+            /* justify-content: space-between; */
+            align-items: center;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+        .control-group label span {
+             margin-left: auto;
+             font-weight: 400;
+             color: var(--text-primary);
+        }
+        .control-group input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            border: 1px solid var(--glass-border);
+            outline: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .control-group input[type="range"]:hover {
+             background: rgba(0,0,0,0.5);
+        }
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+        }
+        .control-group.green input[type="range"]::-webkit-slider-thumb {
+             background: var(--accent-green);
+             box-shadow: 0 0 8px rgba(77, 255, 145, 0.7);
+        }
+        .control-group.yellow input[type="range"]::-webkit-slider-thumb {
+             background: var(--accent-yellow);
+             border-color: #333;
+             box-shadow: 0 0 8px rgba(255, 232, 31, 0.7);
+        }
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+        }
+        .control-group.green input[type="range"]::-moz-range-thumb {
+             background: var(--accent-green);
+             box-shadow: 0 0 8px rgba(77, 255, 145, 0.7);
+        }
+        .control-group.yellow input[type="range"]::-moz-range-thumb {
+             background: var(--accent-yellow);
+             border-color: #333;
+             box-shadow: 0 0 8px rgba(255, 232, 31, 0.7);
+        }
+        
+        .gas-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+        }
+        .gas-selection label {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid var(--glass-border);
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+        }
+        .gas-selection label:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .gas-selection input[type="checkbox"] {
+            margin-right: 0.5rem;
+            accent-color: var(--accent-green);
+            width: 16px;
+            height: 16px;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.5rem;
+            background-color: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .control-group select option {
+            background-color: #0a0a14;
+        }
+        
+        .config-section {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .config-section h3 {
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--accent-blue);
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--glass-border);
+            font-weight: 900;
+        }
+        
+        .config-section.green h3 { color: var(--accent-green); }
+        .config-section.yellow h3 { color: var(--accent-yellow); }
+
+        .chart-container {
+             background-color: rgba(0, 0, 0, 0.2);
+             padding: 1rem;
+             border-radius: 0.5rem;
+             border: 1px solid var(--glass-border);
+        }
+        
+        .preset-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
+        .preset-buttons.planets { grid-template-columns: repeat(4, 1fr); }
+        .preset-buttons button { padding: 0.5rem; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: var(--text-primary); cursor: pointer; border-radius: 4px; font-size: 0.8rem; transition: all 0.2s; }
+        .preset-buttons button:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
+        .preset-buttons button.active {
+            background-color: var(--accent-blue);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+            border-color: var(--accent-blue);
+            color: white;
+            font-weight: 700;
+        }
+        .preset-buttons button.active.green {
+            background-color: var(--accent-green);
+            box-shadow: 0 0 8px rgba(77, 255, 145, 0.7);
+            border-color: var(--accent-green);
+            color: #0a0a14;
+        }
+        .preset-buttons button.active.yellow {
+            background-color: var(--accent-yellow);
+            box-shadow: 0 0 8px rgba(255, 232, 31, 0.7);
+            border-color: var(--accent-yellow);
+            color: #0a0a14;
+        }
+
+        .hab-meter-container {
+            margin-top: 1.5rem;
+        }
+        .hab-meter-bar {
+            height: 20px;
+            width: 100%;
+            border-radius: 10px;
+            background: linear-gradient(to right, #6bffff, #4dff91, #ffd166, #ff6b6b);
+            border: 1px solid var(--glass-border);
+            position: relative;
+        }
+        .hab-zone-overlay {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background-color: rgba(77, 255, 145, 0.35);
+            border-left: 1px solid rgba(255, 255, 255, 0.7);
+            border-right: 1px solid rgba(255, 255, 255, 0.7);
+            box-sizing: border-box;
+            transition: all 0.3s ease-out;
+        }
+        .hab-meter-indicator {
+            position: absolute;
+            top: -10px;
+            width: 4px;
+            height: 40px;
+            background-color: white;
+            border-radius: 2px;
+            transform: translateX(-50%);
+            transition: left 0.3s ease-out;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        }
+        .hab-meter-indicator::before {
+            content: '▼';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 1.2rem;
+        }
+        .hab-meter-zones {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.1rem;
+            color: var(--text-secondary);
+        }
+        
+        .planet-data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .data-item {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+        }
+        .data-item-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 400;
+        }
+        .data-item-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .temp-bar-container {
+            position: relative;
+            width: 100%;
+            height: 8px;
+            margin-top: 0.5rem;
+            border-radius: 4px;
+            background: linear-gradient(to right, #6bffff, #4dff91, #ffd166, #ff6b6b);
+            border: 1px solid var(--glass-border);
+        }
+        .temp-bar-indicator {
+            position: absolute;
+            top: -4px;
+            width: 2px;
+            height: 16px;
+            background-color: white;
+            border-radius: 1px;
+            transform: translateX(-50%);
+            transition: left 0.3s ease-out;
+            box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+        }
+        .temp-bar-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .explanation-box {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .explanation-box strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+        
+        #objectives-section, #methods-section, #results-section, #conclusions-section, #references-section, #extra-resources-section {
+            position: relative;
+            z-index: 10;
+            padding: 5rem 2rem;
+            opacity: 0; /* Controlled by JS */
+        }
+        #objectives-section {
+             background: radial-gradient(ellipse at 50% 0%, rgba(100, 10, 10, 0.15) 0%, rgba(0,0,0,0) 60%);
+        }
+        #methods-section {
+             background: radial-gradient(ellipse at 50% 0%, rgba(10, 10, 100, 0.15) 0%, rgba(0,0,0,0) 60%);
+             padding-top: 2rem;
+        }
+        #results-section {
+             background: radial-gradient(ellipse at 50% 0%, rgba(150, 130, 20, 0.15) 0%, rgba(0,0,0,0) 60%);
+             padding-top: 2rem;
+             max-width: 1600px;
+             margin: 0 auto;
+        }
+        #conclusions-section, #references-section, #extra-resources-section {
+             background: radial-gradient(ellipse at 50% 0%, rgba(150, 150, 150, 0.1) 0%, rgba(0,0,0,0) 60%);
+             padding-top: 2rem;
+             max-width: 1200px;
+             margin: 0 auto;
+        }
+
+        #objectives-section h2, #methods-section h2, #results-section h2, #conclusions-section h2, #references-section h2, #extra-resources-section h2 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        #objectives-section h2 { 
+            color: var(--accent-red); 
+            text-shadow: 0 0 15px rgba(255, 77, 77, 0.7);
+        }
+        #methods-section h2 { 
+            color: var(--accent-purple); 
+            text-shadow: 0 0 15px rgba(167, 139, 250, 0.7);
+        }
+        #results-section h2 { 
+            color: var(--accent-yellow); 
+            text-shadow: 0 0 15px rgba(255, 232, 31, 0.7);
+        }
+        #conclusions-section h2, #references-section h2, #extra-resources-section h2 { 
+            color: #f0f0f0; 
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        .objectives-container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch; /* To make boxes same height */
+            gap: 2rem;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .objective-box {
+            flex: 1 1 450px; /* Grow, shrink, base width */
+            text-align: center;
+            padding: 2rem;
+        }
+        .objective-box h3 {
+            font-size: 1.8rem;
+            color: var(--accent-red);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        .objective-box p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        
+        .methods-question {
+            font-size: 1.5rem;
+            color: var(--accent-purple);
+            font-weight: 500;
+            margin-bottom: 3rem;
+            text-shadow: 0 0 10px rgba(167, 139, 250, 0.4);
+            text-align: center;
+        }
+        .methods-diagram-container {
+            max-width: 1200px; /* MODIFIED: Made wider */
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .methods-flow {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .methods-column {
+            flex: 1;
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        #methods-section.start-animation .methods-column {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #methods-section.start-animation .methods-column:nth-child(3) {
+            transition-delay: 0.4s;
+        }
+        .flow-step {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid transparent;
+            border-top: 3px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center content */
+            justify-content: center; /* Vertically center content */
+            cursor: pointer;
+        }
+        .flow-step:hover, .flow-step:focus-visible {
+            transform: translateY(-5px);
+            outline: none;
+        }
+        .kepler-pipeline .flow-step {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .kepler-pipeline .flow-step:hover, .kepler-pipeline .flow-step:focus-visible {
+            border-color: rgba(59, 130, 246, 0.6);
+            border-top-color: rgba(59, 130, 246, 0.8);
+        }
+        .jwst-pipeline .flow-step {
+            background: rgba(77, 255, 145, 0.1);
+            border-color: rgba(77, 255, 145, 0.3);
+        }
+        .jwst-pipeline .flow-step:hover, .jwst-pipeline .flow-step:focus-visible {
+            border-color: rgba(77, 255, 145, 0.6);
+            border-top-color: rgba(77, 255, 145, 0.8);
+        }
+        .flow-step h3 {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-weight: 900;
+        }
+        .flow-step p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        @keyframes bounce-vertical {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .flow-arrow-vertical {
+            font-size: 2rem;
+            color: var(--accent-purple);
+            opacity: 0.6;
+            animation: bounce-vertical 2.5s ease-in-out infinite;
+        }
+        .flow-connector {
+            flex: 0.5;
+            min-width: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s 0.2s ease-out, transform 0.6s 0.2s ease-out;
+        }
+        #methods-section.start-animation .flow-connector {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .flow-connector p {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            background: var(--glass-bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(167, 139, 250, 0.3);
+        }
+        .flow-connector-line {
+            width: 100%;
+            height: 4px;
+            background:
+                repeating-linear-gradient(
+                90deg,
+                var(--accent-purple),
+                var(--accent-purple) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            background-size: 200%;
+            animation: marching-ants 4s linear infinite;
+        }
+        @keyframes marching-ants {
+            from { background-position: 200% 0; }
+            to { background-position: 0% 0; }
+        }
+        
+        @keyframes scan-line {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .cnn-step::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                rgba(167, 139, 250, 0.3) 49%,
+                rgba(255, 255, 255, 0.5) 50%,
+                rgba(167, 139, 250, 0.3) 51%,
+                transparent 100%
+            );
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        #methods-section.start-animation .cnn-step::after {
+             opacity: 0.4;
+             animation: scan-line 3.5s 0.5s ease-in-out infinite;
+        }
+        
+        .info-badge {
+            margin-top: 1rem;
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid;
+            background-color: rgba(0,0,0,0.3);
+            line-height: 1.4;
+        }
+        .blue-badge {
+            color: var(--accent-blue);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+        }
+        .green-badge {
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 8px rgba(77, 255, 145, 0.4);
+        }
+        .purple-badge {
+            color: var(--accent-purple);
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 8px rgba(167, 139, 250, 0.4);
+        }
+        .yellow-badge {
+            color: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+            box-shadow: 0 0 8px rgba(255, 232, 31, 0.4);
+        }
+
+        /* --- NEW STYLES FOR RESULTS AND CONCLUSIONS --- */
+        .collapsible-container details {
+            background: rgba(41, 38, 5, 0.2);
+            border-left: 4px solid var(--accent-yellow);
+            margin-bottom: 1.5rem;
+            border-radius: 0 4px 4px 0;
+        }
+        .collapsible-container details summary {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            outline: none;
+            list-style-type: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        .collapsible-container details summary::-webkit-details-marker { display: none; }
+        .collapsible-container details summary::after {
+            content: '+';
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--accent-yellow);
+            transition: transform 0.3s ease;
+        }
+        .collapsible-container details[open] summary::after { transform: rotate(45deg); }
+        .collapsible-container details summary:hover { background: rgba(41, 38, 5, 0.4); }
+        .collapsible-container details summary h3, .collapsible-container details summary h4 {
+            font-size: 1.3rem;
+            color: var(--accent-yellow);
+            margin: 0;
+        }
+        .collapsible-content {
+            padding: 0 1.5rem 1.5rem;
+            border-top: 1px solid rgba(255, 232, 31, 0.2);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+        .collapsible-content p, .collapsible-content ul, .collapsible-content .formula-container {
+            margin-bottom: 1rem;
+        }
+        .collapsible-content strong { color: var(--text-primary); }
+        .collapsible-content ul { padding-left: 1.5rem; }
+        .collapsible-content li { margin-bottom: 0.5rem; }
+
+        .pipeline-controls {
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: center;
+        }
+        .pipeline-controls .control-group { margin-bottom: 0; flex: 1; min-width: 200px; }
+        .pipeline-controls .control-group label {
+            justify-content: flex-start; /* Align items to the start */
+            align-items: center;
+        }
+        .pipeline-controls label { font-size: 1rem; }
+        .pipeline-controls input[type="number"] {
+            width: 80px;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            margin-left: 1rem;
+        }
+        #offline-banner {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 0.8rem;
+            background: rgba(255, 77, 77, 0.2);
+            color: var(--accent-red);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            border: 1px solid var(--accent-red);
+        }
+
+        .pipeline-status-bar {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .status-item { text-align: center; color: var(--text-secondary); flex: 1; }
+        .status-item .count { font-size: 2rem; font-weight: 900; color: var(--text-primary); }
+        .status-item .label { font-size: 0.9rem; }
+        .status-item.active .count, .status-item.active .label {
+            color: var(--accent-yellow);
+            text-shadow: 0 0 10px var(--accent-yellow);
+        }
+
+        .pipeline-main-layout { display: grid; grid-template-columns: 1fr 450px; gap: 2rem; }
+        @media (max-width: 1200px) { .pipeline-main-layout { grid-template-columns: 1fr; } }
+        
+        .table-tabs { display: flex; border-bottom: 1px solid var(--glass-border); }
+        .table-tab { padding: 0.75rem 1.5rem; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; }
+        .table-tab:hover { color: var(--text-primary); }
+        .table-tab.active {
+            color: var(--accent-yellow);
+            border-bottom: 2px solid var(--accent-yellow);
+            font-weight: 700;
+        }
+        #data-table-search {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        #data-table-container { max-height: 500px; overflow-y: auto; border: 1px solid var(--glass-border); }
+        #data-table { width: 100%; border-collapse: collapse; }
+        #data-table th, #data-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
+        #data-table th { position: sticky; top: 0; background: rgba(41, 38, 5, 0.8); backdrop-filter: blur(5px); cursor: pointer; }
+        #data-table th.sortable::after { content: ' ↕'; opacity: 0.5; }
+        #data-table th.sorted-asc::after { content: ' ↑'; opacity: 1; }
+        #data-table th.sorted-desc::after { content: ' ↓'; opacity: 1; }
+        #data-table tbody tr { cursor: pointer; transition: background-color 0.2s; }
+        #data-table tbody tr:hover, #data-table tbody tr.selected { background-color: rgba(255, 232, 31, 0.2); }
+        #data-table-status { padding: 1rem; text-align: center; color: var(--text-secondary); }
+
+        #pipeline-details-drawer {
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            padding: 1.5rem;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #pipeline-details-drawer.active { opacity: 1; }
+        .drawer-content { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 768px) { .drawer-content { grid-template-columns: 1fr; } }
+        .drawer-placeholder { color: var(--text-secondary); text-align: center; padding: 4rem 0; }
+        .drawer-content .collapsible-container { width: 100%; }
+        .drawer-content .collapsible-container details { background: rgba(255,255,255,0.05); margin-bottom: 1rem; }
+        .drawer-content .collapsible-container details summary { padding: 0.75rem 1rem; }
+        .drawer-content .collapsible-container details summary h4 { font-size: 1.1rem; }
+        .drawer-content .collapsible-content { padding: 0 1rem 1rem; font-size: 0.9rem; }
+        .drawer-column { display: flex; flex-direction: column; gap: 1rem; }
+
+        .styled-formula { font-family: 'Times New Roman', serif; font-size: 1.1rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px; text-align: center; }
+        .styled-formula .italic { font-style: italic; }
+        .styled-formula .sub { font-size: 0.8em; vertical-align: sub; }
+        .styled-formula .sup { font-size: 0.8em; vertical-align: super; }
+        .formula-fallback { font-family: monospace; font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; }
+
+        .output-box {
+            background: rgba(0,0,0,0.4); padding: 1rem; border-radius: 4px;
+            text-align: center; margin-top: 1.5rem;
+        }
+        .output-box .label { font-size: 0.9rem; text-transform: uppercase; color: var(--text-secondary); }
+        .output-box .value { font-size: 2.5rem; font-weight: 700; color: var(--accent-yellow); }
+        .output-box .sub-value { font-size: 1rem; color: var(--text-primary); }
+        #esi-threshold-indicator { font-size: 1rem; font-weight: 700; margin-top: 0.5rem; transition: color 0.3s; }
+
+        .interpretability-bar { height: 10px; background: var(--accent-yellow); margin-top: 4px; border-radius: 5px; transition: width 0.5s ease-out; }
+        
+        #results-discussion {
+            margin-top: 3rem;
+            padding: 2rem;
+        }
+        #results-discussion h3 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin: 0 0 1.5rem 0;
+            color: var(--accent-yellow);
+        }
+        #results-discussion p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        #results-discussion strong {
+            color: var(--text-primary);
+        }
+        #results-discussion ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        #results-discussion li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        #results-discussion li::before {
+            content: '›';
+            position: absolute;
+            left: 0;
+            color: var(--accent-yellow);
+            font-weight: 900;
+        }
+
+        #conclusions-section .collapsible-container details {
+            background: rgba(255, 255, 255, 0.05);
+            border-left-color: #f0f0f0;
+        }
+        #conclusions-section .collapsible-container summary { font-weight: 700; }
+        #conclusions-section .collapsible-container summary h4 { color: #f0f0f0; font-size: 1.1rem; }
+        #conclusions-section .collapsible-container summary::after { color: #f0f0f0; }
+        #conclusions-section .collapsible-container details[open] summary { border-bottom: 1px solid rgba(255,255,255,0.2); }
+        #conclusions-section .collapsible-content { border-top: none; }
+        #conclusions-section .collapsible-content ul li::before { content: '✓'; color: var(--accent-green); margin-right: 0.5rem; }
+        #conclusions-section .collapsible-content ul { list-style-type: none; padding-left: 0; }
+        
+        .limitations-container {
+            margin-top: 3rem;
+            padding: 1.5rem 2rem;
+        }
+        .limitations-container h3 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin: 0 0 1.5rem 0;
+            color: var(--accent-yellow);
+        }
+        .limitations-list {
+            list-style-type: none;
+            padding: 0;
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        .limitations-list li {
+            padding-left: 2rem;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .limitations-list li::before {
+            content: '⚠️';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 1.1rem;
+        }
+        .limitations-list li strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .references-list {
+            list-style-type: decimal;
+            padding-left: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+        .references-list li {
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+        }
+        .references-list li::marker {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .abstract-container {
+            max-width: 900px;
+            margin: 3rem auto 0;
+            padding: 2.5rem;
+        }
+        .abstract-container h3 {
+            font-size: 1.8rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+        .abstract-container p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1.2rem;
+        }
+
+        /* --- END NEW STYLES --- */
+
+        footer {
+            position: relative;
+            z-index: 20;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0.5rem;
+            min-height: 60px;
+            background-color: rgba(10, 10, 20, 0.8);
+        }
+        
+        footer button {
+            background-color: white;
+            color: var(--isu-blue);
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-right: 1rem;
+            font-family: 'Inter', sans-serif;
+        }
+        footer button:hover, footer button:focus-visible { background-color: #e5e7eb; }
+
+        #sidebar {
+            position: fixed;
+            top: 50%;
+            left: 1.5rem;
+            transform: translateY(-50%);
+            z-index: 50;
+        }
+        #sidebar ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        #sidebar li a {
+            display: block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        #sidebar li a:hover, #sidebar li a:focus-visible {
+            background-color: rgba(255, 255, 255, 0.7);
+            transform: scale(1.3);
+        }
+        #sidebar li a.active {
+            background-color: white;
+            transform: scale(1.6);
+            box-shadow: 0 0 10px white;
+        }
+        #sidebar li a::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 200%;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--glass-bg);
+            color: var(--text-primary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            font-size: 0.9rem;
+            border: 1px solid var(--glass-border);
+        }
+        #sidebar li a:hover::after, #sidebar li a:focus-visible::after {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        #sidebar-link-intro.active { background-color: var(--accent-yellow); box-shadow: 0 0 10px var(--accent-yellow); }
+        #sidebar-link-kepler.active { background-color: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
+        #sidebar-link-jwst.active { background-color: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+        #sidebar-link-objectives.active { background-color: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); }
+        #sidebar-link-methods.active { background-color: var(--accent-purple); box-shadow: 0 0 10px var(--accent-purple); }
+        #sidebar-link-results.active { background-color: var(--accent-yellow); box-shadow: 0 0 10px var(--accent-yellow); }
+        #sidebar-link-conclusions.active, #sidebar-link-references.active, #sidebar-link-extra-resources.active { background-color: #f0f0f0; box-shadow: 0 0 10px #f0f0f0; }
+
+        /* --- Modal Styles --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            width: 90vw;
+            max-width: 650px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(167, 139, 250, 0.3);
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--accent-purple);
+        }
+        #spectroscopy-info-modal .modal-header h3 {
+            color: var(--accent-green);
+        }
+        #spectroscopy-info-modal .modal-header {
+             border-bottom-color: rgba(77, 255, 145, 0.3);
+        }
+        #spectroscopy-info-modal .modal-body h4 {
+            color: var(--accent-green);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 2.5rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+        .modal-body h4 {
+            color: var(--accent-purple);
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .modal-body p strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+        .modal-body code {
+            background-color: rgba(0,0,0,0.3);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* --- Fullscreen Button --- */
+        #fullscreen-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        #fullscreen-prompt {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: var(--glass-bg);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            animation: pulse-glow 3s infinite ease-in-out;
+            transition: opacity 0.4s ease-out;
+        }
+        
+        #fullscreen-prompt.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+                transform: scale(1.02);
+            }
+        }
+
+        #fullscreen-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s, transform 0.2s;
+            backdrop-filter: blur(5px);
+        }
+        #fullscreen-btn:hover, #fullscreen-btn:focus-visible {
+            background-color: rgba(59, 130, 246, 0.3);
+            transform: scale(1.1);
+            outline: none;
+        }
+        #fullscreen-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* --- Info Button & Modal --- */
+        .info-button {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            font-weight: 700;
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 0;
+            vertical-align: middle; /* Align with text */
+            transition: all 0.2s ease;
+        }
+        .info-button:hover, .info-button:focus-visible {
+            background: rgba(255, 232, 31, 0.3);
+            border-color: var(--accent-yellow);
+            transform: scale(1.1);
+            outline: none;
+        }
+        
+        .gas-info-button {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            padding: 0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .gas-info-button:hover, .gas-info-button:focus-visible {
+            transform: scale(1.2);
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+            outline: none;
+        }
+
+        #spec-info-button.info-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 10;
+            margin: 0;
+            width: 24px;
+            height: 24px;
+            font-size: 1rem;
+        }
+        #spec-info-button.info-button:hover, #spec-info-button.info-button:focus-visible {
+            background: rgba(77, 255, 145, 0.3);
+            border-color: var(--accent-green);
+        }
+
+
+        #info-modal .modal-header {
+            border-bottom-color: rgba(255, 232, 31, 0.3);
+        }
+        #info-modal .modal-header h3 {
+            color: var(--accent-yellow);
+        }
+        .modal-formula-container {
+            background-color: rgba(0,0,0,0.3);
+            padding: 1.5rem 1rem;
+            border-radius: 6px;
+            margin: 1.5rem 0;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+        }
+        #info-modal .modal-body ul {
+            list-style-position: inside;
+            padding-left: 0.5rem;
+        }
+        .katex-display {
+            margin: 0.5em 0;
+        }
+        
+        /* PHI Meter */
+        .phi-meter-container {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        .phi-meter-container h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .phi-meter-display {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .phi-meter-bar-wrapper {
+            flex-grow: 1;
+            position: relative;
+            height: 12px;
+        }
+        .phi-meter-bar {
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(to right, var(--accent-red), var(--accent-yellow) 50%, var(--accent-green));
+            border: 1px solid var(--glass-border);
+        }
+        .phi-meter-indicator {
+            position: absolute;
+            top: -6px; /* center on bar */
+            left: 0%; /* updated by JS */
+            width: 4px;
+            height: 24px;
+            background-color: white;
+            border-radius: 2px;
+            transform: translateX(-50%);
+            transition: left 0.3s ease-out;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        }
+        .phi-value-display {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: color 0.3s ease-out;
+        }
+        .phi-disclaimer {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.75rem;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+    </style>
+<style>
+/* --- FLAWLESS STAR WARS CRAWL --- */
+:root{
+  --sw-yellow:#ffe81f;
+  --sw-font:"Franklin Gothic Medium","Arial Narrow",Arial,Helvetica,sans-serif;
+  --sw-shadow: 0 0 8px rgba(255,232,31,.7), 0 0 20px rgba(255,232,31,.5);
+}
+
+#sw-crawl{ 
+  position: relative; 
+  height: 700vh;
+  background: rgba(0, 0, 0, 0.4); 
+  z-index: 10;
+} 
+#sw-crawl .sw-crawl__viewport{
+  position: sticky; 
+  top: 0; 
+  height: 100vh; 
+  overflow: hidden;
+  perspective: 400px; 
+  perspective-origin: 50% 50%;
+}
+
+#sw-crawl .sw-crawl__stage{
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: min(2000px, 98vw); 
+  margin: auto;
+  transform-origin: 50% 100%;
+  transform: rotateX(30deg) translateY(calc(110vh + var(--sw-progress,0) * -840vh));
+}
+
+#sw-crawl .sw-crawl__text{
+  color: var(--sw-yellow);
+  font-family: var(--sw-font);
+  font-weight: 700;
+  text-shadow: var(--sw-shadow);
+  text-align: center;
+  letter-spacing: .02em;
+  line-height: 1.5;
+  margin: 0 auto;
+}
+#sw-crawl .sw-crawl__text p{
+  margin: 0 0 5rem 0;
+  font-size: clamp(40px, 8vw, 110px); 
+}
+
+.sw-crawl__buttons-container {
+    position: absolute;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    gap: 1rem;
+}
+
+.sw-crawl__skip {
+    padding: 0.8rem 1.5rem;
+    border: 1px solid rgba(255, 232, 31, 0.6);
+    background: rgba(10, 10, 20, 0.5);
+    backdrop-filter: blur(5px);
+    color: var(--sw-yellow);
+    font-family: var(--sw-font);
+    font-weight: 700;
+    text-shadow: var(--sw-shadow);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.sw-crawl__skip:hover, .sw-crawl__skip:focus-visible {
+    background: rgba(30, 30, 50, 0.7);
+    border-color: var(--sw-yellow);
+    transform: scale(1.05);
+    outline: none;
+}
+
+
+/* Accessibility helpers */
+.visually-hidden{
+  position:absolute!important; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 1px 1px); white-space:nowrap; border:0;
+}
+
+@media (prefers-reduced-motion: reduce){
+  #sw-crawl{ height:auto; background: transparent; }
+  #sw-crawl .sw-crawl__viewport{ position: relative; perspective: none; }
+  #sw-crawl .sw-crawl__stage{ transform: none; margin: 6rem auto; }
+}
+
+@media print{
+  #sw-crawl .sw-crawl__viewport{ perspective: none; }
+  #sw-crawl .sw-crawl__stage{ transform: none !important; }
+  .sw-crawl__skip { display: none; }
+}
+</style>
+<style>
+/* --- Responsive Design --- */
+
+/* Laptops & Large Tablets */
+@media (max-width: 1200px) {
+    #jwst-intro-panel {
+        margin-right: 2rem;
+    }
+}
+
+/* Landscape Tablets & Smaller Laptops */
+@media (max-width: 1024px) {
+    #kepler-info-panel, #transit-info-panel, #jwst-intro-panel {
+        width: 360px;
+    }
+    #spectroscopy-info-panel {
+        width: 800px;
+        max-width: 90vw;
+    }
+}
+
+/* Portrait Tablets */
+@media (max-width: 820px) {
+    .sticky-wrapper, .sticky-wrapper.align-right {
+        justify-items: center;
+    }
+
+    #kepler-info-panel, #transit-info-panel, #jwst-intro-panel, #spectroscopy-info-panel {
+        width: 90vw;
+        max-width: 550px;
+        margin: 0;
+    }
+    
+    #jwst-intro-panel {
+        margin-right: 0;
+    }
+
+    .spectroscopy-interactive-area {
+        flex-direction: column;
+    }
+    .spectroscopy-controls {
+        flex: 0 0 auto;
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+        max-height: 40vh;
+    }
+    
+    .methods-flow {
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+    .methods-column {
+        width: 100%;
+        max-width: 500px;
+    }
+    .flow-connector {
+        display: none;
+    }
+    
+    #sidebar {
+        top: auto;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        padding: 0 1rem;
+    }
+    #sidebar ul {
+        flex-direction: row;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+    #sidebar li a::after {
+        left: 50%;
+        top: -150%;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Mobile Phones */
+@media (max-width: 600px) {
+    #sidebar {
+        display: none;
+    }
+    
+    body {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    #landing-screen h1 {
+        font-size: clamp(1.8rem, 8vw, 2.5rem);
+    }
+    #landing-screen p {
+        font-size: clamp(0.9rem, 4vw, 1rem);
+    }
+    
+    header h1 {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+    .header-content {
+        justify-content: center;
+    }
+    
+    #objectives-section, #methods-section, #results-section, #conclusions-section, #references-section, #extra-resources-section {
+        padding: 4rem 1rem;
+    }
+    #objectives-section h2, #methods-section h2, #results-section h2, #conclusions-section h2, #references-section h2, #extra-resources-section h2 {
+        font-size: clamp(2rem, 10vw, 2.8rem);
+        margin-bottom: 2rem;
+    }
+
+    .objectives-container {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .objective-box {
+        flex-basis: auto;
+        padding: 1.5rem;
+    }
+    
+    #sw-crawl .sw-crawl__text p {
+        font-size: clamp(28px, 6vw, 40px);
+    }
+    .sw-crawl__buttons-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .sw-crawl__skip {
+        width: 180px;
+        text-align: center;
+    }
+
+    #data-table-container {
+        overflow-x: auto;
+    }
+    #data-table {
+        min-width: 650px;
+    }
+    
+    #pipeline-controls {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    #pipeline-controls .control-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .pipeline-status-bar {
+        flex-wrap: wrap;
+        gap: 1rem 0;
+        padding: 0 1rem;
+    }
+    .status-item {
+        flex-basis: 50%;
+    }
+    
+    .abstract-container {
+        padding: 1.5rem;
+    }
+    
+    .modal-content {
+        width: 95vw;
+        max-height: 90vh;
+    }
+
+    #fullscreen-container {
+        bottom: 1rem;
+        right: 1rem;
+    }
+    #fullscreen-prompt {
+        display: none;
+    }
+}
+</style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="three-canvas-container" class="no-print"></div>
+
+    <nav id="sidebar" class="no-print" aria-label="Poster Sections">
+        <ul>
+            <li><a id="sidebar-link-intro" href="#sw-crawl" data-tooltip="Introduction" aria-label="Go to Introduction section"></a></li>
+            <li><a id="sidebar-link-kepler" href="#kepler-story-section" data-tooltip="Kepler Mission" aria-label="Go to Kepler Mission section"></a></li>
+            <li><a id="sidebar-link-jwst" href="#jwst-story-section" data-tooltip="JWST Mission" aria-label="Go to JWST Mission section"></a></li>
+            <li><a id="sidebar-link-objectives" href="#objectives-section" data-tooltip="Objectives" aria-label="Go to Objectives section"></a></li>
+            <li><a id="sidebar-link-methods" href="#methods-section" data-tooltip="Methods" aria-label="Go to Methods section"></a></li>
+            <li><a id="sidebar-link-results" href="#results-section" data-tooltip="Results and Discussion" aria-label="Go to Results and Discussion section"></a></li>
+            <li><a id="sidebar-link-conclusions" href="#conclusions-section" data-tooltip="Conclusions" aria-label="Go to Conclusions section"></a></li>
+            <li><a id="sidebar-link-references" href="#references-section" data-tooltip="References" aria-label="Go to References section"></a></li>
+            <li><a id="sidebar-link-extra-resources" href="#extra-resources-section" data-tooltip="Extra Resources" aria-label="Go to Extra Resources section"></a></li>
+        </ul>
+    </nav>
+
+    <a id="site-logo" href="https://www.isunet.edu/" target="_blank" rel="noopener noreferrer" class="no-print" aria-label="International Space University">
+        <img src="assets/ISU_logo.png" alt="ISU Logo">
+    </a>
+
+    <div id="landing-screen" class="no-print">
+        <div id="landing-top-content">
+            <h1>AI for Astrophysics & Planetary<br>Science</h1>
+            <p>An Interactive Exploration of the Cosmos</p>
+        </div>
+        <div id="landing-bottom-content">
+            <div class="creators-list">
+                <p>
+                    <span class="creator">
+                        <img src="https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/il.svg" alt="Flag of Israel" class="creator-flag">
+                        Assaf Shaked
+                    </span> &middot; 
+                    <span class="creator">
+                        <img src="https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/br.svg" alt="Flag of Brazil" class="creator-flag">
+                        Juliana Merege
+                    </span> &middot; 
+                    <span class="creator">
+                        <img src="https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/in.svg" alt="Flag of India" class="creator-flag">
+                        Yankit Kukreja
+                    </span>
+                </p>
+                <p>
+                    <span class="creator">
+                        <img src="https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/ch.svg" alt="Flag of Switzerland" class="creator-flag">
+                        Colin Gross
+                    </span> &middot;
+                    <span class="creator">
+                        <img src="https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/es.svg" alt="Flag of Spain" class="creator-flag">
+                        Michael Cebral
+                    </span> &middot; 
+                    <span class="creator">
+                        <img src="https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/pr.svg" alt="Flag of Puerto Rico" class="creator-flag">
+                        Raul Mariani
+                    </span>
+                </p>
+                <p>
+                    <span class="creator">
+                        <img src="https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/ca.svg" alt="Flag of Canada" class="creator-flag">
+                        Vanessa Van Decker
+                    </span>
+                </p>
+            </div>
+            <div class="scroll-arrow">
+                 <p class="scroll-prompt">Scroll to Explore</p>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5V19"></path>
+                    <path d="M12 19L7 14"></path>
+                    <path d="M12 19L17 14"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <div id="page-content-wrapper">
+        <!-- Spacer to ensure landing page fades out completely before crawl starts -->
+        
+        <!-- === Star Wars Opening Crawl (scroll-driven, centered) === -->
+        <section id="sw-crawl" aria-label="Introductory crawl">
+          <div class="sw-crawl__viewport">
+            <div class="sw-crawl__stage">
+              <div class="sw-crawl__text" role="doc-introduction" aria-describedby="sw-crawl-desc">
+                <p id="sw-crawl-desc" class="visually-hidden">Scroll to read the introduction. Text is tilted with perspective and moves upward as you scroll. A reduced-motion mode shows it flat.</p>
+        
+                <p>A long time ago, in a galaxy far far away the search for habitable worlds began...</p>
+
+                <p>Today this search is powered by mountains of data from missions like Kepler.</p>
+
+                <p>Yet, most Kepler planets are too faint to study their Planetary Habitability Index (PHI) characteristics directly, and ask, “Could life live here?”</p>
+        
+                <p>However, JWST excels at atmospheric spectroscopy. By linking JWST’s insights with Kepler’s vast catalog, AI could unlock advanced, low-cost habitability research.</p>
+
+                <p>The challenge? This data belongs to individual teams, but cross-mission links could extend JWST’s reach to many more worlds.</p>
+
+                <p>This project marks the next step in exoplanet research, moving from AI-based detection to large-scale PHI analysis.</p>
+              </div>
+            </div>
+             <div class="sw-crawl__buttons-container">
+                <button class="sw-crawl__skip" type="button" aria-label="Skip intro">Skip intro ↓</button>
+                <button id="full-abstract-btn" class="sw-crawl__skip" type="button">Full Abstract</button>
+            </div>
+          </div>
+        </section>
+        <!-- === /Star Wars Opening Crawl === -->
+        
+        <header class="no-print">
+             <div class="header-content">
+                <h1 id="header-title">AI for Astrophysics & Planetary Science</h1>
+             </div>
+        </header>
+
+        <main id="interactive-viewport">
+            <!-- This space is intentionally left blank to show the 3D canvas background -->
+        </main>
+        
+        <div id="candidate-text-top" class="transition-text">We have found a candidate!</div>
+        <div id="candidate-text-bottom" class="transition-text">But we need more information...</div>
+
+        <section id="kepler-story-section">
+            <div id="mystic-text-container" class="mystic-text">Let's get closer to see what we find...</div>
+            <div class="sticky-wrapper align-left">
+                <div id="kepler-info-panel" class="glass-panel">
+                    <h3>The Kepler Space Telescope</h3>
+                    <p>Launched in 2009 and decommissioned in 2018, NASA´s Kepler mission revolutionized exoplanet discovery. The Kepler database holds brightness data for about 150,000 stars; by analysing this data, you and scientists can spot tiny dips, called "transits" in the stars' light curves, which suggest the presence of exoplanets orbiting those stars.</p>
+                    <img src="assets/KEPLER.png" alt="An artist's impression of the Kepler Space Telescope." class="panel-image">
+                </div>
+                <div id="transit-info-panel" class="glass-panel">
+                    <h3>Earth Similarity Index (ESI)</h3>
+                    <p>Provides a quantitative 0–1 score measuring an exoplanet’s physical resemblance to Earth in terms of mass and radius. ESI ≥ 0.8 is typically considered “Earth-like.” Although it is not a measure of actual habitability, ESI is useful for filtering large datasets such as the Kepler catalog. Below is an interactive chart showing the concept of transit.</p>
+                    <div id="transit-controls-container"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="jwst-story-section">
+            <div class="sticky-wrapper align-right">
+                <div id="jwst-intro-panel" class="glass-panel glass-panel-green">
+                    <h3>The James Webb Telescope</h3>
+                    <p>As the successor to Hubble, the James Webb Space Telescope is the most powerful and complex space observatory ever built. Its massive, gold-coated mirror and advanced infrared instruments allow it to peer deeper into the cosmos than ever before, capturing the faint light from the very first stars and galaxies, and analyzing the atmospheres of distant exoplanets for signs of life.</p>
+                    <img src="assets/JWST.png" alt="An artist's impression of the James Webb Space Telescope." class="panel-image">
+                </div>
+            </div>
+            <div class="sticky-wrapper align-left">
+                <div id="spectroscopy-info-panel" class="glass-panel glass-panel-green">
+                    <div id="atmosphere-controls-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="objectives-section">
+            <h2>Objectives:</h2>
+            <div class="objectives-container">
+                <div class="objective-box glass-panel glass-panel-red">
+                    <h3>Objective 1:</h3>
+                    <p>Increase the rate of exoplanet candidate validation and PHI characterization by developing AI-driven models.</p>
+                </div>
+                <div class="objective-box glass-panel glass-panel-red">
+                    <h3>Objective 2:</h3>
+                    <p>Establish a cross-mission collaboration framework between space telescopes for unified habitability analysis.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="methods-section">
+            <h2>Methods</h2>
+            <p class="methods-question">How do we build a robust, data-driven pipeline for finding habitable worlds?</p>
+            <div class="methods-diagram-container glass-panel glass-panel-purple">
+                <div class="methods-flow">
+                    <div class="methods-column kepler-pipeline">
+                        <div class="flow-step" data-step="1" role="button" tabindex="0">
+                            <h3>Stage 1: Broad Screening</h3>
+                            <p>A deterministic ESI score is calculated from Kepler's catalog data, while a CNN analyzes light curves to assess signal plausibility.</p>
+                            <div class="info-badge blue-badge">Kepler Data<br>(Free & Open Source)</div>
+                        </div>
+                        <div class="flow-arrow-vertical">&darr;</div>
+                        <div class="flow-step cnn-step" data-step="2" role="button" tabindex="0">
+                            <h3>Pass/Fail Gate</h3>
+                            <p>A candidate passes Stage 1 only if <strong>ESI ≥ 0.8</strong> AND its <strong>Light Curve Score ≥ 0.5</strong>.</p>
+                            <div class="info-badge purple-badge">Dual-Criteria Filter</div>
+                        </div>
+                    </div>
+                    <div class="flow-connector">
+                        <p>~95% of candidates filtered</p>
+                        <div class="flow-connector-line"></div>
+                    </div>
+                    <div class="methods-column jwst-pipeline">
+                        <div class="flow-step" data-step="3" role="button" tabindex="0">
+                            <h3>Stage 2: Targeted Refinement</h3>
+                            <p>AI models, pre-trained on JWST data, analyze Kepler parameters to infer atmospheric properties and calculate a PHI Likelihood score for final ranking.</p>
+                            <div class="info-badge green-badge">AI Trained on<br>JWST Data</div>
+                        </div>
+                        <div class="flow-arrow-vertical">&darr;</div>
+                        <div class="flow-step" data-step="4" role="button" tabindex="0">
+                            <h3>Final Shortlist</h3>
+                            <p>A prioritized list of high-potential targets for in-depth biosignature investigation.</p>
+                            <div class="info-badge yellow-badge">High-Confidence Candidates</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="results-section">
+            <h2>Results and Discussion</h2>
+            <div id="pipeline-container">
+                <!-- Content generated by JS -->
+            </div>
+            <div id="results-discussion" class="glass-panel glass-panel-yellow" style="display: none;">
+                <!-- Discussion content generated by JS -->
+            </div>
+        </section>
+
+        <section id="conclusions-section">
+            <h2>Conclusions</h2>
+            <div class="collapsible-container">
+                <details>
+                    <summary><h4>Future Mission Integration</h4></summary>
+                    <div class="collapsible-content">
+                        <ul>
+                            <li>This AI-driven framework is designed for scalability and can readily integrate data from upcoming missions like the <strong>Nancy Grace Roman Space Telescope</strong>, <strong>PLATO</strong>, and the <strong>Habitable Worlds Observatory</strong>. A multi-mission, multi-wavelength approach will enhance the reliability of our candidate selection by cross-validating detections and refining planetary parameters.</li>
+                        </ul>
+                    </div>
+                </details>
+                <details>
+                    <summary><h4>AI-Driven Habitability Framework</h4></summary>
+                    <div class="collapsible-content">
+                        <ul>
+                            <li>Our two-stage pipeline illustrates a crucial strategy for modern exoplanet science: leveraging the strengths of different observatories. Stage 1 uses survey telescopes for broad, efficient screening with physics-based metrics (ESI) and signal validation (LC CNN). Stage 2 applies resource-intensive assets like JWST for targeted, in-depth analysis of the most promising candidates using sophisticated spectral and likelihood models.</li>
+                        </ul>
+                    </div>
+                </details>
+                 <details>
+                    <summary><h4>Prioritized Target Selection</h4></summary>
+                    <div class="collapsible-content">
+                        <ul>
+                            <li>The primary outcome is a dynamically updated, statistically robust shortlist of high-potential targets. By acknowledging the reality that most Kepler targets lack JWST spectra, our pipeline correctly prioritizes candidates that either have existing data or show exceptional promise based on MLP likelihood, ensuring that precious observatory time is allocated with maximum efficiency.</li>
+                        </ul>
+                    </div>
+                </details>
+                 <details>
+                    <summary><h4>Reproducibility and Scalability</h4></summary>
+                    <div class="collapsible-content">
+                        <ul>
+                            <li>This framework emphasizes reproducibility by embedding all model weights, preprocessing parameters, and decision thresholds directly within the application. This ensures that the analysis is transparent and repeatable, establishing a consistent methodology for comparing candidates across different missions and accelerating the collective scientific search for habitable worlds.</li>
+                        </ul>
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <section id="references-section">
+            <h2>References</h2>
+            <ol class="references-list">
+                <li>Alderson, L., Sing, D.K., Doyon, R., Spake, J.J., Evans, T.M., Lagage, P.O., et al. (2025) A JWST transit of a Jupiter analog. Nature, 631, pp.95–100. DOI: 10.1038/s41586-025-09876-2.</li>
+                <li>Ansdell, M., Ioannou, Y., Osborn, H.P., Sasdelli, M., Smith, J.C., Jenkins, J.M., Raissi, C. & Angerhausen, D. (2018) ‘Scientific domain knowledge improves exoplanet transit classification with deep learning’. Available at: https://arxiv.org/abs/1810.13434</li>
+                <li>Chopra, A. and Lineweaver, C.H. (2016) The case for a Gaian bottleneck: The biology of habitability. Astrobiology, 16(1), pp.7–22. Mary Ann Liebert, New Rochelle, USA. DOI: 10.1089/ast.2015.1387.</li>
+                <li>Malik, A., Moster, B.P. & Obermeier, C. (2021) ‘Exoplanet detection using machine learning’. Available at: https://arxiv.org/abs/2011.14135</li>
+                <li>Rao, S., Mahabal, A., Rao, N. & Raghavendra, C. (2021) ‘Nigraha: Machine-learning based pipeline to identify and evaluate planet candidates from TESS.’ Monthly Notices of the Royal Astronomical Society, 502(2), pp.2845–2858. DOI: 10.1093/mnras/stab203. Available at: https://arxiv.org/abs/2101.09734</li>
+                <li>Shallue, C.J., Thompson, S.E. & Christiansen, J.L. (2021) Single transit detection in Kepler with machine learning and onboard spacecraft diagnostics. Publications of the Astronomical Society of the Pacific, 133(1031), 064501.</li>
+                <li>Schulze-Makuch, D., Méndez, A., Fairén, A.G., von Paris, P., Turse, C., Boyer, G., Davila, A.F., Resendes de Sousa António, M., Catling, D. & Irwin, L.N. (2011) A two-tiered approach to assessing the habitability of exoplanets. Astrobiology, 11(10), pp.1041–1052. DOI: 10.1089/ast.2010.0592.</li>
+                <li>Valizadegan, H., Martinho, M.J.S., Wilkens, L.S., Jenkins, J.M., Smith, J.C., Caldwell, D.A., Twicken, J.D., Gerum, P.C.L., Walia, N., Hausknecht, K., Lubin, N.Y., Bryson, S.T. & Oza, N.C. (2022) ExoMiner: A highly accurate and explainable deep learning classifier that validates 301 new exoplanets. Astrophysical Journal, 926(2), 120.</li>
+                <li>PHL @ UPR Arecibo - Habitable Worlds Catalog [WWW Document], n.d. URL https://phl.upr.edu/hwc (accessed 11.10.25).</li>
+                <li>Schulze-Makuch, D., Méndez, A., Fairén, A.G., von Paris, P., Turse, C., Boyer, G., Davila, A.F., António, M.R. de S., Catling, D., Irwin, L.N., 2011. A Two-Tiered Approach to Assessing the Habitability of Exoplanets. Astrobiology 11, 1041–1052. https://doi.org/10.1089/ast.2010.0592.</li>
+            </ol>
+        </section>
+
+        <section id="extra-resources-section">
+            <h2>Extra Resources</h2>
+            <div class="glass-panel abstract-container">
+                <h3>Full Abstract</h3>
+                <p>The search for habitable worlds beyond our Solar System has evolved rapidly, driven by the legacy of the Kepler Space Telescope in 2009. Even after retirement in 2018, Kepler’s dataset continues to inspire methodologies in exoplanet detection, classification, and validation through artificial intelligence (AI) and cross-mission collaboration.</p>
+                <p>Yet, most Kepler planets remain too faint and distant for direct habitability characterization, constrained by signal-to-noise limits and orbital geometry. This can be addressed through the combined use of James Webb Space Telescope (JWST) data and AI-driven analysis.</p>
+                <p>Research has begun exploring correlations between Kepler’s photometric data and atmospheric properties by comparing light-curve features with simulated refraction patterns. This line of inquiry demonstrates that Kepler’s archive can serve as the foundation for habitability inference when enhanced by JWST observations.</p>
+                <p>A challenge is that the intellectual property (IP) rights of JWST biosignature images typically remain with individual principal investigators, making large-scale AI training datasets difficult to assemble. Nonetheless, shared access would yield an invaluable resource for exoplanet science.</p>
+                <p>AI capabilities open the door to integrating datasets from different space observatories, allowing models to bridge missions and accelerate the detection of potentially habitable exoplanets. The integration of scientific domain knowledge into deep-learning classifiers proved that hybrid astrophysical–neural models outperform purely data-driven systems.</p>
+                <p>This project proposes an interactive platform that unites recent advances in AI and astrophysical modelling while recommending integration of spectral and physical parameters with a two step process utilizing the Earth Similarity Index (ESI) and Planet Habitability Index (PHI).</p>
+                <p>Very recently, the first cross-mission analysis between Kepler and JWST focused on Kepler-167e Jupiter-like exoplanet, demonstrating that Kepler’s archival photometric data can be directly integrated with infrared observations.</p>
+                <p>This project aims to reflect a logical progression: from AI-powered detection to detailed habitability study, establishing a framework for comparing distant worlds with our own.</p>
+            </div>
+        </section>
+
+        <footer class="print-section">
+        </footer>
+    </div>
+
+    <div id="method-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content glass-panel glass-panel-purple" role="document">
+            <div class="modal-header">
+                <h3 id="modal-title"></h3>
+                <button class="modal-close" aria-label="Close dialog">&times;</button>
+            </div>
+            <div id="modal-body" class="modal-body"></div>
+        </div>
+    </div>
+    
+    <div id="spectroscopy-info-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="spectroscopy-modal-title">
+        <div class="modal-content glass-panel glass-panel-green" role="document">
+            <div class="modal-header">
+                <h3 id="spectroscopy-modal-title">About this Simulation</h3>
+                <button class="modal-close" aria-label="Close dialog">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>This chart simulates how astronomers use the <strong>James Webb Space Telescope (JWST)</strong> to study exoplanet atmospheres. It is a simplified model for educational purposes.</p>
+                <h4>How it Works:</h4>
+                <p>When a planet passes in front of its star, some starlight shines through its atmosphere. Different gases in the atmosphere absorb light at specific wavelengths (colors), creating a unique "fingerprint" or spectrum.</p>
+                <ul>
+                    <li>The <strong>dips in the graph</strong> represent light being absorbed by gases like water (H₂O) or methane (CH₄).</li>
+                    <li>The <strong>height of a dip</strong> indicates how much of a gas might be present.</li>
+                </ul>
+                <p>By analyzing this spectrum, scientists can determine what an exoplanet's atmosphere is made of, providing crucial clues in the search for habitable worlds.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="info-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="info-modal-title">
+        <div class="modal-content glass-panel glass-panel-yellow" role="document">
+            <div class="modal-header">
+                <h3 id="info-modal-title"></h3>
+                <button class="modal-close" aria-label="Close dialog">&times;</button>
+            </div>
+            <div id="info-modal-body" class="modal-body"></div>
+        </div>
+    </div>
+
+    <div id="fullscreen-container" class="no-print">
+        <span id="fullscreen-prompt">Click for a cosmic experience!</span>
+        <button id="fullscreen-btn" aria-label="Enter fullscreen" title="Enter fullscreen">
+            <svg id="icon-expand" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M3 9V3h6M21 15v6h-6"/></svg>
+            <svg id="icon-compress" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M3 15h6v6M21 9h-6V3M15 21h6v-6M9 3H3v6"/></svg>
+        </button>
+    </div>
+
+    <script type="module" src="index.js"></script>
+<script>
+(function(){
+  const section = document.getElementById('sw-crawl');
+  if(!section) return;
+  const stage = section.querySelector('.sw-crawl__stage');
+  const skipBtn = section.querySelector('.sw-crawl__skip');
+  const fullAbstractBtn = document.getElementById('full-abstract-btn');
+  const extraResourcesSection = document.getElementById('extra-resources-section');
+
+  function update(){
+    const viewportH = window.innerHeight;
+    const total = section.offsetHeight - viewportH; // scrollable distance within this section
+    const rect = section.getBoundingClientRect();
+    const scrolled = Math.min(Math.max(-rect.top, 0), total);
+    const progress = total > 0 ? (scrolled / total) : 0;
+    stage.style.setProperty('--sw-progress', progress.toFixed(4));
+  }
+  document.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+        const sectionBottom = section.getBoundingClientRect().bottom + window.scrollY;
+        window.scrollTo({
+            top: sectionBottom,
+            behavior: 'smooth'
+        });
+    });
+  }
+  
+  if (fullAbstractBtn && extraResourcesSection) {
+    fullAbstractBtn.addEventListener('click', () => {
+        extraResourcesSection.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+})();
+</script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
