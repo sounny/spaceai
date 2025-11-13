@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  base: "/poster-ai-health/",
+  base: "/spaceai/posters/AI_for_Life_Sciences_and_Human_Spaceflight/",
   root: path.resolve(__dirname, "client"),
   plugins: [react()],
   resolve: {
