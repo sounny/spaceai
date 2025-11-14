@@ -1765,8 +1765,6 @@ function renderPipelineLayout(container) {
             <ul class="limitations-list">
                 <li><strong>Data & Observational Constraints:</strong> Access to JWST observation time remains a major barrier to constructing an open-access atmospheric database of Kepler planets suitable for large-scale AI training. The proprietary nature of JWST data and limited scheduling opportunities restrict the ability to create a training database for cross-mission analysis.</li>
                 <li><strong>AI Model & Interpretation:</strong> The AI-derived results represent atmospheric inferences rather than direct measurements. While these models can identify trends and predict likely atmospheric properties to compute PHI, they do not replace spectroscopic confirmation. Promising candidates identified by the AI would still require targeted follow-up direct observations for verification and further study.</li>
-                <li><strong>Instrument Limitations:</strong> A complete habitability assessment remains fundamentally limited by current observational capabilities. Without direct planetary exploration, habitability metrics must rely on indirect evidence, such as spectral signatures, orbital dynamics, and energy balance, interpreted through the lens of our existing instruments.</li>
-                <li><strong>The Search is a Marathon:</strong> This framework is a tool for prioritization, not a finish line. Each shortlisted candidate requires extensive, multi-faceted follow-up observations to move from "potential candidate" to "confirmed habitable world".</li>
             </ul>
         </div>
     `;
