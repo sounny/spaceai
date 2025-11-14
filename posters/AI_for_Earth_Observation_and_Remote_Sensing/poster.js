@@ -72,7 +72,7 @@ function initTimelineCubes3D() {
   const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 2, Math.PI / 3, 15, BABYLON.Vector3.Zero(), scene);
   camera.attachControl(canvas, true);
   camera.lowerRadiusLimit = 10;
-  camera.upperRadiusLimit = 25;
+  camera.upperRadiusLimit = 10;
 
   // Lighting
   const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene);
@@ -86,7 +86,7 @@ function initTimelineCubes3D() {
   ];
 
   const cubes = [];
-  const spacing = 4;
+  const spacing = 9;
 
   milestones.forEach((milestone, i) => {
     const box = BABYLON.MeshBuilder.CreateBox('cube' + i, { size: 2 }, scene);
@@ -114,7 +114,7 @@ function initTimelineCubes3D() {
         const tooltipTexts = [
           '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Downstream (2031–2035)</caption><thead><tr><th>Objective</th><th>Action</th><th>End Users / Partners</th></tr></thead><tbody><tr><td>Farmer services</td><td>AI-driven advisories via SMS / WhatsApp on planting, irrigation, and stress alerts</td><td>Farmers / Cooperatives</td></tr><tr><td>Climate-risk finance</td><td>Integrate vegetation indices into micro-insurance and credit tools</td><td>Banks / Insurers</td></tr><tr><td>Policy alignment</td><td>Standardize EO indicators for SDG 2.4 (sustainable agriculture)</td><td>Ministries / AU / FAO</td></tr><tr><td>GeoAI Observatory</td><td>Create a continental innovation hub with open APIs for AgTech startups</td><td>AfSA / UNOOSA / ISU</td></tr></tbody></table><p><strong>Outcome:</strong> GeoAI insights translated into actionable, localized decisions that directly support farmers and national food systems.</p>',
           '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Midstream (2027–2031)</caption><thead><tr><th>Objective</th><th>Application</th><th>Tools / Outputs</th></tr></thead><tbody><tr><td>Forecast vegetation &amp; yield</td><td>Temporal CNN/Transformer models for crop stress and yield prediction</td><td>TensorFlow + GEE</td></tr><tr><td>Integrate climate &amp; soil</td><td>Fuse Sentinel + CHIRPS + SoilGrids + ET<sub>0</sub> for evapotranspiration &amp; moisture mapping</td><td>GeoAI ET Fusion Models</td></tr><tr><td>Policy dashboards</td><td>Develop interactive dashboards for vegetation and rainfall anomalies</td><td>GEE Apps / Leaflet</td></tr><tr><td>Digital twin</td><td>Simulate agricultural scenarios across Africa</td><td>ESA Φ-Lab / DESTIN-E</td></tr></tbody></table><p><strong>Outcome:</strong> Operational AI systems predicting drought, crop yield, and irrigation demand.</p>',
-          '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Upstream (2025–2027)</caption><thead><tr><th>Objective</th><th>Activity</th><th>Partners / Outputs</th></tr></thead><tbody><tr><td>Build EO–AI foundation</td><td>Integrate Sentinel-1, 2, 3 &amp; 5P into unified African data cubes</td><td>ESA / Copernicus / AfSA</td></tr><tr><td>Scalable processing</td><td>Deploy cloud-native GEE environments hosted in Africa</td><td>GMES &amp; Africa / RCMRD</td></tr></tbody></table>',
+          '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;"><caption style="caption-side: top; text-align: left; font-weight: bold;">Upstream (2025–2027)</caption><thead><tr><th>Objective</th><th>Activity</th><th>Partners / Outputs</th></tr></thead><tbody><tr><td>Build EO–AI foundation</td><td>Integrate Sentinel-1, 2, 3 &amp; 5P into unified African data cubes</td><td>ESA / Copernicus / AFSA</td></tr><tr><td>Scalable processing</td><td>Deploy cloud-native GEE environments hosted in Africa</td><td>GMES &amp; Africa / RCMRD</td></tr></tbody></table>',
         ];
         tooltip.innerHTML = tooltipTexts[i];
         tooltip.style.display = 'block';
